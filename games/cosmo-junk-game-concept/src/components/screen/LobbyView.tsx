@@ -37,7 +37,10 @@ export default function LobbyView({
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    const url = `${window.location.origin}/play/${room.code}`;
+    const customBase = (window as any).__COSMO_JOIN_BASE__;
+    const url = customBase
+      ? `${customBase}#/play/${room.code}`
+      : `${window.location.origin}/play/${room.code}`;
     setJoinUrl(url);
     QRCode.toDataURL(url, {
       margin: 1,

@@ -165,7 +165,10 @@ export default function PhoneClient({ code }: { code: string }) {
       <div className="relative flex min-h-dvh flex-col items-center justify-center gap-6 overflow-hidden px-6">
         <div
           className="absolute inset-0 bg-cover bg-center opacity-40"
-          style={{ backgroundImage: "url(/images/nebula.jpg)" }}
+          style={{
+            backgroundImage:
+              "radial-gradient(ellipse at 22% 28%, rgba(88, 224, 255, 0.24), transparent 55%), radial-gradient(ellipse at 78% 68%, rgba(255, 72, 164, 0.2), transparent 55%), radial-gradient(circle at 50% 50%, #101b33 0%, #060a14 100%)",
+          }}
         />
         <div className="crt-scan" />
         <div className="relative z-10 flex w-full max-w-sm flex-col items-center gap-6">

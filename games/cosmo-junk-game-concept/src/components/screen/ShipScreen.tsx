@@ -295,7 +295,10 @@ export default function ShipScreen({ code }: { code: string }) {
         <>
           <div
             className="absolute inset-0 bg-cover bg-center opacity-45"
-            style={{ backgroundImage: "url(/images/nebula.jpg)" }}
+            style={{
+              backgroundImage:
+                "radial-gradient(ellipse at 22% 28%, rgba(88, 224, 255, 0.24), transparent 55%), radial-gradient(ellipse at 78% 68%, rgba(255, 72, 164, 0.2), transparent 55%), radial-gradient(circle at 50% 50%, #101b33 0%, #060a14 100%)",
+            }}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-[#04060e]/70 via-transparent to-[#04060e]" />
           <div className="crt-scan" />

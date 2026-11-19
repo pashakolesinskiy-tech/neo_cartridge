@@ -16,13 +16,16 @@ import fs from "node:fs";
 import process from "node:process";
 
 const HERE = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
-// node_modules + исходники берём из рабочего репозитория (там, где делали npm install).
+const SRC_ROOT = path.resolve(HERE, "..");
+// node_modules берём из рабочего репозитория (там, где делали npm install).
 // По умолчанию — D:\Projects\cosmo-junk-game-concept; можно переопределить:
 //   COSMO_BUILD_ROOT=D:\path\to\repo node standalone/build.mjs
-const PROJECT = fs.existsSync(process.env.COSMO_BUILD_ROOT ?? "")
+const NODE_MODULES_ROOT = fs.existsSync(process.env.COSMO_BUILD_ROOT ?? "")
   ? path.resolve(process.env.COSMO_BUILD_ROOT)
+  : fs.existsSync(path.join(SRC_ROOT, "node_modules"))
+  ? SRC_ROOT
   : "D:\\Projects\\cosmo-junk-game-concept";
-const require = createRequire(path.join(PROJECT, "no-such-file.js"));
+const require = createRequire(path.join(NODE_MODULES_ROOT, "no-such-file.js"));
 
 const esbuild = require("esbuild");
 
@@ -33,14 +36,14 @@ fs.mkdirSync(path.join(HERE, "assets"), { recursive: true });
 // ---------- 1) JS бандл ----------
 const EXT_ORDER = ["", ".ts", ".tsx", ".js", ".jsx", "/index.ts", "/index.tsx", "/index.js", "/index.jsx"];
 
-// Плагин: "@/lib/game/sim" → <PROJECT>/src/lib/game/sim(.tsx?|.ts?|/index.ts...)
+// Плагин: "@/lib/game/sim" → <SRC_ROOT>/src/lib/game/sim(.tsx?|.ts?|/index.ts...)
 const atAlias = {
   name: "at-alias",
   setup(build) {
     build.onResolve({ filter: /^@\/.*/ }, (args) => {
       const sub = args.path.slice(2);
       for (const ext of EXT_ORDER) {
-        const candidate = path.join(PROJECT, "src", sub + ext);
+        const candidate = path.join(SRC_ROOT, "src", sub + ext);
         if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
           return { path: candidate };
         }
@@ -67,7 +70,7 @@ const result = await esbuild.build({
   minify: true,
   alias,
   plugins: [atAlias],
-  nodePaths: [path.join(PROJECT, "node_modules")],
+  nodePaths: [path.join(NODE_MODULES_ROOT, "node_modules")],
   define: {
     "process.env.NODE_ENV": '"production"',
   },
@@ -76,15 +79,15 @@ const result = await esbuild.build({
 void result;
 
 // ---------- 2) CSS (Tailwind v4) ----------
-process.chdir(PROJECT); // чтобы автодетект источников видел src/** и standalone/**
+process.chdir(SRC_ROOT); // чтобы автодетект источников видел src/** и standalone/**
 const postcssMod = require("postcss");
 const postcss = postcssMod.default ?? postcssMod;
 const twMod = require("@tailwindcss/postcss");
 const tailwind = twMod.default ?? twMod;
 
-const cssIn = fs.readFileSync(path.join(PROJECT, "src", "app", "globals.css"), "utf8");
-const cssOut = await postcss([tailwind()]).process(cssIn, {
-  from: path.join(PROJECT, "src", "app", "globals.css"),
+const cssIn = fs.readFileSync(path.join(SRC_ROOT, "src", "app", "globals.css"), "utf8");
+const cssOut = await postcss([tailwind({ base: SRC_ROOT })]).process(cssIn, {
+  from: path.join(NODE_MODULES_ROOT, "src", "app", "globals.css"),
   to: OUT_CSS,
 });
 fs.writeFileSync(OUT_CSS, cssOut.css, "utf8");
@@ -92,7 +95,7 @@ fs.writeFileSync(OUT_CSS, cssOut.css, "utf8");
 // ---------- 3) иконка ----------
 try {
   fs.copyFileSync(
-    path.join(PROJECT, "src", "app", "icon.svg"),
+    path.join(SRC_ROOT, "src", "app", "icon.svg"),
     path.join(HERE, "assets", "icon.svg")
   );
 } catch {
@@ -102,7 +105,7 @@ try {
 const kb = (f) => (fs.statSync(f).size / 1024).toFixed(1);
 console.log("");
 console.log("Готово:");
-console.log(`  ${path.relative(PROJECT, OUT_JS)}  (${kb(OUT_JS)} KB)`);
-console.log(`  ${path.relative(PROJECT, OUT_CSS)}  (${kb(OUT_CSS)} KB)`);
+console.log(`  ${path.relative(SRC_ROOT, OUT_JS)}  (${kb(OUT_JS)} KB)`);
+console.log(`  ${path.relative(SRC_ROOT, OUT_CSS)}  (${kb(OUT_CSS)} KB)`);
 console.log("");
 console.log("Запуск игры на хост-устройстве:  node standalone/server.js  (без npm install)");

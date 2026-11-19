@@ -1,547 +1,950 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>COSMO JUNK // NEO-CARTRIDGE</title>
-<style>
-  :root {
-    --bg: #04060c;
-    --panel: rgba(8, 15, 28, 0.94);
-    --line: rgba(59, 130, 246, 0.35);
-    --accent: #3b82f6;
-    --accent-soft: #60a5fa;
-    --phosphor: #7dd3fc;
-    --danger: #ff3b5b;
-    --ok: #3bff8f;
-    --text: #dbeafe;
-    --muted: #7b8ba6;
-    --font: "JetBrains Mono", "Consolas", "Courier New", monospace;
-  }
+<!doctype html>
+<html lang="ru" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="theme-color" content="#04060e" />
+    <title>COSMO JUNK // NEO-CARTRIDGE</title>
+    <link rel="icon" type="image/svg+xml" href="cosmo-junk-game-concept/standalone/assets/icon.svg" />
+    <link rel="stylesheet" href="cosmo-junk-game-concept/standalone/assets/app.css" />
+    <style>
+      :root {
+        --cj-bar-h: 36px;
+        --cj-void: #04060e;
+        --cj-neon: #57e6e6;
+        --cj-amber: #ffb000;
+        --cj-alarm: #ff3b5b;
+      }
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: var(--cj-void);
+        color: #d9f3ff;
+        font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        overflow-x: hidden;
+      }
+      body.cj-embed {
+        --cj-bar-h: 0px;
+      }
+      #cj-topbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 36px;
+        z-index: 9000;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 10px;
+        background: rgba(5, 10, 22, 0.94);
+        border-bottom: 1px solid rgba(87, 230, 230, 0.35);
+        backdrop-filter: blur(8px);
+        font-size: 11px;
+        user-select: none;
+      }
+      body.cj-embed #cj-topbar {
+        display: none !important;
+      }
+      .cj-brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+      }
+      .cj-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #4ef58a;
+        box-shadow: 0 0 8px #4ef58a;
+        flex-shrink: 0;
+      }
+      .cj-dot.lan {
+        background: var(--cj-amber);
+        box-shadow: 0 0 8px var(--cj-amber);
+      }
+      .cj-title {
+        font-family: "Press Start 2P", "Roboto Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        color: var(--cj-neon);
+        white-space: nowrap;
+      }
+      .cj-badge {
+        padding: 2px 6px;
+        border: 1px solid rgba(87, 230, 230, 0.4);
+        color: #9be7f2;
+        background: rgba(87, 230, 230, 0.08);
+        font-size: 10px;
+        letter-spacing: 0.05em;
+        white-space: nowrap;
+      }
+      .cj-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .cj-btn {
+        appearance: none;
+        border: 1px solid rgba(87, 230, 230, 0.45);
+        background: rgba(11, 22, 42, 0.9);
+        color: #d9faff;
+        padding: 4px 8px;
+        font-family: inherit;
+        font-size: 10px;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.14s ease;
+        white-space: nowrap;
+      }
+      .cj-btn:hover {
+        border-color: var(--cj-neon);
+        background: rgba(87, 230, 230, 0.18);
+        color: #ffffff;
+      }
+      .cj-btn.active {
+        border-color: var(--cj-amber);
+        background: rgba(255, 176, 0, 0.2);
+        color: #ffe29a;
+      }
+      .cj-btn-amber {
+        border-color: rgba(255, 176, 0, 0.55);
+        color: #ffd37a;
+      }
+      #cj-workspace {
+        padding-top: var(--cj-bar-h);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: row;
+        position: relative;
+      }
+      #root {
+        flex: 1 1 auto;
+        min-width: 0;
+        min-height: calc(100vh - var(--cj-bar-h));
+        position: relative;
+      }
+      /* Docked phone controller drawer for solo / 1-screen play */
+      #cj-deck-panel {
+        width: 370px;
+        max-width: 44vw;
+        height: calc(100vh - var(--cj-bar-h));
+        position: sticky;
+        top: var(--cj-bar-h);
+        border-left: 2px solid rgba(87, 230, 230, 0.45);
+        background: #050914;
+        display: none;
+        flex-direction: column;
+        z-index: 8500;
+        flex-shrink: 0;
+        box-shadow: -12px 0 32px rgba(0, 0, 0, 0.65);
+      }
+      #cj-deck-panel.open {
+        display: flex;
+      }
+      .cj-deck-hdr {
+        height: 30px;
+        padding: 0 8px;
+        background: #081226;
+        border-bottom: 1px solid rgba(87, 230, 230, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 10px;
+        color: var(--cj-neon);
+      }
+      .cj-deck-tabs {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .cj-slot-btn {
+        border: 1px solid rgba(87, 230, 230, 0.35);
+        background: rgba(6, 15, 30, 0.9);
+        color: #9ecbd9;
+        font-size: 9px;
+        padding: 2px 6px;
+        cursor: pointer;
+      }
+      .cj-slot-btn.active {
+        border-color: var(--cj-amber);
+        color: #ffe29a;
+        background: rgba(255, 176, 0, 0.18);
+      }
+      #cj-deck-frame {
+        flex: 1;
+        width: 100%;
+        border: 0;
+        background: #04060e;
+      }
+      /* LAN modal */
+      #cj-lan-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 9500;
+        background: rgba(2, 5, 12, 0.82);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+      }
+      #cj-lan-modal.open {
+        display: flex;
+      }
+      .cj-modal-card {
+        width: 100%;
+        max-width: 460px;
+        background: #081122;
+        border: 2px solid var(--cj-neon);
+        box-shadow: 0 0 30px rgba(87, 230, 230, 0.25);
+        padding: 16px;
+        font-size: 12px;
+      }
+      .cj-modal-card h3 {
+        margin: 0 0 8px 0;
+        font-family: "Press Start 2P", monospace;
+        font-size: 12px;
+        color: var(--cj-neon);
+      }
+      .cj-input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px 10px;
+        background: #040811;
+        border: 1px solid rgba(87, 230, 230, 0.5);
+        color: #e8fcff;
+        font-family: inherit;
+        font-size: 12px;
+        margin: 8px 0 12px;
+      }
+      @media (max-width: 820px) {
+        #cj-workspace {
+          flex-direction: column;
+        }
+        #cj-deck-panel {
+          width: 100%;
+          max-width: 100%;
+          height: 54vh;
+          position: fixed;
+          top: auto;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          border-left: 0;
+          border-top: 2px solid var(--cj-neon);
+        }
+        .cj-badge {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body class="min-h-screen antialiased selection:bg-[#57e6e6] selection:text-[#04060e]">
+    <script>
+      (function () {
+        const params = new URLSearchParams(window.location.search);
+        const isEmbed = params.get("embed") === "1";
+        const slotId = params.get("slot") || "1";
+        if (isEmbed) {
+          document.body.classList.add("cj-embed");
+          // Isolated sessionStorage per embedded controller slot so multiple crew tabs/slots can join on 1 PC
+          try {
+            const memSession = new Map();
+            const prefix = "cj_slot_" + slotId + "_";
+            const customSession = {
+              getItem(k) {
+                if (memSession.has(k)) return memSession.get(k);
+                try { return window.localStorage.getItem(prefix + k); } catch { return null; }
+              },
+              setItem(k, v) {
+                const s = String(v);
+                memSession.set(k, s);
+                try { window.localStorage.setItem(prefix + k, s); } catch {}
+              },
+              removeItem(k) {
+                memSession.delete(k);
+                try { window.localStorage.removeItem(prefix + k); } catch {}
+              },
+              clear() {
+                memSession.clear();
+              }
+            };
+            Object.defineProperty(window, "sessionStorage", {
+              get: () => customSession,
+              configurable: true
+            });
+          } catch {}
+        }
 
-  * { box-sizing: border-box; }
+        // Enable hash-based routing so /ship/CODE & /play/CODE work without a server on GitHub Pages / file://
+        window.__COSMO_HASH_ROUTER__ = true;
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.__COSMO_JOIN_BASE__ = cleanUrl;
 
-  html, body {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font);
-  }
+        // =========================================================================
+        // BUILT-IN ZERO-SERVER VIRTUAL BACKEND (/api/*) + CROSS-FRAME / TAB SYNC
+        // =========================================================================
+        const STORAGE_ROOMS_KEY = "cosmo_junk_v1_rooms";
+        const STORAGE_LB_KEY = "cosmo_junk_v1_leaderboard";
+        const STORAGE_LAN_KEY = "cosmo_junk_v1_lan_server";
+        const ROLES = ["pilot", "engineer", "gunner", "navigator"];
+        const ADJ = ["РЖАВЫЙ", "ХРОМОЙ", "ДЫРЯВЫЙ", "СКРИПУЧИЙ", "КОПЧЁНЫЙ", "БЕЗУМНЫЙ", "ПЬЯНЫЙ", "ВЕЗУЧИЙ", "СВЕТЯЩИЙСЯ", "ГРОМКИЙ"];
+        const NOUN = ["БАКЛАН", "БОЛТ", "ПЫЛЕСОС", "САМОВАР", "ПЕПЕЛАЦ", "ТАРАНТАС", "КАРАСЬ", "УТЮГ", "ШПateЛЬ", "ЧЕМОДАН"];
+        const CALLSIGNS = ["ГАЙКА", "ШПЛИНТ", "КЛЕЙ", "ШЛАНГ", "ЗАКЛЁПКА", "ТРУБА", "ФИТИЛЬ", "КЛЮЧ", "ПОРШЕНЬ", "ШАЙБА", "ВИНТ", "ЗУБИЛО"];
+        const HOST_TIMEOUT = 7000;
+        const PLAYER_TIMEOUT = 9000;
+        const CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 
-  body {
-    display: flex;
-    flex-direction: column;
-    -webkit-tap-highlight-color: transparent;
-  }
+        const defaultLeaderboard = [
+          {
+            id: "seed-1",
+            createdAt: Date.now() - 86400000 * 3,
+            shipName: "РЖАВЫЙ ПЕПЕЛАЦ",
+            crew: JSON.stringify([{ name: "ГАЙКА", role: "pilot" }, { name: "ШПЛИНТ", role: "gunner" }]),
+            score: 1840,
+            rankCode: "S",
+            rankTitle: "ГЕРОИ ПОЯСА КОЙПЕРА",
+            hull: 84,
+            progress: 100,
+            won: true,
+            resolved: 7,
+            kills: 29,
+            bots: 2,
+            durationSec: 180
+          },
+          {
+            id: "seed-2",
+            createdAt: Date.now() - 86400000 * 2,
+            shipName: "КОПЧЁНЫЙ САМОВАР",
+            crew: JSON.stringify([{ name: "ПОРШЕНЬ", role: "pilot" }, { name: "ЗАКЛЁПКА", role: "engineer" }]),
+            score: 1420,
+            rankCode: "A",
+            rankTitle: "СТАРШИЕ МУСОРЩИКИ",
+            hull: 61,
+            progress: 100,
+            won: true,
+            resolved: 5,
+            kills: 21,
+            bots: 2,
+            durationSec: 180
+          },
+          {
+            id: "seed-3",
+            createdAt: Date.now() - 86400000,
+            shipName: "БЕЗУМНЫЙ БАКЛАН",
+            crew: JSON.stringify([{ name: "ФИТИЛЬ", role: "navigator" }]),
+            score: 960,
+            rankCode: "B",
+            rankTitle: "КОСМИЧЕСКИЕ БРОДЯГИ",
+            hull: 38,
+            progress: 82,
+            won: false,
+            resolved: 4,
+            kills: 15,
+            bots: 3,
+            durationSec: 145
+          }
+        ];
 
-  /* ---------- Верхняя служебная панель ---------- */
-  .cj-bar {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    height: 42px;
-    padding: 0 12px;
-    background: linear-gradient(180deg, #0a1524 0%, #060c16 100%);
-    border-bottom: 1px solid var(--line);
-    box-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
-    z-index: 20;
-    user-select: none;
-  }
+        // Shared state store (shared across parent + docked controller iframe if same-origin, plus localStorage)
+        function getSharedBus() {
+          try {
+            if (isEmbed && window.parent && window.parent !== window && window.parent.__COSMO_BUS__) {
+              return window.parent.__COSMO_BUS__;
+            }
+          } catch {}
+          if (!window.__COSMO_BUS__) {
+            let savedRooms = {};
+            let savedLb = null;
+            try {
+              const rawR = window.localStorage.getItem(STORAGE_ROOMS_KEY);
+              if (rawR) savedRooms = JSON.parse(rawR) || {};
+            } catch {}
+            try {
+              const rawL = window.localStorage.getItem(STORAGE_LB_KEY);
+              if (rawL) savedLb = JSON.parse(rawL);
+            } catch {}
+            if (!Array.isArray(savedLb) || savedLb.length === 0) {
+              savedLb = defaultLeaderboard;
+            }
+            const bus = {
+              rooms: savedRooms,
+              leaderboard: savedLb,
+              activeRoomCode: "",
+              bc: typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("cosmo_junk_bus_v1") : null,
+              saveRooms() {
+                try {
+                  window.localStorage.setItem(STORAGE_ROOMS_KEY, JSON.stringify(this.rooms));
+                } catch {}
+                try {
+                  this.bc && this.bc.postMessage({ type: "rooms", rooms: this.rooms });
+                } catch {}
+              },
+              saveLb() {
+                try {
+                  window.localStorage.setItem(STORAGE_LB_KEY, JSON.stringify(this.leaderboard));
+                } catch {}
+                try {
+                  this.bc && this.bc.postMessage({ type: "lb", leaderboard: this.leaderboard });
+                } catch {}
+              }
+            };
+            if (bus.bc) {
+              bus.bc.onmessage = (ev) => {
+                const d = ev.data;
+                if (!d) return;
+                if (d.type === "rooms" && d.rooms) bus.rooms = d.rooms;
+                if (d.type === "lb" && Array.isArray(d.leaderboard)) bus.leaderboard = d.leaderboard;
+              };
+            }
+            window.addEventListener("storage", (ev) => {
+              try {
+                if (ev.key === STORAGE_ROOMS_KEY && ev.newValue) {
+                  bus.rooms = JSON.parse(ev.newValue) || bus.rooms;
+                } else if (ev.key === STORAGE_LB_KEY && ev.newValue) {
+                  bus.leaderboard = JSON.parse(ev.newValue) || bus.leaderboard;
+                }
+              } catch {}
+            });
+            window.__COSMO_BUS__ = bus;
+          }
+          return window.__COSMO_BUS__;
+        }
 
-  .cj-brand {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    color: var(--phosphor);
-    white-space: nowrap;
-  }
+        const bus = getSharedBus();
+        const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+        const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
-  .cj-brand .cj-logo {
-    width: 18px;
-    height: 18px;
-    display: grid;
-    place-items: center;
-    border: 1px solid var(--accent);
-    border-radius: 4px;
-    color: var(--accent-soft);
-    font-size: 11px;
-    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
-  }
+        function genCode() {
+          for (let k = 0; k < 40; k++) {
+            let s = "";
+            for (let i = 0; i < 4; i++) s += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)];
+            if (!bus.rooms[s]) return s;
+          }
+          return "CJ99";
+        }
 
-  .cj-status {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    color: var(--muted);
-    white-space: nowrap;
-  }
+        function createRoom(forcedCode) {
+          const code = (forcedCode || genCode()).toUpperCase();
+          const room = {
+            code,
+            shipName: `${pick(ADJ)} ${pick(NOUN)}`,
+            phase: "lobby",
+            createdAt: Date.now(),
+            hostLastSeen: Date.now(),
+            players: [],
+            lastSeen: {},
+            inputs: [],
+            seq: 0,
+            snapshot: null,
+            savedResult: false
+          };
+          bus.rooms[code] = room;
+          bus.activeRoomCode = code;
+          bus.saveRooms();
+          return room;
+        }
 
-  .cj-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #64748b;
-    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
-    transition: background 0.25s ease, box-shadow 0.25s ease;
-  }
+        function pruneRoom(room) {
+          const t = Date.now();
+          room.players = (room.players || []).filter((p) => {
+            const seen = (room.lastSeen && room.lastSeen[p.id]) || p.joinedAt || t;
+            return t - seen <= PLAYER_TIMEOUT;
+          });
+        }
 
-  .cj-dot.online {
-    background: var(--ok);
-    box-shadow: 0 0 8px var(--ok);
-    animation: cj-pulse 1.8s ease-in-out infinite;
-  }
+        function toPublic(room) {
+          pruneRoom(room);
+          return {
+            code: room.code,
+            shipName: room.shipName,
+            phase: room.phase,
+            createdAt: room.createdAt,
+            players: room.players,
+            snapshot: room.snapshot,
+            hostOnline: Date.now() - (room.hostLastSeen || 0) < HOST_TIMEOUT
+          };
+        }
 
-  .cj-dot.offline {
-    background: var(--danger);
-    box-shadow: 0 0 8px var(--danger);
-  }
+        function jsonResp(status, data) {
+          return new Response(JSON.stringify(data), {
+            status,
+            headers: { "Content-Type": "application/json; charset=utf-8" }
+          });
+        }
 
-  .cj-dot.checking {
-    background: #fbbf24;
-    box-shadow: 0 0 8px #fbbf24;
-  }
+        async function handleVirtualApi(urlObj, init) {
+          const pathname = urlObj.pathname.replace(/^.*\/(?=(api\/))/, "/");
+          const method = ((init && init.method) || "GET").toUpperCase();
+          let body = {};
+          if (init && init.body) {
+            try {
+              body = typeof init.body === "string" ? JSON.parse(init.body) : init.body;
+            } catch {}
+          }
 
-  @keyframes cj-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.45; }
-  }
+          if (method === "GET" && pathname === "/api/health") {
+            return jsonResp(200, { ok: true, mode: "zero-server" });
+          }
+          if (method === "GET" && pathname === "/api/server-info") {
+            return jsonResp(200, { urls: [] });
+          }
+          if (method === "POST" && pathname === "/api/rooms") {
+            const room = createRoom();
+            return jsonResp(200, { code: room.code, shipName: room.shipName });
+          }
 
-  .cj-spacer { flex: 1 1 auto; }
+          const mRoom = pathname.match(/^\/api\/rooms\/([^/]+)(?:\/([^/]+))?$/);
+          if (mRoom) {
+            const code = decodeURIComponent(mRoom[1] || "").toUpperCase();
+            const sub = mRoom[2] || "";
+            let room = bus.rooms[code];
 
-  .cj-url {
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 0.04em;
-    max-width: 34vw;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    opacity: 0.8;
-  }
+            // Auto-create room if navigated directly to #/ship/CODE or #/play/CODE
+            if (!room && code && code.length >= 2) {
+              room = createRoom(code);
+            }
+            if (!room) {
+              return jsonResp(404, { error: "NOT_FOUND" });
+            }
 
-  .cj-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    height: 26px;
-    padding: 0 10px;
-    font-family: var(--font);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: var(--accent-soft);
-    background: rgba(59, 130, 246, 0.08);
-    border: 1px solid rgba(59, 130, 246, 0.4);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
-    white-space: nowrap;
-  }
+            if (method === "GET" && !sub) {
+              const isHost = urlObj.searchParams.get("host") === "1";
+              const playerId = urlObj.searchParams.get("player");
+              if (isHost) room.hostLastSeen = Date.now();
+              if (playerId) {
+                room.lastSeen = room.lastSeen || {};
+                room.lastSeen[playerId] = Date.now();
+              }
+              const pub = toPublic(room);
+              if (isHost) {
+                const drained = (room.inputs || []).splice(0, room.inputs.length);
+                bus.saveRooms();
+                return jsonResp(200, { ...pub, inputs: drained });
+              }
+              return jsonResp(200, pub);
+            }
 
-  .cj-btn:hover {
-    background: rgba(59, 130, 246, 0.22);
-    color: #eaf4ff;
-    box-shadow: 0 0 12px rgba(59, 130, 246, 0.45);
-  }
+            if (method === "POST" && sub === "join") {
+              pruneRoom(room);
+              const rawName = String(body.name || "").trim().toUpperCase().slice(0, 14);
+              const existingId = typeof body.playerId === "string" ? body.playerId : null;
+              const preferredRole = typeof body.preferredRole === "string" ? body.preferredRole : null;
+              room.lastSeen = room.lastSeen || {};
 
-  .cj-btn:active { transform: translateY(1px); }
+              if (existingId) {
+                const found = room.players.find((p) => p.id === existingId);
+                if (found) {
+                  if (rawName) found.name = rawName;
+                  if (preferredRole && ROLES.includes(preferredRole)) {
+                    const holder = room.players.find((p) => p.role === preferredRole && p.id !== found.id);
+                    if (!holder) found.role = preferredRole;
+                  }
+                  room.lastSeen[found.id] = Date.now();
+                  bus.saveRooms();
+                  return jsonResp(200, {
+                    playerId: found.id,
+                    role: found.role,
+                    name: found.name,
+                    shipName: room.shipName,
+                    phase: room.phase,
+                    rejoined: true
+                  });
+                }
+              }
 
-  .cj-btn.cj-icon { padding: 0 8px; }
+              const taken = new Set(room.players.map((p) => p.role));
+              let role = "spectator";
+              if (preferredRole && ROLES.includes(preferredRole) && !taken.has(preferredRole)) {
+                role = preferredRole;
+              } else {
+                for (const r of ROLES) {
+                  if (!taken.has(r)) {
+                    role = r;
+                    break;
+                  }
+                }
+              }
 
-  /* ---------- Игровое поле ---------- */
-  .cj-stage {
-    position: relative;
-    flex: 1 1 auto;
-    min-height: 0;
-    background: #000;
-  }
+              const usedNames = new Set(room.players.map((p) => p.name));
+              let callsign = rawName;
+              if (!callsign) {
+                const pool = CALLSIGNS.filter((c) => !usedNames.has(c));
+                callsign = pool.length ? pick(pool) : `${pick(CALLSIGNS)}-${room.players.length + 1}`;
+              }
 
-  #cj-frame {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border: 0;
-    display: block;
-    background: #000;
-  }
+              const player = {
+                id: uid(),
+                name: callsign,
+                role,
+                joinedAt: Date.now()
+              };
+              room.players.push(player);
+              room.lastSeen[player.id] = Date.now();
+              bus.saveRooms();
+              return jsonResp(200, {
+                playerId: player.id,
+                role: player.role,
+                name: player.name,
+                shipName: room.shipName,
+                phase: room.phase,
+                rejoined: false
+              });
+            }
 
-  /* ---------- Оверлей помощи / офлайна ---------- */
-  .cj-overlay {
-    position: absolute;
-    inset: 0;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 18px;
-    background:
-      radial-gradient(circle at 20% 15%, rgba(59, 130, 246, 0.16), transparent 55%),
-      radial-gradient(circle at 82% 78%, rgba(168, 85, 247, 0.14), transparent 55%),
-      rgba(2, 5, 12, 0.92);
-    backdrop-filter: blur(3px);
-    z-index: 30;
-  }
+            if (method === "POST" && sub === "host") {
+              room.hostLastSeen = Date.now();
+              const op = body.op;
+              if (op === "start") {
+                room.phase = "playing";
+                room.inputs = [];
+                room.savedResult = false;
+              } else if (op === "reset") {
+                room.phase = "lobby";
+                room.snapshot = null;
+                room.inputs = [];
+                room.savedResult = false;
+              } else if (op === "snapshot" && body.snapshot) {
+                room.snapshot = body.snapshot;
+                if (body.snapshot.phase === "ended") room.phase = "ended";
+                else if (body.snapshot.phase === "playing") room.phase = "playing";
+              }
+              bus.saveRooms();
+              return jsonResp(200, { ok: true, ...toPublic(room) });
+            }
 
-  .cj-overlay.open { display: flex; }
+            if (method === "POST" && sub === "input") {
+              const { playerId, role, msg } = body;
+              if (!msg || typeof msg.type !== "string") {
+                return jsonResp(400, { error: "BAD_INPUT" });
+              }
+              room.lastSeen = room.lastSeen || {};
+              if (playerId) room.lastSeen[playerId] = Date.now();
+              room.seq = (room.seq || 0) + 1;
+              room.inputs = room.inputs || [];
+              room.inputs.push({ ...msg, playerId, role, seq: room.seq });
+              if (room.inputs.length > 400) room.inputs.splice(0, room.inputs.length - 400);
+              bus.saveRooms();
+              return jsonResp(200, { ok: true });
+            }
+          }
 
-  .cj-panel {
-    width: min(560px, 100%);
-    max-height: 100%;
-    overflow: auto;
-    padding: 20px 22px;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    box-shadow: 0 0 40px rgba(59, 130, 246, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  }
+          if (method === "GET" && pathname === "/api/leaderboard") {
+            const rows = [...(bus.leaderboard || [])]
+              .sort((a, b) => b.score - a.score || b.createdAt - a.createdAt)
+              .slice(0, 10);
+            return jsonResp(200, { rows });
+          }
 
-  .cj-panel h2 {
-    margin: 0 0 4px;
-    font-size: 13px;
-    letter-spacing: 0.14em;
-    color: var(--phosphor);
-    text-transform: uppercase;
-  }
+          if (method === "POST" && pathname === "/api/leaderboard") {
+            const { code, result, shipName, crew, bots } = body;
+            if (!result || typeof result.score !== "number") {
+              return jsonResp(400, { error: "BAD_RESULT" });
+            }
+            const room = code ? bus.rooms[String(code).toUpperCase()] : null;
+            if (room && room.savedResult) {
+              return jsonResp(200, { ok: true, dedup: true });
+            }
+            if (room) room.savedResult = true;
 
-  .cj-panel .cj-sub {
-    margin: 0 0 16px;
-    font-size: 11px;
-    line-height: 1.55;
-    color: var(--muted);
-  }
+            const entry = {
+              id: uid(),
+              createdAt: Date.now(),
+              shipName: String(shipName || (room && room.shipName) || "БЕЗЫМЯННЫЙ КОРЫТО").slice(0, 40),
+              crew: JSON.stringify(Array.isArray(crew) ? crew.slice(0, 8) : []),
+              score: Math.round(result.score),
+              rankCode: String(result.rankCode || "?").slice(0, 4),
+              rankTitle: String(result.rankTitle || "").slice(0, 40),
+              hull: Math.round(result.hull ?? 0),
+              progress: Math.round(result.progress ?? 0),
+              won: Boolean(result.won),
+              resolved: Math.round(result.resolved ?? 0),
+              kills: Math.round(result.kills ?? 0),
+              bots: Math.round(bots ?? 0),
+              durationSec: Math.round(result.durationSec ?? 0)
+            };
+            bus.leaderboard.push(entry);
+            bus.leaderboard.sort((a, b) => b.score - a.score || b.createdAt - a.createdAt);
+            if (bus.leaderboard.length > 100) bus.leaderboard.length = 100;
+            bus.saveLb();
+            return jsonResp(200, { ok: true, id: entry.id });
+          }
 
-  .cj-panel h3 {
-    margin: 16px 0 8px;
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    color: var(--accent-soft);
-    text-transform: uppercase;
-  }
+          return jsonResp(404, { error: "UNKNOWN_API" });
+        }
 
-  .cj-panel p {
-    margin: 0 0 10px;
-    font-size: 11px;
-    line-height: 1.6;
-    color: #b6c6dd;
-  }
+        // Intercept window.fetch for /api/* calls
+        const nativeFetch = window.fetch.bind(window);
+        window.fetch = async function (input, init) {
+          const rawUrl = typeof input === "string" ? input : (input && input.url) || "";
+          let urlObj;
+          try {
+            urlObj = new URL(rawUrl, window.location.origin);
+          } catch {
+            return nativeFetch(input, init);
+          }
 
-  .cj-code {
-    position: relative;
-    margin: 0 0 8px;
-    padding: 10px 12px;
-    font-size: 11px;
-    line-height: 1.7;
-    color: #c9e8ff;
-    background: #02060e;
-    border: 1px solid rgba(59, 130, 246, 0.25);
-    border-radius: 5px;
-    overflow-x: auto;
-    white-space: pre;
-    user-select: text;
-  }
+          const isApi = urlObj.pathname === "/api" || urlObj.pathname.startsWith("/api/") || urlObj.pathname.includes("/api/");
+          if (!isApi) {
+            return nativeFetch(input, init);
+          }
 
-  .cj-code .c { color: #64748b; }
-  .cj-code .g { color: var(--ok); }
+          // Optional external LAN server override
+          let lanServer = "";
+          try {
+            lanServer = (window.localStorage.getItem(STORAGE_LAN_KEY) || "").trim();
+          } catch {}
+          if (lanServer) {
+            try {
+              const target = lanServer.replace(/\/+$/, "") + urlObj.pathname + urlObj.search;
+              return await nativeFetch(target, init);
+            } catch {
+              // Fallback to built-in zero-server engine if LAN server is unreachable
+            }
+          }
 
-  .cj-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 14px;
-  }
+          return handleVirtualApi(urlObj, init);
+        };
+      })();
+    </script>
 
-  .cj-input {
-    flex: 1 1 240px;
-    min-width: 0;
-    height: 32px;
-    padding: 0 10px;
-    font-family: var(--font);
-    font-size: 11px;
-    color: var(--text);
-    background: #02060e;
-    border: 1px solid rgba(59, 130, 246, 0.35);
-    border-radius: 4px;
-    outline: none;
-  }
+    <!-- NEO-CARTRIDGE integrated top bar (hidden inside docked controller iframe) -->
+    <header id="cj-topbar">
+      <div class="cj-brand">
+        <span class="cj-dot" id="cj-status-dot"></span>
+        <span class="cj-title">COSMO-JUNK</span>
+        <span class="cj-badge" id="cj-mode-badge">ZERO-SERVER // АВТОНОМНЫЙ РЕЖИМ</span>
+        <span class="cj-badge" id="cj-room-badge" style="display:none"></span>
+      </div>
+      <div class="cj-actions">
+        <button type="button" class="cj-btn" id="cj-btn-home" title="На главную (Лобби и Зал Славы)">
+          ⌂ ЛОББИ
+        </button>
+        <button type="button" class="cj-btn cj-btn-amber" id="cj-btn-deck" title="Открыть встроенный пульт члена экипажа прямо рядом с кораблём">
+          🎮 ПУЛЬТ ЭКИПАЖА
+        </button>
+        <button type="button" class="cj-btn" id="cj-btn-tab" title="Открыть пульт во второй вкладке браузера">
+          ↗ 2-Й ЭКРАН
+        </button>
+        <button type="button" class="cj-btn" id="cj-btn-lan" title="Подключить внешний LAN-сервер для игры с телефонов по Wi-Fi">
+          📡 LAN
+        </button>
+      </div>
+    </header>
 
-  .cj-input:focus {
-    border-color: var(--accent-soft);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-  }
+    <div id="cj-workspace">
+      <div id="root"></div>
 
-  .cj-note {
-    margin-top: 14px;
-    padding-top: 12px;
-    border-top: 1px dashed rgba(59, 130, 246, 0.2);
-    font-size: 10px;
-    line-height: 1.6;
-    color: #64748b;
-  }
-
-  @media (max-width: 640px) {
-    .cj-url { display: none; }
-    .cj-btn span.cj-label { display: none; }
-    .cj-brand { font-size: 11px; }
-  }
-</style>
-</head>
-<body>
-
-  <div class="cj-bar">
-    <div class="cj-brand"><span class="cj-logo">CJ</span> COSMO JUNK</div>
-    <div class="cj-status">
-      <span class="cj-dot checking" id="cj-dot"></span>
-      <span id="cj-status-text">ПРОВЕРКА СВЯЗИ...</span>
+      <!-- Built-in docked Crew Controller so 1 player can control the ship + bots on 1 screen -->
+      <aside id="cj-deck-panel" aria-label="Встроенный пульт экипажа">
+        <div class="cj-deck-hdr">
+          <span>ПУЛЬТ ЧЛЕНА ЭКИПАЖА</span>
+          <div class="cj-deck-tabs">
+            <button type="button" class="cj-slot-btn active" data-slot="1" title="Игрок 1">P1</button>
+            <button type="button" class="cj-slot-btn" data-slot="2" title="Игрок 2">P2</button>
+            <button type="button" class="cj-slot-btn" data-slot="3" title="Игрок 3">P3</button>
+            <button type="button" class="cj-slot-btn" data-slot="4" title="Игрок 4">P4</button>
+            <button type="button" class="cj-slot-btn" id="cj-deck-close" title="Скрыть пульт">✕</button>
+          </div>
+        </div>
+        <iframe id="cj-deck-frame" title="Пульт члена экипажа"></iframe>
+      </aside>
     </div>
-    <div class="cj-spacer"></div>
-    <div class="cj-url" id="cj-url-label"></div>
-    <button class="cj-btn cj-icon" id="cj-reload" title="Перезагрузить игру" aria-label="Перезагрузить игру">&#10227;</button>
-    <button class="cj-btn cj-icon" id="cj-tab" title="Открыть в новой вкладке" aria-label="Открыть в новой вкладке">&#8599;</button>
-    <button class="cj-btn" id="cj-help" title="Справка и настройки"><span class="cj-label">СПРАВКА</span><span aria-hidden="true">?</span></button>
-  </div>
 
-  <div class="cj-stage">
-    <iframe id="cj-frame" title="Cosmo Junk — игра" allow="fullscreen; autoplay; clipboard-write; gamepad" allowfullscreen></iframe>
-
-    <div class="cj-overlay" id="cj-overlay" role="dialog" aria-modal="true" aria-labelledby="cj-overlay-title">
-      <div class="cj-panel">
-        <h2 id="cj-overlay-title">Сервер не отвечает</h2>
-        <p class="cj-sub" id="cj-overlay-sub">
-          Cosmo Junk — сетевая кооп-игра. Консоль показывает её через iframe,
-          поэтому рядом должен быть запущен сервер игры.
+    <!-- Optional LAN Server Modal -->
+    <div id="cj-lan-modal">
+      <div class="cj-modal-card">
+        <h3>РЕЖИМ СЕТИ // COSMO-JUNK</h3>
+        <p style="margin:6px 0;color:#9ecbd9;line-height:1.45">
+          По умолчанию игра работает <b>полностью автономно в браузере (Zero-Server)</b>: комнаты, боты,
+          встроенный пульт <b>🎮 ПУЛЬТ ЭКИПАЖА</b>, соседние вкладки и Зал Славы работают сразу без Node.js.
         </p>
-
-        <h3>Запуск сервера — без установки</h3>
-        <p>Откройте PowerShell и выполните:</p>
-        <div class="cj-code"><span class="c"># перейти в папку игры (внутри neo_cartridge)</span>
-cd D:\Projects\Gemini\neo_cartridge\games\cosmo-junk-game-concept
-
-<span class="c"># автономный сервер: без npm install и без PostgreSQL</span>
-node standalone\server.js</div>
-        <p>
-          Игра поднимется на <span class="g">http://localhost:3000</span>. Другой порт — так же,
-          с номером: <span class="g">node standalone\server.js 3100</span>.
-          Комнаты живут в памяти, рекорды — в <span class="g">standalone\data\leaderboard.json</span>.
+        <p style="margin:6px 0;color:#9ecbd9;line-height:1.45">
+          Если хотите подключить реальные телефоны по домашнему Wi-Fi, запустите
+          <code>node standalone/server.js</code> и укажите адрес сервера ниже (или оставьте пустым для автономного режима):
         </p>
-
-        <h3>Полная версия (Next.js + PostgreSQL)</h3>
-        <p>
-          Если нужна оригинальная сборка — рабочая копия
-          <span class="g">D:\Projects\cosmo-junk-game-concept</span>:
-        </p>
-        <div class="cj-code">cd D:\Projects\cosmo-junk-game-concept
-npm install
-npm run dev
-<span class="c"># PostgreSQL быстрый путь — docker compose из папки игры:</span>
-<span class="c">#   docker compose up -d</span></div>
-
-        <h3>Адрес игры</h3>
-        <div class="cj-row">
-          <input class="cj-input" id="cj-url-input" type="text" spellcheck="false" placeholder="http://localhost:3000" aria-label="Адрес сервера игры">
-          <button class="cj-btn" id="cj-apply">ПОДКЛЮЧИТЬ</button>
-        </div>
-
-        <div class="cj-row">
-          <button class="cj-btn" id="cj-retry">ПОВТОРИТЬ ПРОВЕРКУ</button>
-          <button class="cj-btn" id="cj-close">ЗАКРЫТЬ</button>
-        </div>
-
-        <div class="cj-note">
-          Подсказка: адрес можно передать параметром в URL консоли —
-          <span style="color:#93c5fd">cosmo_junk.html?url=http://localhost:3001</span>.
-          Выбранный адрес запоминается в браузере.
+        <input
+          type="text"
+          id="cj-lan-input"
+          class="cj-input"
+          placeholder="Оставьте пустым для Zero-Server (или http://192.168.1.10:3000)"
+        />
+        <div style="display:flex;justify-content:flex-end;gap:8px">
+          <button type="button" class="cj-btn" id="cj-lan-reset">СБРОСИТЬ (ZERO-SERVER)</button>
+          <button type="button" class="cj-btn cj-btn-amber" id="cj-lan-save">СОХРАНИТЬ</button>
         </div>
       </div>
     </div>
-  </div>
 
-<script>
-(function () {
-  'use strict';
+    <script src="cosmo-junk-game-concept/standalone/assets/app.js"></script>
+    <script>
+      (function () {
+        if (document.body.classList.contains("cj-embed")) return;
 
-  var DEFAULT_URL = 'http://localhost:3000';
-  var STORAGE_KEY = 'neo_cartridge.cosmo_junk.url';
+        const STORAGE_LAN_KEY = "cosmo_junk_v1_lan_server";
+        const btnHome = document.getElementById("cj-btn-home");
+        const btnDeck = document.getElementById("cj-btn-deck");
+        const btnTab = document.getElementById("cj-btn-tab");
+        const btnLan = document.getElementById("cj-btn-lan");
+        const deckPanel = document.getElementById("cj-deck-panel");
+        const deckFrame = document.getElementById("cj-deck-frame");
+        const deckClose = document.getElementById("cj-deck-close");
+        const roomBadge = document.getElementById("cj-room-badge");
+        const modeBadge = document.getElementById("cj-mode-badge");
+        const statusDot = document.getElementById("cj-status-dot");
+        const lanModal = document.getElementById("cj-lan-modal");
+        const lanInput = document.getElementById("cj-lan-input");
+        const lanSave = document.getElementById("cj-lan-save");
+        const lanReset = document.getElementById("cj-lan-reset");
+        const slotBtns = Array.from(document.querySelectorAll(".cj-slot-btn[data-slot]"));
 
-  var frame = document.getElementById('cj-frame');
-  var overlay = document.getElementById('cj-overlay');
-  var dot = document.getElementById('cj-dot');
-  var statusText = document.getElementById('cj-status-text');
-  var urlLabel = document.getElementById('cj-url-label');
-  var urlInput = document.getElementById('cj-url-input');
-  var overlayTitle = document.getElementById('cj-overlay-title');
-  var overlaySub = document.getElementById('cj-overlay-sub');
+        let currentSlot = "1";
+        let currentCode = "";
 
-  var gameUrl = resolveUrl();
-  var checkTimer = null;
-  var pingToken = 0;
+        function detectRoomCode() {
+          const hash = window.location.hash || "";
+          const m = hash.match(/^#\/(?:ship|play)\/([A-Za-z0-9]+)/);
+          if (m && m[1]) return m[1].toUpperCase();
+          const bus = window.__COSMO_BUS__;
+          if (bus && bus.activeRoomCode) return bus.activeRoomCode;
+          const keys = bus && bus.rooms ? Object.keys(bus.rooms) : [];
+          return keys[keys.length - 1] || "";
+        }
 
-  function normalize(raw) {
-    var value = String(raw || '').trim();
-    if (!value) return DEFAULT_URL;
-    if (!/^https?:\/\//i.test(value)) value = 'http://' + value;
-    return value.replace(/\/+$/, '');
-  }
+        function ensureRoomCode() {
+          let code = detectRoomCode();
+          if (!code) {
+            // Create a room via virtual API if user clicks controller before creating ship
+            const bus = window.__COSMO_BUS__;
+            if (bus) {
+              const keys = Object.keys(bus.rooms || {});
+              code = keys[keys.length - 1] || "";
+            }
+          }
+          return code;
+        }
 
-  function resolveUrl() {
-    var fromQuery = null;
-    try {
-      fromQuery = new URLSearchParams(window.location.search).get('url');
-    } catch (e) { /* очень старый браузер */ }
+        function syncDeckIframe(forceReload) {
+          const code = ensureRoomCode();
+          if (!code) return;
+          const targetSrc = `cosmo_junk.html?embed=1&slot=${encodeURIComponent(currentSlot)}#/play/${encodeURIComponent(code)}`;
+          if (forceReload || deckFrame.getAttribute("data-target") !== targetSrc) {
+            deckFrame.setAttribute("data-target", targetSrc);
+            deckFrame.src = targetSrc;
+          }
+        }
 
-    if (fromQuery) return normalize(fromQuery);
+        function updateBadges() {
+          currentCode = detectRoomCode();
+          if (currentCode) {
+            roomBadge.style.display = "inline-block";
+            roomBadge.textContent = "КОД: " + currentCode;
+            if (deckPanel.classList.contains("open")) {
+              syncDeckIframe(false);
+            }
+          } else {
+            roomBadge.style.display = "none";
+          }
 
-    try {
-      var saved = window.localStorage.getItem(STORAGE_KEY);
-      if (saved) return normalize(saved);
-    } catch (e) { /* localStorage может быть отключён */ }
+          let lan = "";
+          try { lan = (window.localStorage.getItem(STORAGE_LAN_KEY) || "").trim(); } catch {}
+          if (lan) {
+            modeBadge.textContent = "LAN: " + lan;
+            statusDot.classList.add("lan");
+          } else {
+            modeBadge.textContent = "ZERO-SERVER // АВТОНОМНЫЙ РЕЖИМ";
+            statusDot.classList.remove("lan");
+          }
+        }
 
-    return DEFAULT_URL;
-  }
+        window.addEventListener("hashchange", updateBadges);
+        window.addEventListener("cosmo:route", updateBadges);
+        updateBadges();
 
-  function setStatus(state, text) {
-    dot.className = 'cj-dot ' + state;
-    statusText.textContent = text;
-  }
+        btnHome.addEventListener("click", () => {
+          window.location.hash = "#/";
+          window.dispatchEvent(new HashChangeEvent("hashchange"));
+        });
 
-  function showOverlay(title, sub) {
-    if (title) overlayTitle.textContent = title;
-    if (sub) overlaySub.textContent = sub;
-    overlay.classList.add('open');
-  }
+        btnDeck.addEventListener("click", async () => {
+          if (deckPanel.classList.contains("open")) {
+            deckPanel.classList.remove("open");
+            btnDeck.classList.remove("active");
+            return;
+          }
+          let code = ensureRoomCode();
+          if (!code) {
+            const res = await window.fetch("/api/rooms", { method: "POST" });
+            const d = await res.json();
+            code = d.code;
+            window.location.hash = `#/ship/${code}`;
+            window.dispatchEvent(new HashChangeEvent("hashchange"));
+          }
+          deckPanel.classList.add("open");
+          btnDeck.classList.add("active");
+          syncDeckIframe(true);
+        });
 
-  function hideOverlay() {
-    overlay.classList.remove('open');
-  }
+        deckClose.addEventListener("click", () => {
+          deckPanel.classList.remove("open");
+          btnDeck.classList.remove("active");
+        });
 
-  function loadGame() {
-    urlLabel.textContent = gameUrl;
-    urlInput.value = gameUrl;
-    setStatus('checking', 'ПОДКЛЮЧЕНИЕ...');
-    frame.src = gameUrl;
-    ping();
-  }
+        slotBtns.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            currentSlot = btn.getAttribute("data-slot") || "1";
+            slotBtns.forEach((b) => b.classList.toggle("active", b === btn));
+            syncDeckIframe(true);
+          });
+        });
 
-  function ping() {
-    var token = ++pingToken;
-    var controller = null;
-    var timer = null;
-    var settled = false;
+        btnTab.addEventListener("click", async () => {
+          let code = ensureRoomCode();
+          if (!code) {
+            const res = await window.fetch("/api/rooms", { method: "POST" });
+            const d = await res.json();
+            code = d.code;
+            window.location.hash = `#/ship/${code}`;
+            window.dispatchEvent(new HashChangeEvent("hashchange"));
+          }
+          window.open(`cosmo_junk.html#/play/${encodeURIComponent(code)}`, "_blank", "noopener");
+        });
 
-    function succeed() {
-      if (settled || token !== pingToken) return;
-      settled = true;
-      if (timer) clearTimeout(timer);
-      setStatus('online', 'СЕРВЕР ОНЛАЙН');
-      hideOverlay();
-    }
+        btnLan.addEventListener("click", () => {
+          try {
+            lanInput.value = window.localStorage.getItem(STORAGE_LAN_KEY) || "";
+          } catch {}
+          lanModal.classList.add("open");
+        });
 
-    function fail() {
-      if (settled || token !== pingToken) return;
-      settled = true;
-      if (timer) clearTimeout(timer);
-      setStatus('offline', 'СЕРВЕР НЕДОСТУПЕН');
-      showOverlay();
-    }
+        lanSave.addEventListener("click", () => {
+          try {
+            const val = (lanInput.value || "").trim();
+            if (val) window.localStorage.setItem(STORAGE_LAN_KEY, val);
+            else window.localStorage.removeItem(STORAGE_LAN_KEY);
+          } catch {}
+          lanModal.classList.remove("open");
+          updateBadges();
+        });
 
-    // Резервная проверка через <img>: работает даже там, где fetch из file:// запрещён.
-    function imageProbe() {
-      var img = new Image();
-      img.onload = succeed;
-      img.onerror = fail;
-      img.src = gameUrl + '/icon.svg?ping=' + Date.now();
-    }
+        lanReset.addEventListener("click", () => {
+          try {
+            window.localStorage.removeItem(STORAGE_LAN_KEY);
+            lanInput.value = "";
+          } catch {}
+          lanModal.classList.remove("open");
+          updateBadges();
+        });
 
-    try {
-      controller = new AbortController();
-      timer = setTimeout(function () {
-        if (controller) controller.abort();
-        imageProbe();
-      }, 5000);
-    } catch (e) { /* без AbortController */ }
-
-    fetch(gameUrl + '/api/health', {
-      mode: 'no-cors',
-      cache: 'no-store',
-      signal: controller ? controller.signal : undefined
-    })
-      .then(succeed)
-      .catch(function () {
-        if (timer) clearTimeout(timer);
-        imageProbe();
-      });
-  }
-
-  function applyUrl(raw) {
-    var next = normalize(raw);
-    try { window.localStorage.setItem(STORAGE_KEY, next); } catch (e) { /* ignore */ }
-    gameUrl = next;
-    hideOverlay();
-    loadGame();
-  }
-
-  // ---------- События ----------
-  document.getElementById('cj-reload').addEventListener('click', function () {
-    frame.src = 'about:blank';
-    setTimeout(loadGame, 60);
-  });
-
-  document.getElementById('cj-tab').addEventListener('click', function () {
-    window.open(gameUrl, '_blank', 'noopener');
-  });
-
-  document.getElementById('cj-help').addEventListener('click', function () {
-    showOverlay();
-  });
-
-  document.getElementById('cj-close').addEventListener('click', hideOverlay);
-
-  document.getElementById('cj-retry').addEventListener('click', function () {
-    hideOverlay();
-    loadGame();
-  });
-
-  document.getElementById('cj-apply').addEventListener('click', function () {
-    applyUrl(urlInput.value);
-  });
-
-  urlInput.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') applyUrl(urlInput.value);
-  });
-
-  // Escape закрывает оверлей, не мешая игре внутри iframe.
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && overlay.classList.contains('open')) {
-      e.stopPropagation();
-      hideOverlay();
-    }
-  }, true);
-
-  // Если сервер подняли позже — достаточно вернуться на вкладку.
-  window.addEventListener('focus', function () {
-    if (!overlay.classList.contains('open')) return;
-    ping();
-  });
-
-  // Первичная проверка через 2 секунды: даём iframe шанс загрузиться.
-  loadGame();
-  checkTimer = setTimeout(function () {
-    if (dot.classList.contains('checking')) ping();
-  }, 2500);
-
-  window.addEventListener('beforeunload', function () {
-    if (checkTimer) clearTimeout(checkTimer);
-  });
-})();
-</script>
-</body>
+        lanModal.addEventListener("click", (e) => {
+          if (e.target === lanModal) lanModal.classList.remove("open");
+        });
+      })();
+    </script>
+  </body>
 </html>

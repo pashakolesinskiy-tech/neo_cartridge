@@ -9,6 +9,7 @@ export default function Link({
   children,
   className,
   style,
+  onClick,
   ...rest
 }: {
   href: string;
@@ -16,8 +17,30 @@ export default function Link({
   className?: string;
   style?: CSSProperties;
 } & Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "href">) {
+  const isHashMode =
+    typeof window !== "undefined" &&
+    (Boolean((window as any).__COSMO_HASH_ROUTER__) ||
+      window.location.hash.startsWith("#/") ||
+      window.location.pathname.endsWith(".html") ||
+      window.location.protocol === "file:");
+  const resolvedHref =
+    isHashMode && href.startsWith("/") ? `#${href}` : href;
+
   return (
-    <a href={href} className={className} style={style} {...rest}>
+    <a
+      href={resolvedHref}
+      className={className}
+      style={style}
+      onClick={(e) => {
+        onClick?.(e);
+        if (!e.defaultPrevented && isHashMode && href.startsWith("/")) {
+          e.preventDefault();
+          window.location.hash = `#${href}`;
+          window.dispatchEvent(new HashChangeEvent("hashchange"));
+        }
+      }}
+      {...rest}
+    >
       {children}
     </a>
   );
