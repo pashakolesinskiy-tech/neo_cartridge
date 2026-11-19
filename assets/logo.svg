@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 60" width="280" height="60" fill="none">
+  <!-- Cartridge Glyphic Mark -->
+  <g class="cartridge-icon" transform="translate(10, 8)">
+    <!-- Cartridge body -->
+    <path d="M4 6C4 3.79 5.79 2 8 2H36C38.21 2 40 3.79 40 6V36C40 38.21 38.21 40 36 40H8C5.79 40 4 38.21 4 36V6Z" fill="#14161B" stroke="#2E3440" stroke-width="2"/>
+    <!-- Cartridge Notch -->
+    <rect x="12" y="6" width="20" height="18" rx="2" fill="#0A0B0E" stroke="#00FF88" stroke-width="1.2"/>
+    <!-- Gold connector pins at bottom -->
+    <line x1="8" y1="42" x2="12" y2="42" stroke="#FFB800" stroke-width="2"/>
+    <line x1="16" y1="42" x2="20" y2="42" stroke="#FFB800" stroke-width="2"/>
+    <line x1="24" y1="42" x2="28" y2="42" stroke="#FFB800" stroke-width="2"/>
+    <line x1="32" y1="42" x2="36" y2="42" stroke="#FFB800" stroke-width="2"/>
+    <!-- Phosphor green LED dot -->
+    <circle cx="22" cy="15" r="2.5" fill="#00FF88"/>
+    <circle cx="22" cy="15" r="4.5" stroke="#00FF88" stroke-opacity="0.4" stroke-width="1"/>
+  </g>
+
+  <!-- Typography -->
+  <g class="logo-text" transform="translate(62, 17)">
+    <text x="0" y="17" font-family="'Space Grotesk', -apple-system, sans-serif" font-size="20" font-weight="900" letter-spacing="1.5" fill="#F0F4FC">NEO</text>
+    <text x="48" y="17" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="700" fill="#00FF88">// ZERO</text>
+    <text x="0" y="32" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="600" letter-spacing="3" fill="#8892B0">CARTRIDGE ARCADE</text>
+  </g>
+</svg>

@@ -1,0 +1,9 @@
+Summary for c:\Users\Pasha\Downloads\240h320.jar
+Decompiled with CFR 0.152
+
+
+com.mnemonicstudios.novusapp.j
+----------------------------
+
+c(javax.microedition.lcdui.Graphics )
+  Unable to fully structure code

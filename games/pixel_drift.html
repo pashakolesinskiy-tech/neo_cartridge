@@ -1,0 +1,3843 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>PIXEL DRIFT: TURBO GP — Пиксельный Дрифт</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --pixel-font: 'Press Start 2P', monospace;
+            --ui-font: 'Rubik', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #090a0f;
+            font-family: var(--ui-font);
+            color: #ffffff;
+            touch-action: none;
+        }
+
+        button, input {
+            font-family: inherit;
+            color: inherit;
+        }
+
+        button {
+            cursor: pointer;
+            background: transparent;
+        }
+
+        /* Standalone responsive utility system (replaces Play CDN runtime) */
+        .relative { position: relative; }
+        .absolute { position: absolute; }
+        .fixed { position: fixed; }
+        .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+        .inset-4 { top: 1rem; right: 1rem; bottom: 1rem; left: 1rem; }
+        .bottom-0 { bottom: 0; }
+        .bottom-1 { bottom: 0.25rem; }
+        .left-0 { left: 0; }
+        .left-2 { left: 0.5rem; }
+        .left-3 { left: 0.75rem; }
+        .left-5 { left: 1.25rem; }
+        .right-0 { right: 0; }
+        .right-2 { right: 0.5rem; }
+        .right-3 { right: 0.75rem; }
+        .right-5 { right: 1.25rem; }
+        .z-0 { z-index: 0; }
+        .z-10 { z-index: 10; }
+        .z-20 { z-index: 20; }
+        .z-30 { z-index: 30; }
+        .z-40 { z-index: 40; }
+
+        .block { display: block; }
+        .inline-block { display: inline-block; }
+        .flex { display: flex; }
+        .grid { display: grid; }
+        .hidden { display: none !important; }
+
+        .flex-col { flex-direction: column; }
+        .flex-row { flex-direction: row; }
+        .flex-wrap { flex-wrap: wrap; }
+        .flex-1 { flex: 1 1 0%; }
+        .shrink-0 { flex-shrink: 0; }
+        .items-center { align-items: center; }
+        .items-baseline { align-items: baseline; }
+        .items-end { align-items: flex-end; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .self-start { align-self: flex-start; }
+
+        .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+        .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .col-span-2 { grid-column: span 2 / span 2; }
+
+        .w-full { width: 100%; }
+        .h-full { height: 100%; }
+        .w-auto { width: auto; }
+        .max-w-lg { max-width: 32rem; }
+        .max-w-2xl { max-width: 42rem; }
+        .max-w-4xl { max-width: 56rem; }
+        .max-h-\[94vh\] { max-height: 94vh; }
+        .max-h-28 { max-height: 7rem; }
+        .min-h-\[2rem\] { min-height: 2rem; }
+        .min-h-\[1\.25rem\] { min-height: 1.25rem; }
+
+        .w-\[1px\] { width: 1px; }
+        .w-\[2px\] { width: 2px; }
+        .w-1\.5 { width: 0.375rem; }
+        .w-2\.5 { width: 0.625rem; }
+        .w-3 { width: 0.75rem; }
+        .w-3\.5 { width: 0.875rem; }
+        .w-8 { width: 2rem; }
+        .w-12 { width: 3rem; }
+        .w-13 { width: 3.25rem; }
+        .w-14 { width: 3.5rem; }
+        .w-24 { width: 6rem; }
+        .w-32 { width: 8rem; }
+        .w-36 { width: 9rem; }
+        .w-40 { width: 10rem; }
+        .w-44 { width: 11rem; }
+        .w-1\/2 { width: 50%; }
+        .w-4\/5 { width: 80%; }
+        .w-5\/6 { width: 83.333333%; }
+        .w-11\/12 { width: 91.666667%; }
+
+        .h-1 { height: 0.25rem; }
+        .h-2 { height: 0.5rem; }
+        .h-2\.5 { height: 0.625rem; }
+        .h-3 { height: 0.75rem; }
+        .h-3\.5 { height: 0.875rem; }
+        .h-4 { height: 1rem; }
+        .h-7 { height: 1.75rem; }
+        .h-8 { height: 2rem; }
+        .h-10 { height: 2.5rem; }
+        .h-11 { height: 2.75rem; }
+        .h-13 { height: 3.25rem; }
+        .h-14 { height: 3.5rem; }
+        .h-24 { height: 6rem; }
+        .h-28 { height: 7rem; }
+        .h-36 { height: 9rem; }
+
+        .my-1 { margin-top: 0.25rem; margin-bottom: 0.25rem; }
+        .mx-0\.5 { margin-left: 0.125rem; margin-right: 0.125rem; }
+        .mt-0\.5 { margin-top: 0.125rem; }
+        .mt-1 { margin-top: 0.25rem; }
+        .mt-1\.5 { margin-top: 0.375rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mb-0\.5 { margin-bottom: 0.125rem; }
+        .mb-1 { margin-bottom: 0.25rem; }
+        .mb-1\.5 { margin-bottom: 0.375rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-2\.5 { margin-bottom: 0.625rem; }
+        .mb-3 { margin-bottom: 0.75rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-5 { margin-bottom: 1.25rem; }
+        .ml-1 { margin-left: 0.25rem; }
+        .ml-auto { margin-left: auto; }
+        .mr-1 { margin-right: 0.25rem; }
+        .mr-1\.5 { margin-right: 0.375rem; }
+
+        .p-0\.5 { padding: 0.125rem; }
+        .p-1\.5 { padding: 0.375rem; }
+        .p-2 { padding: 0.5rem; }
+        .p-2\.5 { padding: 0.625rem; }
+        .p-3 { padding: 0.75rem; }
+        .p-4 { padding: 1rem; }
+        .p-5 { padding: 1.25rem; }
+        .px-1 { padding-left: 0.25rem; padding-right: 0.25rem; }
+        .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+        .px-2\.5 { padding-left: 0.625rem; padding-right: 0.625rem; }
+        .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+        .px-3\.5 { padding-left: 0.875rem; padding-right: 0.875rem; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+        .py-0\.5 { padding-top: 0.125rem; padding-bottom: 0.125rem; }
+        .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+        .py-1\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+        .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        .py-2\.5 { padding-top: 0.625rem; padding-bottom: 0.625rem; }
+        .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+        .py-3\.5 { padding-top: 0.875rem; padding-bottom: 0.875rem; }
+        .pt-1\.5 { padding-top: 0.375rem; }
+        .pt-3 { padding-top: 0.75rem; }
+        .pb-2\.5 { padding-bottom: 0.625rem; }
+        .pb-3 { padding-bottom: 0.75rem; }
+
+        .gap-1 { gap: 0.25rem; }
+        .gap-1\.5 { gap: 0.375rem; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-2\.5 { gap: 0.625rem; }
+        .gap-3 { gap: 0.75rem; }
+        .gap-4 { gap: 1rem; }
+        .gap-x-4 { column-gap: 1rem; }
+        .gap-y-1 { row-gap: 0.25rem; }
+
+        .space-y-1 > * + * { margin-top: 0.25rem; }
+        .space-y-1\.5 > * + * { margin-top: 0.375rem; }
+        .space-y-2 > * + * { margin-top: 0.5rem; }
+
+        .rounded { border-radius: 0.25rem; }
+        .rounded-lg { border-radius: 0.5rem; }
+        .rounded-xl { border-radius: 0.75rem; }
+        .rounded-2xl { border-radius: 1rem; }
+        .rounded-3xl { border-radius: 1.5rem; }
+        .rounded-full { border-radius: 9999px; }
+
+        .border { border-width: 1px; border-style: solid; }
+        .border-2 { border-width: 2px; border-style: solid; }
+        .border-4 { border-width: 4px; border-style: solid; }
+        .border-b { border-bottom-width: 1px; border-bottom-style: solid; }
+        .border-b-2 { border-bottom-width: 2px; border-bottom-style: solid; }
+        .border-t-2 { border-top-width: 2px; border-top-style: solid; }
+        .border-dashed { border-style: dashed; }
+
+        .border-slate-700 { border-color: #334155; }
+        .border-slate-700\/80 { border-color: rgba(51, 65, 85, 0.8); }
+        .border-slate-800 { border-color: #1e293b; }
+        .border-cyan-400 { border-color: #22d3ee; }
+        .border-cyan-500\/30 { border-color: rgba(6, 182, 212, 0.3); }
+        .border-cyan-500\/40 { border-color: rgba(6, 182, 212, 0.4); }
+        .border-cyan-500\/60 { border-color: rgba(6, 182, 212, 0.6); }
+        .border-yellow-300 { border-color: #fde047; }
+        .border-yellow-300\/80 { border-color: rgba(253, 224, 71, 0.8); }
+        .border-amber-400 { border-color: #fbbf24; }
+        .border-amber-400\/75 { border-color: rgba(251, 191, 36, 0.75); }
+        .border-amber-400\/80 { border-color: rgba(251, 191, 36, 0.8); }
+        .border-emerald-400 { border-color: #34d399; }
+        .border-emerald-400\/50 { border-color: rgba(52, 211, 153, 0.5); }
+        .border-fuchsia-300 { border-color: #f0abfc; }
+        .border-fuchsia-400 { border-color: #e879f9; }
+        .border-fuchsia-400\/50 { border-color: rgba(232, 121, 249, 0.5); }
+        .border-indigo-400\/50 { border-color: rgba(129, 140, 248, 0.5); }
+        .border-white\/25 { border-color: rgba(255, 255, 255, 0.25); }
+        .border-white\/40 { border-color: rgba(255, 255, 255, 0.4); }
+
+        .bg-black { background-color: #000000; }
+        .bg-black\/40 { background-color: rgba(0, 0, 0, 0.4); }
+        .bg-black\/50 { background-color: rgba(0, 0, 0, 0.5); }
+        .bg-black\/70 { background-color: rgba(0, 0, 0, 0.7); }
+        .bg-black\/80 { background-color: rgba(0, 0, 0, 0.8); }
+        .bg-black\/85 { background-color: rgba(0, 0, 0, 0.85); }
+        .bg-white { background-color: #ffffff; }
+        .bg-white\/60 { background-color: rgba(255, 255, 255, 0.6); }
+        .bg-slate-700 { background-color: #334155; }
+        .bg-slate-800 { background-color: #1e293b; }
+        .bg-slate-900 { background-color: #0f172a; }
+        .bg-slate-900\/80 { background-color: rgba(15, 23, 42, 0.8); }
+        .bg-slate-900\/85 { background-color: rgba(15, 23, 42, 0.85); }
+        .bg-slate-900\/90 { background-color: rgba(15, 23, 42, 0.9); }
+        .bg-slate-950 { background-color: #020617; }
+        .bg-slate-950\/70 { background-color: rgba(2, 6, 23, 0.7); }
+        .bg-slate-950\/75 { background-color: rgba(2, 6, 23, 0.75); }
+        .bg-slate-950\/80 { background-color: rgba(2, 6, 23, 0.8); }
+        .bg-slate-950\/85 { background-color: rgba(2, 6, 23, 0.85); }
+        .bg-slate-950\/90 { background-color: rgba(2, 6, 23, 0.9); }
+        .bg-cyan-400 { background-color: #22d3ee; }
+        .bg-cyan-400\/35 { background-color: rgba(34, 211, 238, 0.35); }
+        .bg-cyan-500\/25 { background-color: rgba(6, 182, 212, 0.25); }
+        .bg-cyan-600 { background-color: #0891b2; }
+        .bg-cyan-950 { background-color: #083344; }
+        .bg-cyan-950\/60 { background-color: rgba(8, 51, 68, 0.6); }
+        .bg-yellow-300 { background-color: #fde047; }
+        .bg-yellow-400 { background-color: #facc15; }
+        .bg-amber-400 { background-color: #fbbf24; }
+        .bg-amber-500\/25 { background-color: rgba(245, 158, 11, 0.25); }
+        .bg-emerald-400 { background-color: #34d399; }
+        .bg-emerald-500 { background-color: #10b981; }
+        .bg-emerald-500\/25 { background-color: rgba(16, 185, 129, 0.25); }
+        .bg-emerald-600 { background-color: #059669; }
+        .bg-fuchsia-400 { background-color: #e879f9; }
+        .bg-fuchsia-600 { background-color: #c026d3; }
+        .bg-fuchsia-950\/80 { background-color: rgba(74, 4, 78, 0.8); }
+        .bg-indigo-600 { background-color: #4f46e5; }
+        .bg-rose-600\/90 { background-color: rgba(225, 29, 72, 0.9); }
+        .bg-rose-700 { background-color: #be123c; }
+
+        /* Gradients */
+        .from-amber-500\/90.to-fuchsia-600\/90 { background-image: linear-gradient(to right, rgba(245, 158, 11, 0.9), rgba(192, 38, 211, 0.9)); }
+        .from-fuchsia-600\/90.via-purple-700\/90.to-indigo-900\/95 { background-image: linear-gradient(to bottom, rgba(192, 38, 211, 0.9), rgba(126, 34, 206, 0.9), rgba(49, 46, 129, 0.95)); }
+        .from-cyan-400.via-yellow-300.to-pink-500 { background-image: linear-gradient(to right, #22d3ee, #fde047, #ec4899); }
+        .from-amber-500.to-pink-500 { background-image: linear-gradient(to right, #f59e0b, #ec4899); }
+        .from-cyan-300.via-yellow-300.to-pink-400 { background-image: linear-gradient(to right, #67e8f9, #fde047, #f472b6); }
+        .from-fuchsia-600.to-pink-600 { background-image: linear-gradient(to right, #c026d3, #db2777); }
+        .from-fuchsia-600.to-indigo-600 { background-image: linear-gradient(to right, #c026d3, #4f46e5); }
+        .from-emerald-500.via-teal-500.to-cyan-500 { background-image: linear-gradient(to right, #10b981, #14b8a6, #06b6d4); }
+
+        .bg-clip-text { -webkit-background-clip: text; background-clip: text; }
+        .text-transparent { color: transparent; }
+
+        .text-\[8px\] { font-size: 8px; }
+        .text-\[9px\] { font-size: 9px; }
+        .text-\[10px\] { font-size: 10px; }
+        .text-\[11px\] { font-size: 11px; }
+        .text-xs { font-size: 0.75rem; line-height: 1rem; }
+        .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+        .text-base { font-size: 1rem; line-height: 1.5rem; }
+        .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+        .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+        .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+        .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+
+        .font-bold { font-weight: 700; }
+        .font-mono { font-family: monospace; }
+        .uppercase { text-transform: uppercase; }
+        .tracking-tight { letter-spacing: -0.025em; }
+        .tracking-wider { letter-spacing: 0.05em; }
+        .tracking-widest { letter-spacing: 0.1em; }
+        .leading-none { line-height: 1; }
+        .leading-snug { line-height: 1.375; }
+        .text-left { text-align: left; }
+        .text-center { text-align: center; }
+        .break-all { word-break: break-all; }
+        .select-none { user-select: none; -webkit-user-select: none; }
+        .select-all { user-select: all; -webkit-user-select: all; }
+
+        .text-white { color: #ffffff; }
+        .text-black { color: #000000; }
+        .text-slate-200 { color: #e2e8f0; }
+        .text-slate-300 { color: #cbd5e1; }
+        .text-slate-400 { color: #94a3b8; }
+        .text-slate-500 { color: #64748b; }
+        .text-slate-950 { color: #020617; }
+        .text-cyan-200 { color: #a5f3fc; }
+        .text-cyan-300 { color: #67e8f9; }
+        .text-cyan-300\/60 { color: rgba(103, 232, 249, 0.6); }
+        .text-cyan-400 { color: #22d3ee; }
+        .text-yellow-200 { color: #fef08a; }
+        .text-yellow-300 { color: #fde047; }
+        .text-yellow-400 { color: #facc15; }
+        .text-amber-200 { color: #fde68a; }
+        .text-amber-300 { color: #fcd34d; }
+        .text-amber-400 { color: #fbbf24; }
+        .text-emerald-300 { color: #6ee7b7; }
+        .text-emerald-400 { color: #34d399; }
+        .text-fuchsia-200 { color: #f5d0fe; }
+        .text-fuchsia-300 { color: #f0abfc; }
+        .text-fuchsia-400 { color: #e879f9; }
+        .text-rose-400 { color: #fb7185; }
+
+        .shadow { box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45); }
+        .shadow-lg { box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5); }
+        .shadow-xl { box-shadow: 0 12px 24px rgba(0, 0, 0, 0.6); }
+        .shadow-\[0_0_24px_rgba\(217\,70\,239\,0\.55\)\] { box-shadow: 0 0 24px rgba(217, 70, 239, 0.55); }
+        .drop-shadow { filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6)); }
+        .drop-shadow-\[0_5px_0_rgba\(0\,0\,0\,0\.9\)\] { filter: drop-shadow(0 5px 0 rgba(0, 0, 0, 0.9)); }
+        .drop-shadow-\[0_2px_2px_rgba\(0\,0\,0\,0\.9\)\] { filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.9)); }
+
+        .overflow-hidden { overflow: hidden; }
+        .overflow-y-auto { overflow-y: auto; }
+        .pointer-events-none { pointer-events: none; }
+        .pointer-events-auto { pointer-events: auto; }
+        .cursor-pointer { cursor: pointer; }
+        .object-cover { object-fit: cover; }
+        .transition { transition: all 0.15s ease; }
+        .transition-all { transition: all 0.075s ease; }
+        .duration-75 { transition-duration: 75ms; }
+        .accent-cyan-400 { accent-color: #22d3ee; }
+        .focus\:outline-none:focus { outline: none; }
+        .focus\:border-cyan-400:focus { border-color: #22d3ee; }
+
+        @keyframes ping {
+            75%, 100% { transform: scale(2); opacity: 0; }
+        }
+        .animate-ping { animation: ping 1.2s cubic-bezier(0, 0, 0.2, 1) infinite; }
+
+        /* Responsive Breakpoints (sm: 640px, md: 768px, lg: 1024px) */
+        @media (min-width: 640px) {
+            .sm\:block { display: block; }
+            .sm\:inline { display: inline; }
+            .sm\:flex { display: flex; }
+            .sm\:flex-row { flex-direction: row; }
+            .sm\:items-center { align-items: center; }
+            .sm\:self-auto { align-self: auto; }
+            .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .sm\:px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+            .sm\:px-5 { padding-left: 1.25rem; padding-right: 1.25rem; }
+            .sm\:pb-4 { padding-bottom: 1rem; }
+            .sm\:p-2 { padding: 0.5rem; }
+            .sm\:p-4 { padding: 1rem; }
+            .sm\:p-5 { padding: 1.25rem; }
+            .sm\:p-6 { padding: 1.5rem; }
+            .sm\:gap-1\.5 { gap: 0.375rem; }
+            .sm\:gap-2 { gap: 0.5rem; }
+            .sm\:gap-3 { gap: 0.75rem; }
+            .sm\:ml-2 { margin-left: 0.5rem; }
+            .sm\:mr-2 { margin-right: 0.5rem; }
+            .sm\:w-auto { width: auto; }
+            .sm\:w-14 { width: 3.5rem; }
+            .sm\:w-15 { width: 3.75rem; }
+            .sm\:w-20 { width: 5rem; }
+            .sm\:w-28 { width: 7rem; }
+            .sm\:w-40 { width: 10rem; }
+            .sm\:w-52 { width: 13rem; }
+            .sm\:h-12 { height: 3rem; }
+            .sm\:h-14 { height: 3.5rem; }
+            .sm\:h-15 { height: 3.75rem; }
+            .sm\:h-16 { height: 4rem; }
+            .sm\:h-28 { height: 7rem; }
+            .sm\:h-32 { height: 8rem; }
+            .sm\:h-40 { height: 10rem; }
+            .sm\:text-\[10px\] { font-size: 10px; }
+            .sm\:text-xs { font-size: 0.75rem; line-height: 1rem; }
+            .sm\:text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+            .sm\:text-base { font-size: 1rem; line-height: 1.5rem; }
+            .sm\:text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+            .sm\:text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+            .sm\:text-2xl { font-size: 1.5rem; line-height: 2rem; }
+            .sm\:text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+            .sm\:text-6xl { font-size: 3.75rem; line-height: 1; }
+        }
+
+        @media (min-width: 768px) {
+            .md\:inline { display: inline; }
+            .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .md\:text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+        }
+
+        @media (min-width: 1024px) {
+            .lg\:inline { display: inline; }
+            .lg\:grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+            .lg\:col-span-5 { grid-column: span 5 / span 5; }
+            .lg\:col-span-7 { grid-column: span 7 / span 7; }
+        }
+
+        .font-pixel {
+            font-family: var(--pixel-font);
+            line-height: 1.4;
+        }
+
+        /* Crisp pixel art rendering */
+        #gameCanvas, .pixel-preview {
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -webkit-crisp-edges;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        /* Subtle retro scanlines */
+        .scanlines {
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.22) 50%
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        /* Arcade 3D pixel border effect */
+        .pixel-box {
+            background: rgba(15, 18, 30, 0.92);
+            border: 3px solid #38bdf8;
+            box-shadow: 0 6px 0 #0369a1, 0 10px 25px rgba(0,0,0,0.7);
+            border-radius: 12px;
+        }
+
+        .pixel-btn {
+            transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.1s ease;
+            box-shadow: 0 5px 0 rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .pixel-btn:active, .pixel-btn.active-touch {
+            transform: translateY(4px) scale(0.97);
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
+            filter: brightness(1.25);
+        }
+
+        /* Mobile touch pedal styling (removed heavy backdrop-filter blur over canvas) */
+        .touch-ctrl-btn {
+            transition: transform 0.05s ease, background-color 0.05s ease;
+            will-change: transform;
+        }
+        .touch-ctrl-btn.pressed {
+            transform: scale(0.92);
+            background-color: rgba(250, 204, 21, 0.45) !important;
+            border-color: #facc15 !important;
+            box-shadow: 0 0 20px rgba(250, 204, 21, 0.6);
+        }
+
+        .joystick-base {
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 50%, rgba(15, 23, 42, 0.95) 100%);
+            border: 3px solid rgba(56, 189, 248, 0.8);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.25), inset 0 0 14px rgba(0, 0, 0, 0.85);
+            touch-action: none;
+        }
+
+        .joystick-knob {
+            background: radial-gradient(circle at 35% 35%, #38bdf8, #0284c7 70%, #0369a1 100%);
+            border: 2px solid #bae6fd;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.75), 0 0 14px rgba(56, 189, 248, 0.7);
+            transition: transform 0.02s linear;
+            pointer-events: none;
+        }
+
+        .nitro-drift-active {
+            transform: scale(0.93) !important;
+            background: linear-gradient(to bottom, #ec4899, #7c3aed) !important;
+            border-color: #fef08a !important;
+            box-shadow: 0 0 26px rgba(236, 72, 153, 0.9) !important;
+        }
+
+        @keyframes micPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+        }
+        .mic-listening {
+            animation: micPulse 1.5s infinite;
+        }
+
+        /* Drift score pop animation */
+        @keyframes pulseDrift {
+            0%, 100% { transform: scale(1) rotate(-2deg); }
+            50% { transform: scale(1.08) rotate(2deg); }
+        }
+        .drift-pop {
+            animation: pulseDrift 0.35s infinite ease-in-out;
+        }
+
+        /* Custom scrollbar for menus on small landscape screens */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #38bdf8;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="relative w-full h-full flex flex-col justify-between overflow-hidden select-none">
+
+    <canvas id="gameCanvas" class="absolute inset-0 w-full h-full block z-0"></canvas>
+    <div id="scanlineOverlay" class="scanlines absolute inset-0 z-10"></div>
+
+    <header class="relative z-20 w-full px-2 sm:px-3 pt-1.5 flex items-center justify-between gap-2 pointer-events-none">
+        <!-- Left Compact Telemetry Pill + Mini Radar -->
+        <div id="hudLeft" class="hidden items-center gap-1.5 sm:gap-2 pointer-events-auto">
+            <div class="bg-slate-950/75 border border-slate-700/80 rounded-lg p-0.5 shadow">
+                <canvas id="minimapCanvas" width="96" height="72" class="block rounded w-14 h-10 sm:w-20 sm:h-14"></canvas>
+            </div>
+
+            <div class="bg-slate-950/75 border border-cyan-500/40 rounded-xl px-2.5 py-1 shadow flex items-center gap-2 sm:gap-3 text-xs">
+                <div class="flex items-baseline gap-1">
+                    <span class="text-[9px] text-slate-400 font-bold uppercase">Поз</span>
+                    <span id="hudPos" class="font-pixel text-xs sm:text-sm text-yellow-400">1/4</span>
+                </div>
+                <div class="h-4 w-[1px] bg-slate-700"></div>
+                <div id="hudLapWrap" class="flex items-baseline gap-1">
+                    <span id="hudLapLabel" class="text-[9px] text-slate-400 font-bold uppercase">Круг</span>
+                    <span id="hudLap" class="font-pixel text-xs sm:text-sm text-white">1/3</span>
+                </div>
+                <div class="h-4 w-[1px] bg-slate-700"></div>
+                <div class="flex items-baseline gap-1">
+                    <span class="text-[9px] text-emerald-400 font-bold uppercase">Очки</span>
+                    <span id="hudScore" class="font-pixel text-xs sm:text-sm text-emerald-400">0</span>
+                </div>
+                <div class="hidden sm:block h-4 w-[1px] bg-slate-700"></div>
+                <div class="hidden sm:flex items-baseline gap-1">
+                    <span id="hudSpeed" class="font-pixel text-xs sm:text-sm text-cyan-300">0</span>
+                    <span class="text-[8px] text-slate-400 font-bold">КМ/Ч</span>
+                    <span id="hudDriftAngle" class="hidden">0°</span>
+                </div>
+            </div>
+
+            <!-- Inline Compact Drift Combo Badge (No road-blocking center banner!) -->
+            <div id="driftComboBox" class="hidden items-center bg-gradient-to-r from-amber-500/90 to-fuchsia-600/90 border border-yellow-300 rounded-xl px-2.5 py-1 shadow drift-pop relative overflow-hidden">
+                <span id="driftTitle" class="hidden">ДРИФТ</span>
+                <span id="driftMult" class="font-pixel text-[10px] sm:text-xs text-yellow-200 mr-1.5">x1</span>
+                <span id="driftCurrentPts" class="font-pixel text-xs sm:text-sm text-white">+250</span>
+                <div class="absolute bottom-0 left-0 right-0 h-1 bg-black/40">
+                    <div id="driftChainBar" class="bg-yellow-300 h-full w-full transition-all duration-75"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tiny non-blocking status pill for voice oil drops -->
+        <div id="oilToast" class="pointer-events-none hidden bg-slate-950/85 border border-amber-400/80 text-amber-300 px-2.5 py-1 rounded-full font-pixel text-[9px] sm:text-[10px] shadow">
+            🛢️ МАСЛО!
+        </div>
+
+        <!-- Right Compact Icon Bar -->
+        <div class="flex items-center gap-1 sm:gap-1.5 pointer-events-auto ml-auto">
+            <button id="btnTopQrNet" title="Сетевая игра по QR-коду" class="pixel-btn bg-slate-900/85 hover:bg-fuchsia-600 text-white px-2 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 border-fuchsia-400/50">
+                <span>📱</span>
+                <span id="topNetBadge" class="hidden md:inline text-[10px]">QR</span>
+            </button>
+            <button id="btnVoiceMic" title="Голосовая команда «МАСЛО» (Вкл/Выкл микрофон)" class="pixel-btn bg-slate-900/85 hover:bg-emerald-700 text-white px-2 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 border-emerald-400/50 relative overflow-hidden">
+                <span id="micIcon" class="relative z-10">🎙️</span>
+                <span id="micStatusText" class="hidden lg:inline relative z-10 text-[10px]">«Масло»</span>
+                <div id="micLevelBar" class="absolute bottom-0 left-0 h-1 bg-amber-400 transition-all duration-75" style="width: 0%;"></div>
+            </button>
+            <button id="btnToggleTouch" title="Сенсорное управление" class="pixel-btn bg-slate-900/85 hover:bg-slate-700 text-cyan-300 w-8 h-8 rounded-lg text-xs font-bold flex items-center justify-center">
+                <span>🕹️</span>
+            </button>
+            <button id="btnToggleSound" title="Звук Вкл/Выкл" class="pixel-btn bg-slate-900/85 hover:bg-slate-700 text-amber-300 w-8 h-8 rounded-lg text-xs font-bold flex items-center justify-center">
+                <span id="soundIcon">🔊</span>
+            </button>
+            <button id="btnFullscreen" title="На весь экран" class="pixel-btn bg-slate-900/85 hover:bg-indigo-600 text-white w-8 h-8 rounded-lg text-xs font-bold flex items-center justify-center border-indigo-400/50">
+                <span id="fsIcon">⛶</span>
+            </button>
+            <button id="btnPause" title="Пауза / Гараж" class="hidden pixel-btn bg-rose-600/90 hover:bg-rose-500 text-white w-8 h-8 rounded-lg text-xs font-bold flex items-center justify-center">
+                ⏸
+            </button>
+        </div>
+    </header>
+
+    <!-- Minimalist transparent countdown text (no background box) -->
+    <div id="centerBanner" class="pointer-events-none fixed inset-0 z-20 flex flex-col items-center justify-center hidden">
+        <div id="centerBannerText" class="font-pixel text-4xl sm:text-6xl text-yellow-300 drop-shadow-[0_5px_0_rgba(0,0,0,0.9)] text-center">3</div>
+        <div id="centerBannerSub" class="font-bold text-xs sm:text-sm text-cyan-300 mt-1 drop-shadow-[0_2px_2px_rgba(0,0,0,0.9)]"></div>
+    </div>
+
+    <div id="gameplayFooter" class="relative z-20 w-full px-3 sm:px-5 pb-2.5 sm:pb-4 flex flex-col justify-end pointer-events-none hidden">
+        <!-- Mobile Control Pad: Left Horizontal Stick + Right Nitro-Drift & Oil -->
+        <div id="mobileControls" class="w-full flex items-end justify-between gap-2 pointer-events-none">
+            <!-- Left Hand: Horizontal Virtual Steering Stick -->
+            <div class="flex flex-col items-center pointer-events-auto ml-1 sm:ml-2">
+                <div id="joystickZone" class="joystick-base relative w-44 h-14 sm:w-52 sm:h-16 rounded-full flex items-center justify-center select-none px-3">
+                    <div class="absolute left-5 right-5 h-2 bg-slate-950/90 rounded-full border border-cyan-500/30 pointer-events-none"></div>
+                    <div class="absolute h-7 w-[2px] bg-cyan-400/35 pointer-events-none"></div>
+                    <div class="absolute left-3 text-xs text-cyan-300/60 font-pixel pointer-events-none">◄</div>
+                    <div class="absolute right-3 text-xs text-cyan-300/60 font-pixel pointer-events-none">►</div>
+                    <div id="joystickKnob" class="joystick-knob w-12 h-11 sm:w-14 sm:h-12 rounded-2xl flex items-center justify-center z-10">
+                        <div class="w-1.5 h-4 rounded-full bg-white/60 mx-0.5"></div>
+                        <div class="w-1.5 h-4 rounded-full bg-white/60 mx-0.5"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Hand: Compact Oil Button + Unified NITRO-DRIFT Button with built-in charge bar -->
+            <div class="flex items-end gap-2.5 sm:gap-3 pointer-events-auto mr-1 sm:mr-2">
+                <button id="btnOilManual" title="Сбросить масляную лужу (или скажите «МАСЛО»)" class="touch-ctrl-btn w-13 h-13 sm:w-15 sm:h-15 px-3 py-2.5 rounded-2xl bg-slate-900/85 border-2 border-amber-400/75 text-amber-300 font-bold flex flex-col items-center justify-center shadow-lg">
+                    <span class="text-lg sm:text-xl leading-none">🛢️</span>
+                    <span id="oilCooldownText" class="text-[8px] font-pixel mt-1 text-amber-200">МАСЛО</span>
+                </button>
+
+                <!-- Unified NITRO + DRIFT Button -->
+                <button id="touchNitro" data-action="nitro" class="touch-ctrl-btn relative w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-gradient-to-b from-fuchsia-600/90 via-purple-700/90 to-indigo-900/95 border-2 border-fuchsia-300 text-white font-bold flex flex-col items-center justify-center shadow-[0_0_24px_rgba(217,70,239,0.55)] overflow-hidden p-2">
+                    <span class="text-2xl sm:text-3xl leading-none drop-shadow">🚀</span>
+                    <span class="text-[10px] sm:text-xs font-pixel mt-1 text-yellow-200 tracking-tight">НИТРО</span>
+                    <span class="text-[9px] text-fuchsia-200 font-bold tracking-wider uppercase">+ ДРИФТ</span>
+                    <!-- Embedded Nitro Charge Bar inside the button -->
+                    <div class="w-4/5 h-2 bg-black/50 rounded-full mt-1.5 overflow-hidden border border-white/25">
+                        <div id="nitroBar" class="h-full bg-gradient-to-r from-cyan-400 via-yellow-300 to-pink-500 w-1/2 transition-all duration-75"></div>
+                    </div>
+                    <span id="nitroPct" class="text-[8px] font-pixel text-cyan-200 mt-0.5">50%</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="menuModal" class="fixed inset-0 z-30 flex items-center justify-center p-2 sm:p-4 bg-black/80">
+        <div class="pixel-box w-full max-w-4xl max-h-[94vh] overflow-y-auto custom-scroll p-3 sm:p-6 text-white">
+            <!-- Title Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-slate-700/80 pb-3 mb-4">
+                <div>
+                    <div class="inline-block bg-gradient-to-r from-amber-500 to-pink-500 text-black font-pixel text-[9px] px-2 py-0.5 rounded mb-1">
+                        ARCADE DRIFT EDITION
+                    </div>
+                    <h1 class="font-pixel text-lg sm:text-2xl md:text-3xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-yellow-300 to-pink-400">
+                        PIXEL DRIFT: TURBO GP
+                    </h1>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                    <button id="menuQrNetBtn" class="pixel-btn bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-500 hover:to-pink-500 text-white font-bold text-xs px-3 py-2 rounded-xl flex items-center justify-center gap-2 border-fuchsia-300">
+                        <span>📱</span>
+                        <span>Сетевая игра (QR-код)</span>
+                    </button>
+                    <button id="menuFullscreenBtn" class="pixel-btn bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-3 py-2 rounded-xl flex items-center justify-center gap-2">
+                        <span>⛶</span>
+                        <span>На весь экран</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Active Multiplayer Room Banner inside Garage -->
+            <div id="menuRoomBanner" class="hidden mb-4 bg-fuchsia-950/80 border-2 border-fuchsia-400 rounded-xl p-2.5 items-center justify-between gap-2">
+                <div class="flex items-center gap-2 text-xs">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span class="font-bold text-fuchsia-200">КОМНАТА: <strong id="bannerRoomCode" class="font-pixel text-yellow-300">----</strong></span>
+                    <span id="bannerPlayersCount" class="text-cyan-300 font-bold">(Игроков: 1)</span>
+                </div>
+                <button id="bannerOpenQrBtn" class="pixel-btn bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-lg">
+                    Открыть QR / Лобби
+                </button>
+            </div>
+
+            <!-- Main Configuration Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                <!-- Left Column: Car Selection (5 cols) -->
+                <div class="lg:col-span-5 bg-slate-900/90 border border-slate-700 rounded-xl p-3 flex flex-col justify-between">
+                    <div>
+                        <div class="text-xs font-bold uppercase text-cyan-400 tracking-wider mb-2 flex items-center justify-between">
+                            <span>1. Выберите Болид</span>
+                            <span id="carTag" class="bg-cyan-950 text-cyan-300 px-2 py-0.5 rounded text-[10px]">ЛЕГЕНДА</span>
+                        </div>
+
+                        <!-- Live Pixel Car Turntable Canvas -->
+                        <div class="relative bg-slate-950 border-2 border-slate-800 rounded-xl h-28 sm:h-32 flex items-center justify-center overflow-hidden mb-3">
+                            <canvas id="carPreviewCanvas" width="160" height="100" class="pixel-preview w-40 h-24"></canvas>
+                            <button id="prevCarBtn" class="pixel-btn absolute left-2 bg-slate-800 hover:bg-slate-700 w-8 h-8 rounded-lg font-pixel text-xs">◄</button>
+                            <button id="nextCarBtn" class="pixel-btn absolute right-2 bg-slate-800 hover:bg-slate-700 w-8 h-8 rounded-lg font-pixel text-xs">►</button>
+                        </div>
+
+                        <div id="carName" class="font-pixel text-sm sm:text-base text-yellow-300 text-center mb-1">AE-86 TRUENO</div>
+                        <p id="carDesc" class="text-xs text-slate-300 text-center mb-3 min-h-[2rem]">Идеальный баланс управляемости в глубоком заносе.</p>
+                    </div>
+
+                    <!-- Car Stats Bars -->
+                    <div class="space-y-1.5 text-xs bg-slate-950/70 p-2.5 rounded-lg border border-slate-800">
+                        <div>
+                            <div class="flex justify-between text-[10px] text-slate-300 mb-0.5"><span>МАКС. СКОРОСТЬ</span><span id="statSpeedText">85%</span></div>
+                            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden"><div id="statSpeedBar" class="h-full bg-cyan-400 w-4/5"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[10px] text-slate-300 mb-0.5"><span>УГОЛ И КОНТРОЛЬ ДРИФТА</span><span id="statDriftText">95%</span></div>
+                            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden"><div id="statDriftBar" class="h-full bg-amber-400 w-11/12"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[10px] text-slate-300 mb-0.5"><span>УСКОРЕНИЕ / НИТРО</span><span id="statAccelText">88%</span></div>
+                            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden"><div id="statAccelBar" class="h-full bg-fuchsia-400 w-5/6"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Game Mode & Track Selection (7 cols) -->
+                <div class="lg:col-span-7 flex flex-col justify-between gap-3">
+                    <!-- Game Modes -->
+                    <div class="bg-slate-900/90 border border-slate-700 rounded-xl p-3">
+                        <div class="text-xs font-bold uppercase text-amber-400 tracking-wider mb-2">
+                            2. Режим Игры
+                        </div>
+                        <div id="modeButtonsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <!-- Dynamically populated mode cards -->
+                        </div>
+                    </div>
+
+                    <!-- Tracks & Bot Difficulty -->
+                    <div class="bg-slate-900/90 border border-slate-700 rounded-xl p-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                            <span class="text-xs font-bold uppercase text-emerald-400 tracking-wider">3. Трасса</span>
+                            <div class="flex items-center gap-1 text-xs">
+                                <span class="text-slate-400 text-[11px]">Боты:</span>
+                                <button data-diff="0" class="diff-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[11px] font-bold">Норм</button>
+                                <button data-diff="1" class="diff-btn px-2 py-0.5 rounded bg-cyan-600 text-white text-[11px] font-bold">Профи</button>
+                                <button data-diff="2" class="diff-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[11px] font-bold">Безумие</button>
+                            </div>
+                        </div>
+                        <div id="trackButtonsGrid" class="grid grid-cols-3 gap-2">
+                            <!-- Dynamically populated track cards -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls Hint & Start Button -->
+            <div class="mt-4 pt-3 border-t-2 border-slate-700/80 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="text-[11px] text-slate-300 bg-slate-950/80 px-3 py-2 rounded-xl border border-slate-800 w-full sm:w-auto flex flex-wrap items-center gap-x-4 gap-y-1">
+                    <span>⚡ <strong class="text-emerald-400">Авто-газ</strong></span>
+                    <span>🕹️ <strong class="text-cyan-300">Стик / A,D:</strong> Руль</span>
+                    <span>🚀 <strong class="text-fuchsia-300">Нитро (Пробел/Shift):</strong> Ускорение и Дрифт в поворотах</span>
+                    <span>🎙️ <strong class="text-amber-300">«МАСЛО»:</strong> Лужа</span>
+                </div>
+
+                <button id="btnStartRace" class="pixel-btn w-full sm:w-auto bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-pixel text-sm sm:text-base px-6 py-3.5 rounded-xl shadow-xl flex items-center justify-center gap-2 shrink-0">
+                    <span>🏁 НА СТАРТ!</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="resultsModal" class="fixed inset-0 z-30 hidden items-center justify-center p-2 sm:p-4 bg-black/85">
+        <div class="pixel-box w-full max-w-lg max-h-[94vh] overflow-y-auto custom-scroll p-3 sm:p-5 text-white text-center">
+            <div id="resBadge" class="inline-block bg-yellow-400 text-black font-pixel text-[9px] sm:text-[10px] px-2.5 py-0.5 rounded mb-1">ФИНИШ!</div>
+            <h2 id="resTitle" class="font-pixel text-sm sm:text-xl text-yellow-300 mb-0.5">ПОБЕДА В ЗАЕЗДЕ!</h2>
+            <p id="resSubtitle" class="text-[11px] sm:text-xs text-slate-300 mb-2">Невероятный контроль заноса на трассе</p>
+
+            <!-- Standings Table -->
+            <div id="resTable" class="bg-slate-950/90 border border-slate-700 rounded-xl p-2 mb-2.5 space-y-1 text-left">
+                <!-- Filled by JS -->
+            </div>
+
+            <!-- Player Session Stats -->
+            <div class="grid grid-cols-3 gap-1.5 sm:gap-2 mb-3 text-center">
+                <div class="bg-slate-900 border border-slate-700 rounded-lg p-1.5 sm:p-2">
+                    <div class="text-[9px] sm:text-[10px] text-slate-400 uppercase">Очки Дрифта</div>
+                    <div id="resPlayerDrift" class="font-pixel text-[10px] sm:text-xs text-emerald-400 mt-0.5">0</div>
+                </div>
+                <div class="bg-slate-900 border border-slate-700 rounded-lg p-1.5 sm:p-2">
+                    <div class="text-[9px] sm:text-[10px] text-slate-400 uppercase">Макс. Комбо</div>
+                    <div id="resMaxCombo" class="font-pixel text-[10px] sm:text-xs text-amber-400 mt-0.5">x1</div>
+                </div>
+                <div class="bg-slate-900 border border-slate-700 rounded-lg p-1.5 sm:p-2">
+                    <div class="text-[9px] sm:text-[10px] text-slate-400 uppercase">Время</div>
+                    <div id="resTime" class="font-pixel text-[10px] sm:text-xs text-cyan-300 mt-0.5">00:00</div>
+                </div>
+            </div>
+
+            <div class="flex flex-row gap-2 justify-center">
+                <button id="btnRestartRace" class="pixel-btn flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-pixel text-[10px] sm:text-xs py-2.5 px-3 rounded-xl">
+                    🔄 ЗАНОВО
+                </button>
+                <button id="btnBackMenu" class="pixel-btn flex-1 bg-slate-700 hover:bg-slate-600 text-white font-pixel text-[10px] sm:text-xs py-2.5 px-3 rounded-xl">
+                    🏠 В ГАРАЖ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="mpModal" class="fixed inset-0 z-40 hidden items-center justify-center p-2 sm:p-4 bg-black/85">
+        <div class="pixel-box w-full max-w-2xl max-h-[94vh] overflow-y-auto custom-scroll p-4 sm:p-5 text-white border-fuchsia-400">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-3 mb-3">
+                <div>
+                    <div class="text-[10px] font-pixel text-fuchsia-400 uppercase">MULTIPLAYER QR LINK</div>
+                    <h2 class="font-pixel text-sm sm:text-lg text-yellow-300 mt-0.5">📱 СЕТЕВАЯ ИГРА ПО QR-КОДУ</h2>
+                </div>
+                <button id="btnCloseMpModal" class="pixel-btn bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-xl text-xs font-bold">
+                    ✕ Закрыть
+                </button>
+            </div>
+
+            <!-- Player Identity & Full User ID for multi-user discoverability -->
+            <div class="bg-slate-900/90 border border-slate-700 rounded-xl p-2.5 mb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-400 font-bold">Ваше имя:</span>
+                    <input id="mpPlayerNameInput" type="text" maxlength="12" value="ПИЛОТ" class="bg-slate-950 border border-cyan-500/60 rounded-lg px-2.5 py-1 text-xs font-bold text-cyan-300 w-32 focus:outline-none focus:border-cyan-400">
+                </div>
+                <div class="text-[10px] text-slate-400 break-all">
+                    ID: <span id="mpUserIdDisplay" class="text-slate-300 font-mono select-all">Подключение...</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                <!-- Left Column: Create Room & Show QR Code -->
+                <div class="bg-slate-900/90 border border-slate-700 rounded-xl p-3 flex flex-col items-center justify-between text-center">
+                    <div class="w-full">
+                        <div class="text-xs font-bold uppercase text-fuchsia-300 mb-2">1. Пригласить по QR-коду</div>
+                        <button id="btnCreateRoom" class="pixel-btn w-full bg-gradient-to-r from-fuchsia-600 to-indigo-600 hover:from-fuchsia-500 hover:to-indigo-500 text-white font-pixel text-[11px] py-2.5 px-3 rounded-xl mb-3">
+                            ✨ СОЗДАТЬ QR-КОМНАТУ
+                        </button>
+                    </div>
+
+                    <!-- QR Code Box -->
+                    <div id="qrDisplayWrap" class="flex flex-col items-center justify-center my-1">
+                        <div class="bg-white p-2.5 rounded-xl shadow-lg border-4 border-fuchsia-400 inline-block">
+                            <canvas id="qrCanvas" width="168" height="168" class="w-36 h-36 sm:w-40 sm:h-40 block"></canvas>
+                        </div>
+                        <div class="mt-2">
+                            <span class="text-[10px] text-slate-400 uppercase block">Код комнаты:</span>
+                            <span id="mpCurrentRoomCode" class="font-pixel text-base sm:text-lg text-yellow-300 tracking-widest">----</span>
+                        </div>
+                    </div>
+
+                    <div class="w-full flex gap-1.5 mt-2">
+                        <button id="btnCopyRoomLink" class="pixel-btn flex-1 bg-slate-800 hover:bg-slate-700 text-cyan-300 text-[11px] font-bold py-2 px-2 rounded-lg">
+                            📋 Скопировать ссылку
+                        </button>
+                        <button id="btnLeaveRoom" class="hidden pixel-btn bg-rose-700 hover:bg-rose-600 text-white text-[11px] font-bold py-2 px-2.5 rounded-lg">
+                            Выйти
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Column: Scan QR or Enter Code -->
+                <div class="bg-slate-900/90 border border-slate-700 rounded-xl p-3 flex flex-col justify-between">
+                    <div>
+                        <div class="text-xs font-bold uppercase text-cyan-300 mb-2">2. Войти по QR или Коду</div>
+                        <!-- Manual Code Entry -->
+                        <div class="flex gap-1.5 mb-2.5">
+                            <input id="mpJoinCodeInput" type="text" maxlength="8" placeholder="КОД (напр. DR84)" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-pixel uppercase text-yellow-300 flex-1 focus:outline-none focus:border-cyan-400">
+                            <button id="btnJoinByCode" class="pixel-btn bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-pixel text-[11px] px-3.5 py-2 rounded-xl">
+                                ВОЙТИ
+                            </button>
+                        </div>
+
+                        <!-- Camera QR Scanner -->
+                        <button id="btnToggleQrScan" class="pixel-btn w-full bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 mb-2">
+                            <span>📷</span>
+                            <span id="qrScanBtnText">Сканировать QR камерой</span>
+                        </button>
+
+                        <div id="qrScannerBox" class="hidden relative bg-black rounded-xl overflow-hidden border-2 border-emerald-400 mb-2 h-36 flex items-center justify-center">
+                            <video id="qrVideo" playsinline muted class="w-full h-full object-cover"></video>
+                            <canvas id="qrScanCanvas" class="hidden"></canvas>
+                            <div class="absolute inset-4 border-2 border-dashed border-yellow-300/80 rounded-lg pointer-events-none"></div>
+                            <div class="absolute bottom-1 left-0 right-0 text-center text-[10px] bg-black/70 text-emerald-300 py-0.5">
+                                Наведите камеру на QR-код друга
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Open Rooms List -->
+                    <div class="mt-1">
+                        <div class="text-[10px] font-bold uppercase text-slate-400 mb-1 flex justify-between">
+                            <span>Доступные комнаты в сети:</span>
+                            <span id="mpNetStatus" class="text-emerald-400">Онлайн</span>
+                        </div>
+                        <div id="mpOpenRoomsList" class="bg-slate-950/90 border border-slate-800 rounded-lg p-2 max-h-28 overflow-y-auto space-y-1 text-xs">
+                            <div class="text-slate-500 text-[11px] text-center py-2">Поиск активных комнат...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Connected Players in Current Room -->
+            <div class="bg-slate-950/90 border border-slate-700 rounded-xl p-3">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <span class="text-xs font-bold uppercase text-amber-300">Гонщики в лобби:</span>
+                    <label class="flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer">
+                        <input id="mpFillBotsCheck" type="checkbox" checked class="accent-cyan-400">
+                        <span>Добавить ботов на свободные слоты</span>
+                    </label>
+                </div>
+                <div id="mpLobbyPlayersList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                    <div class="text-xs text-slate-400 py-2 text-center col-span-2">Создайте комнату или отсканируйте QR-код друга</div>
+                </div>
+                <div id="mpStatusToast" class="text-center text-xs font-bold text-cyan-300 mb-2 min-h-[1.25rem]"></div>
+                <button id="btnStartMpRace" class="pixel-btn w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-pixel text-xs sm:text-sm py-3 rounded-xl shadow-lg">
+                    🏁 СТАРТ СЕТЕВОГО ЗАЕЗДА!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ProceduralSoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+                this.initialized = false;
+                this.engineOsc = null;
+                this.engineSubOsc = null;
+                this.engineGain = null;
+                this.screechNode = null;
+                this.screechFilter = null;
+                this.screechGain = null;
+                this.nitroGain = null;
+            }
+
+            init() {
+                if (this.initialized) return;
+                try {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioCtx) return;
+                    this.ctx = new AudioCtx();
+
+                    // 1. Engine Synthesizer (Sawtooth + Triangle Sub)
+                    this.engineOsc = this.ctx.createOscillator();
+                    this.engineSubOsc = this.ctx.createOscillator();
+                    this.engineGain = this.ctx.createGain();
+                    const engineFilter = this.ctx.createBiquadFilter();
+
+                    this.engineOsc.type = 'sawtooth';
+                    this.engineSubOsc.type = 'triangle';
+                    this.engineOsc.frequency.value = 55;
+                    this.engineSubOsc.frequency.value = 27.5;
+
+                    engineFilter.type = 'lowpass';
+                    engineFilter.frequency.value = 380;
+
+                    this.engineGain.gain.value = 0.0;
+
+                    this.engineOsc.connect(engineFilter);
+                    this.engineSubOsc.connect(engineFilter);
+                    engineFilter.connect(this.engineGain);
+                    this.engineGain.connect(this.ctx.destination);
+
+                    this.engineOsc.start();
+                    this.engineSubOsc.start();
+
+                    // 2. Tire Screech & Nitro Noise Generator
+                    const bufferSize = this.ctx.sampleRate * 2;
+                    const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                    const output = noiseBuffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        output[i] = Math.random() * 2 - 1;
+                    }
+
+                    const whiteNoise = this.ctx.createBufferSource();
+                    whiteNoise.buffer = noiseBuffer;
+                    whiteNoise.loop = true;
+
+                    // Bandpass filter for tire squeal
+                    this.screechFilter = this.ctx.createBiquadFilter();
+                    this.screechFilter.type = 'bandpass';
+                    this.screechFilter.frequency.value = 1150;
+                    this.screechFilter.Q.value = 4.5;
+
+                    this.screechGain = this.ctx.createGain();
+                    this.screechGain.gain.value = 0.0;
+
+                    // Highpass filter for nitro whoosh
+                    const nitroFilter = this.ctx.createBiquadFilter();
+                    nitroFilter.type = 'bandpass';
+                    nitroFilter.frequency.value = 550;
+                    nitroFilter.Q.value = 1.2;
+
+                    this.nitroGain = this.ctx.createGain();
+                    this.nitroGain.gain.value = 0.0;
+
+                    whiteNoise.connect(this.screechFilter);
+                    this.screechFilter.connect(this.screechGain);
+                    this.screechGain.connect(this.ctx.destination);
+
+                    whiteNoise.connect(nitroFilter);
+                    nitroFilter.connect(this.nitroGain);
+                    this.nitroGain.connect(this.ctx.destination);
+
+                    whiteNoise.start();
+                    this.initialized = true;
+                } catch (e) {
+                    console.warn('Audio init bypassed:', e);
+                }
+            }
+
+            resume() {
+                if (!this.initialized) this.init();
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            toggle() {
+                this.enabled = !this.enabled;
+                if (!this.enabled) {
+                    this.silenceContinuous();
+                }
+                return this.enabled;
+            }
+
+            silenceContinuous() {
+                if (!this.initialized || !this.ctx) return;
+                const now = this.ctx.currentTime;
+                this.engineGain.gain.setTargetAtTime(0, now, 0.05);
+                this.screechGain.gain.setTargetAtTime(0, now, 0.05);
+                this.nitroGain.gain.setTargetAtTime(0, now, 0.05);
+            }
+
+            updateContinuous(speedRatio, driftIntensity, isNitroActive, isPlaying) {
+                if (!this.initialized || !this.enabled || !isPlaying) {
+                    this.silenceContinuous();
+                    return;
+                }
+                const now = this.ctx.currentTime;
+                // Simulate 4 gears for authentic arcade race RPM feel
+                const gearMod = (speedRatio * 3.6) % 1.0;
+                const baseFreq = 45 + speedRatio * 95 + gearMod * 42 + (isNitroActive ? 35 : 0);
+
+                this.engineOsc.frequency.setTargetAtTime(baseFreq, now, 0.04);
+                this.engineSubOsc.frequency.setTargetAtTime(baseFreq * 0.5, now, 0.04);
+                this.engineGain.gain.setTargetAtTime(0.05 + speedRatio * 0.05, now, 0.05);
+
+                // Tire screech modulation
+                const screechVol = Math.min(0.11, driftIntensity * 0.12);
+                const screechPitch = 980 + Math.sin(now * 24) * 90 + driftIntensity * 320;
+                this.screechFilter.frequency.setTargetAtTime(screechPitch, now, 0.03);
+                this.screechGain.gain.setTargetAtTime(screechVol, now, 0.04);
+
+                // Nitro flame whoosh
+                this.nitroGain.gain.setTargetAtTime(isNitroActive ? 0.12 : 0.0, now, 0.04);
+            }
+
+            playTone(freq, duration = 0.12, type = 'square', vol = 0.12, slideFreq = null) {
+                if (!this.enabled) return;
+                this.resume();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, now);
+                if (slideFreq) {
+                    osc.frequency.exponentialRampToValueAtTime(slideFreq, now + duration);
+                }
+
+                gain.gain.setValueAtTime(vol, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + duration);
+            }
+
+            playCountdown(isGo = false) {
+                if (isGo) {
+                    this.playTone(880, 0.35, 'square', 0.15, 1320);
+                } else {
+                    this.playTone(440, 0.16, 'square', 0.12);
+                }
+            }
+
+            playComboCashIn(mult = 1) {
+                const base = 520 + Math.min(mult, 8) * 60;
+                this.playTone(base, 0.12, 'triangle', 0.14, base * 1.5);
+            }
+
+            playCrash() {
+                this.playTone(110, 0.18, 'sawtooth', 0.18, 38);
+            }
+
+            playOilDrop() {
+                this.playTone(260, 0.18, 'sine', 0.18, 95);
+                setTimeout(() => this.playTone(140, 0.15, 'triangle', 0.15, 220), 70);
+            }
+
+            playOilSlip() {
+                this.playTone(680, 0.25, 'sawtooth', 0.12, 240);
+            }
+        }
+
+        const sound = new ProceduralSoundEngine();
+
+        const CARS = [
+            {
+                id: 'trueno',
+                name: 'AE-86 TRUENO',
+                tag: 'ТОКИЙСКИЙ ДРИФТ',
+                desc: 'Идеальный баланс управляемости и мягкого контроля в глубоком заносе.',
+                bodyColor: '#f8fafc',
+                stripeColor: '#0f172a',
+                accentColor: '#ef4444',
+                glassColor: '#38bdf8',
+                maxSpeed: 500,
+                accel: 390,
+                driftGrip: 0.92,
+                turnRate: 3.35,
+                stats: { speed: 84, drift: 96, accel: 86 }
+            },
+            {
+                id: 'rx7',
+                name: 'RX-7 ROTARY',
+                tag: 'КОРОЛЬ АПЕКСОВ',
+                desc: 'Высокая скорость, агрессивный угол заноса и мощный роторный подхват.',
+                bodyColor: '#f59e0b',
+                stripeColor: '#1e293b',
+                accentColor: '#fef08a',
+                glassColor: '#0284c7',
+                maxSpeed: 530,
+                accel: 410,
+                driftGrip: 0.88,
+                turnRate: 3.5,
+                stats: { speed: 92, drift: 94, accel: 90 }
+            },
+            {
+                id: 'gtr',
+                name: 'SKYLINE GT-R34',
+                tag: 'ПОЛНЫЙ ПРИВОД',
+                desc: 'Молниеносный выход из заноса и увеличенный объём закиси азота.',
+                bodyColor: '#2563eb',
+                stripeColor: '#e2e8f0',
+                accentColor: '#38bdf8',
+                glassColor: '#1e293b',
+                maxSpeed: 545,
+                accel: 435,
+                driftGrip: 0.94,
+                turnRate: 3.15,
+                stats: { speed: 96, drift: 86, accel: 96 }
+            },
+            {
+                id: 'cyber',
+                name: 'CYBER-V8 NEON',
+                tag: 'ПРОТОТИП 2088',
+                desc: 'Экстремальный угол скольжения и неоновый след горящей резины.',
+                bodyColor: '#ec4899',
+                stripeColor: '#090d16',
+                accentColor: '#22d3ee',
+                glassColor: '#a855f7',
+                maxSpeed: 540,
+                accel: 425,
+                driftGrip: 0.89,
+                turnRate: 3.6,
+                stats: { speed: 94, drift: 99, accel: 93 }
+            }
+        ];
+
+        const GAME_MODES = [
+            {
+                id: 'drift_battle',
+                name: '💨 Дрифт-Битва',
+                desc: '3 круга с ботами. Побеждает тот, кто наберёт больше всего очков дрифта!',
+                laps: 3,
+                botCount: 3
+            },
+            {
+                id: 'grand_prix',
+                name: '🏆 Гран-При Гонка',
+                desc: 'Классическая гонка на 3 круга. Заряжайте нитро в заносах и придите первым!',
+                laps: 3,
+                botCount: 3
+            },
+            {
+                id: 'time_attack',
+                name: '⏱ Король Дрифта (75с)',
+                desc: 'Наберите максимум очков дрифта за 75 секунд, цепляя бонусные апекс-зоны!',
+                laps: 0,
+                duration: 75,
+                botCount: 2
+            },
+            {
+                id: 'elimination',
+                name: '💥 Выживание',
+                desc: 'Каждые 22 секунды последний гонщик выбывает! Останьтесь последним на трассе.',
+                laps: 5,
+                eliminationTime: 22,
+                botCount: 3
+            }
+        ];
+
+        const TRACKS = [
+            {
+                id: 'tokyo',
+                name: 'Токио Неон',
+                subtitle: 'Мегаполис (Длинная)',
+                bgColor: '#090b16',
+                grassColor: '#0f172a',
+                roadColor: '#1e293b',
+                kerbA: '#ec4899',
+                kerbB: '#22d3ee',
+                skidColor: 'rgba(34, 211, 238, 0.30)',
+                roadWidth: 210,
+                isNight: true,
+                points: [
+                    { x: 900,  y: 2850 }, { x: 1850, y: 2850 }, { x: 2450, y: 2620 },
+                    { x: 2200, y: 2220 }, { x: 2750, y: 1980 }, { x: 3450, y: 2750 },
+                    { x: 4050, y: 2550 }, { x: 4150, y: 1880 }, { x: 3500, y: 1620 },
+                    { x: 4100, y: 1180 }, { x: 3900, y: 550 },  { x: 3150, y: 480 },
+                    { x: 2850, y: 1050 }, { x: 2350, y: 1150 }, { x: 2150, y: 480 },
+                    { x: 1450, y: 450 },  { x: 1250, y: 980 },  { x: 1750, y: 1380 },
+                    { x: 1150, y: 1680 }, { x: 580,  y: 1150 }, { x: 420,  y: 1780 },
+                    { x: 880,  y: 2220 }, { x: 480,  y: 2650 }
+                ]
+            },
+            {
+                id: 'touge',
+                name: 'Альпы Тоге',
+                subtitle: 'Серпантин (18 поворотов)',
+                bgColor: '#14261c',
+                grassColor: '#1b3b2b',
+                roadColor: '#334155',
+                kerbA: '#ef4444',
+                kerbB: '#f8fafc',
+                skidColor: 'rgba(15, 23, 42, 0.44)',
+                roadWidth: 198,
+                isNight: false,
+                points: [
+                    { x: 850,  y: 2920 }, { x: 1750, y: 2950 }, { x: 2350, y: 2520 },
+                    { x: 2950, y: 2950 }, { x: 3750, y: 2820 }, { x: 4180, y: 2320 },
+                    { x: 3450, y: 2050 }, { x: 4120, y: 1620 }, { x: 3350, y: 1320 },
+                    { x: 4050, y: 820 },  { x: 3550, y: 420 },  { x: 2780, y: 680 },
+                    { x: 2350, y: 380 },  { x: 1850, y: 880 },  { x: 1380, y: 420 },
+                    { x: 720,  y: 580 },  { x: 480,  y: 1120 }, { x: 1180, y: 1380 },
+                    { x: 520,  y: 1780 }, { x: 1220, y: 2120 }, { x: 480,  y: 2480 }
+                ]
+            },
+            {
+                id: 'canyon',
+                name: 'Каньон Дюн',
+                subtitle: 'Экстрим-ущелье',
+                bgColor: '#3b2110',
+                grassColor: '#5c3419',
+                roadColor: '#3f3f46',
+                kerbA: '#f59e0b',
+                kerbB: '#18181b',
+                skidColor: 'rgba(24, 24, 27, 0.42)',
+                roadWidth: 215,
+                isNight: false,
+                points: [
+                    { x: 950,  y: 2880 }, { x: 2050, y: 2880 }, { x: 2680, y: 2420 },
+                    { x: 3250, y: 2850 }, { x: 4080, y: 2580 }, { x: 3720, y: 1920 },
+                    { x: 4180, y: 1350 }, { x: 3650, y: 620 },  { x: 2950, y: 980 },
+                    { x: 2550, y: 450 },  { x: 1850, y: 480 },  { x: 1580, y: 1180 },
+                    { x: 1050, y: 550 },  { x: 480,  y: 920 },  { x: 920,  y: 1580 },
+                    { x: 440,  y: 2150 }
+                ]
+            }
+        ];
+
+        const BOT_NAMES = ['ЖИБЕР', 'ДАНИЭЛЬ', 'ЭМИЛЬЕН', 'БЕРНАР', 'ЖАН-ПОЛЬ'];
+
+        const WORLD_W = 4600;
+        const WORLD_H = 3400;
+        // Render static track buffer at 0.5x pixel-art scale (4x less VRAM & 4x faster blitting)
+        const BUFFER_SCALE = 0.5;
+
+        class TrackSystem {
+            constructor() {
+                this.buffer = document.createElement('canvas');
+                this.buffer.width = Math.floor(WORLD_W * BUFFER_SCALE);
+                this.buffer.height = Math.floor(WORLD_H * BUFFER_SCALE);
+                this.bctx = this.buffer.getContext('2d', { alpha: false });
+
+                // Pre-rendered static minimap layer to avoid stroking 600+ points every frame
+                this.minimapBuffer = document.createElement('canvas');
+                this.minimapBuffer.width = 96;
+                this.minimapBuffer.height = 72;
+                this.mbctx = this.minimapBuffer.getContext('2d');
+
+                this.waypoints = [];
+                this.apexZones = [];
+                this.boostPads = [];
+                this.props = [];
+                this.skidMarks = [];
+                this.maxSkidMarks = 420;
+                this.currentTrack = TRACKS[0];
+            }
+
+            // Closed Catmull-Rom interpolation for smooth racing curves
+            interpolateSpline(pts, subdivisions = 20) {
+                const out = [];
+                const n = pts.length;
+                for (let i = 0; i < n; i++) {
+                    const p0 = pts[(i - 1 + n) % n];
+                    const p1 = pts[i];
+                    const p2 = pts[(i + 1) % n];
+                    const p3 = pts[(i + 2) % n];
+
+                    for (let step = 0; step < subdivisions; step++) {
+                        const t = step / subdivisions;
+                        const t2 = t * t;
+                        const t3 = t2 * t;
+
+                        const x = 0.5 * (
+                            (2 * p1.x) +
+                            (-p0.x + p2.x) * t +
+                            (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 +
+                            (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3
+                        );
+                        const y = 0.5 * (
+                            (2 * p1.y) +
+                            (-p0.y + p2.y) * t +
+                            (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 +
+                            (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3
+                        );
+                        out.push({ x, y });
+                    }
+                }
+
+                // Compute tangents, normals, and curvature for AI & Apex zones
+                const m = out.length;
+                for (let i = 0; i < m; i++) {
+                    const prev = out[(i - 1 + m) % m];
+                    const next = out[(i + 1) % m];
+                    const dx = next.x - prev.x;
+                    const dy = next.y - prev.y;
+                    const len = Math.hypot(dx, dy) || 1;
+                    out[i].tx = dx / len;
+                    out[i].ty = dy / len;
+                    out[i].nx = -out[i].ty;
+                    out[i].ny = out[i].tx;
+                    out[i].angle = Math.atan2(out[i].ty, out[i].tx);
+                }
+
+                for (let i = 0; i < m; i++) {
+                    const prev = out[(i - 3 + m) % m];
+                    const next = out[(i + 3) % m];
+                    let dAngle = next.angle - prev.angle;
+                    while (dAngle > Math.PI) dAngle -= Math.PI * 2;
+                    while (dAngle < -Math.PI) dAngle += Math.PI * 2;
+                    out[i].curvature = Math.abs(dAngle);
+                }
+                return out;
+            }
+
+            build(trackConfig) {
+                this.currentTrack = trackConfig;
+                this.waypoints = this.interpolateSpline(trackConfig.points, 20);
+                this.apexZones = [];
+                this.boostPads = [];
+                this.props = [];
+                this.skidMarks = [];
+
+                const ctx = this.bctx;
+                const rw = trackConfig.roadWidth;
+
+                ctx.save();
+                ctx.setTransform(BUFFER_SCALE, 0, 0, BUFFER_SCALE, 0, 0);
+
+                // 1. Paint Terrain Background with pixel noise patches
+                ctx.fillStyle = trackConfig.grassColor;
+                ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+
+                // Procedural retro grid or terrain speckles
+                if (trackConfig.isNight) {
+                    ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    for (let x = 0; x < WORLD_W; x += 96) {
+                        ctx.moveTo(x, 0); ctx.lineTo(x, WORLD_H);
+                    }
+                    for (let y = 0; y < WORLD_H; y += 96) {
+                        ctx.moveTo(0, y); ctx.lineTo(WORLD_W, y);
+                    }
+                    ctx.stroke();
+                } else {
+                    for (let i = 0; i < 1200; i++) {
+                        ctx.fillStyle = i % 2 === 0 ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.12)';
+                        const px = Math.floor(Math.random() * (WORLD_W / 12)) * 12;
+                        const py = Math.floor(Math.random() * (WORLD_H / 12)) * 12;
+                        ctx.fillRect(px, py, 12, 12);
+                    }
+                }
+
+                // 2. Outer Shadow / Barrier Border
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                this.strokeTrackPath(ctx, rw + 36, 'rgba(0, 0, 0, 0.45)');
+
+                // 3. Fast Batched Kerbs (2 strokes instead of 300+ individual strokes)
+                this.strokeTrackPath(ctx, rw + 22, trackConfig.kerbA);
+                ctx.save();
+                ctx.setLineDash([32, 32]);
+                this.strokeTrackPath(ctx, rw + 22, trackConfig.kerbB);
+                ctx.restore();
+
+                // 4. Main Asphalt Surface
+                this.strokeTrackPath(ctx, rw, trackConfig.roadColor);
+
+                // 5. Inner Asphalt Grain & Dashed Center Line
+                ctx.save();
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.14)';
+                ctx.lineWidth = 4;
+                ctx.setLineDash([24, 28]);
+                this.strokeTrackPath(ctx, 4, 'rgba(255, 255, 255, 0.14)');
+                ctx.restore();
+
+                // 6. Identify High-Curvature Apex Clipping Zones & Straight Boost Pads
+                const wp = this.waypoints;
+                for (let i = 8; i < wp.length - 8; i += 9) {
+                    const pt = wp[i];
+                    if (pt.curvature > 0.36) {
+                        this.apexZones.push({
+                            x: pt.x + pt.nx * (rw * 0.25),
+                            y: pt.y + pt.ny * (rw * 0.25),
+                            radius: 42
+                        });
+                        ctx.save();
+                        ctx.strokeStyle = 'rgba(250, 204, 21, 0.55)';
+                        ctx.lineWidth = 4;
+                        ctx.beginPath();
+                        ctx.arc(pt.x + pt.nx * (rw * 0.25), pt.y + pt.ny * (rw * 0.25), 26, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.restore();
+                    } else if (pt.curvature < 0.12 && this.boostPads.length < 9 && i % 27 === 0) {
+                        this.boostPads.push({
+                            x: pt.x,
+                            y: pt.y,
+                            angle: pt.angle,
+                            radius: 36
+                        });
+                        this.drawBoostPadOnTrack(ctx, pt.x, pt.y, pt.angle);
+                    }
+                }
+
+                // 7. Draw Checkered Start / Finish Line at Waypoint 0
+                this.drawStartFinishLine(ctx, wp[0], rw);
+
+                // 8. Generate Decorative Roadside Pixel Props
+                for (let i = 0; i < 240; i++) {
+                    const rx = 80 + Math.random() * (WORLD_W - 160);
+                    const ry = 80 + Math.random() * (WORLD_H - 160);
+                    const nearest = this.getNearestWaypoint(rx, ry);
+                    if (nearest.dist > rw * 0.72 + 45) {
+                        this.drawRoadsideProp(ctx, rx, ry, trackConfig.id);
+                    }
+                }
+
+                ctx.restore();
+
+                // 9. Pre-render static minimap track outline once
+                this.buildMinimapCache();
+            }
+
+            buildMinimapCache() {
+                const mctx = this.mbctx;
+                const w = this.minimapBuffer.width;
+                const h = this.minimapBuffer.height;
+                mctx.clearRect(0, 0, w, h);
+                const sx = w / WORLD_W;
+                const sy = h / WORLD_H;
+
+                mctx.strokeStyle = 'rgba(148, 163, 184, 0.65)';
+                mctx.lineWidth = 3.5;
+                mctx.lineJoin = 'round';
+                mctx.beginPath();
+                for (let i = 0; i < this.waypoints.length; i += 3) {
+                    const p = this.waypoints[i];
+                    if (i === 0) mctx.moveTo(p.x * sx, p.y * sy);
+                    else mctx.lineTo(p.x * sx, p.y * sy);
+                }
+                mctx.closePath();
+                mctx.stroke();
+            }
+
+            strokeTrackPath(ctx, width, color) {
+                const wp = this.waypoints;
+                ctx.beginPath();
+                wp.forEach((p, idx) => idx === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+                ctx.closePath();
+                ctx.lineWidth = width;
+                ctx.strokeStyle = color;
+                ctx.stroke();
+            }
+
+            drawBoostPadOnTrack(ctx, x, y, angle) {
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(angle);
+                for (let offset = -12; offset <= 12; offset += 12) {
+                    ctx.strokeStyle = '#22d3ee';
+                    ctx.lineWidth = 5;
+                    ctx.beginPath();
+                    ctx.moveTo(offset - 8, -18);
+                    ctx.lineTo(offset + 6, 0);
+                    ctx.lineTo(offset - 8, 18);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            drawStartFinishLine(ctx, wp0, rw) {
+                ctx.save();
+                ctx.translate(wp0.x, wp0.y);
+                ctx.rotate(wp0.angle);
+                const rows = 2;
+                const cols = 12;
+                const cellW = 12;
+                const cellH = rw / cols;
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        ctx.fillStyle = (r + c) % 2 === 0 ? '#ffffff' : '#090a0f';
+                        ctx.fillRect(-cellW + r * cellW, -rw / 2 + c * cellH, cellW, cellH);
+                    }
+                }
+                ctx.restore();
+            }
+
+            drawRoadsideProp(ctx, x, y, trackId) {
+                ctx.save();
+                ctx.translate(Math.floor(x / 4) * 4, Math.floor(y / 4) * 4);
+                if (trackId === 'tokyo') {
+                    // Cyber neon building / tower block
+                    ctx.fillStyle = '#090d16';
+                    ctx.fillRect(-18, -18, 36, 36);
+                    ctx.strokeStyle = Math.random() > 0.5 ? '#ec4899' : '#22d3ee';
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(-16, -16, 32, 32);
+                    ctx.fillStyle = '#fef08a';
+                    ctx.fillRect(-8, -8, 6, 6);
+                    ctx.fillRect(4, 4, 6, 6);
+                } else if (trackId === 'touge') {
+                    // Pixel Pine Tree
+                    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+                    ctx.fillRect(-12, -10, 28, 28);
+                    ctx.fillStyle = '#14532d';
+                    ctx.fillRect(-14, -14, 28, 28);
+                    ctx.fillStyle = '#22c55e';
+                    ctx.fillRect(-10, -10, 20, 20);
+                    ctx.fillStyle = '#4ade80';
+                    ctx.fillRect(-5, -5, 10, 10);
+                } else {
+                    // Desert Cactus / Rock
+                    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                    ctx.fillRect(-10, -6, 24, 20);
+                    ctx.fillStyle = '#15803d';
+                    ctx.fillRect(-6, -14, 12, 28);
+                    ctx.fillRect(-14, -6, 28, 8);
+                }
+                ctx.restore();
+            }
+
+            // Store tire skids in a lightweight ring buffer instead of mutating the giant world texture
+            addSkidMark(x1, y1, x2, y2, color) {
+                if (this.skidMarks.length >= this.maxSkidMarks) {
+                    this.skidMarks.shift();
+                }
+                this.skidMarks.push({
+                    x1, y1, x2, y2,
+                    color: color || this.currentTrack.skidColor
+                });
+            }
+
+            // Local window search around hintIndex (12x faster during racing)
+            getNearestWaypoint(x, y, hintIndex = -1) {
+                let bestDistSq = Infinity;
+                let bestIdx = 0;
+                const wp = this.waypoints;
+                const n = wp.length;
+
+                if (hintIndex >= 0 && n > 0) {
+                    const windowSize = 22;
+                    for (let offset = -windowSize; offset <= windowSize; offset++) {
+                        const i = (hintIndex + offset + n) % n;
+                        const dx = x - wp[i].x;
+                        const dy = y - wp[i].y;
+                        const d2 = dx * dx + dy * dy;
+                        if (d2 < bestDistSq) {
+                            bestDistSq = d2;
+                            bestIdx = i;
+                        }
+                    }
+                    // If reasonably close to track, return immediately without scanning all waypoints
+                    if (bestDistSq < 180000) {
+                        return { index: bestIdx, point: wp[bestIdx], dist: Math.sqrt(bestDistSq) };
+                    }
+                }
+
+                for (let i = 0; i < n; i++) {
+                    const dx = x - wp[i].x;
+                    const dy = y - wp[i].y;
+                    const d2 = dx * dx + dy * dy;
+                    if (d2 < bestDistSq) {
+                        bestDistSq = d2;
+                        bestIdx = i;
+                    }
+                }
+                return { index: bestIdx, point: wp[bestIdx], dist: Math.sqrt(bestDistSq) };
+            }
+        }
+
+        function drawPixelCar(ctx, x, y, bodyAngle, steerAngle, carSpec, isDrifting, isNitro, isEliminated = false, scale = 1) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(scale, scale);
+            ctx.rotate(bodyAngle);
+
+            if (isEliminated) {
+                ctx.globalAlpha = 0.45;
+            }
+
+            // Soft ground shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+            ctx.fillRect(-24, -11, 48, 26);
+
+            // 4 Wheels (Front wheels rotate with steering angle!)
+            const wheelPositions = [
+                { wx: 13, wy: -13, front: true },
+                { wx: 13, wy: 13, front: true },
+                { wx: -13, wy: -13, front: false },
+                { wx: -13, wy: 13, front: false }
+            ];
+            wheelPositions.forEach(w => {
+                ctx.save();
+                ctx.translate(w.wx, w.wy);
+                if (w.front) ctx.rotate(steerAngle * 0.45);
+                ctx.fillStyle = '#090a0f';
+                ctx.fillRect(-6, -3, 12, 6);
+                ctx.fillStyle = '#64748b';
+                ctx.fillRect(-2, -2, 4, 4);
+                ctx.restore();
+            });
+
+            // Nitro twin exhaust flames
+            if (isNitro && !isEliminated) {
+                const flameLen = 14 + Math.random() * 14;
+                ctx.fillStyle = '#38bdf8';
+                ctx.fillRect(-22 - flameLen, -7, flameLen, 4);
+                ctx.fillRect(-22 - flameLen, 3, flameLen, 4);
+                ctx.fillStyle = '#facc15';
+                ctx.fillRect(-22 - flameLen * 0.5, -6, flameLen * 0.5, 2);
+                ctx.fillRect(-22 - flameLen * 0.5, 4, flameLen * 0.5, 2);
+            }
+
+            // Lower Chassis Skirt
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(-23, -12, 46, 24);
+
+            // Main Pixel Car Body
+            ctx.fillStyle = carSpec.bodyColor;
+            ctx.fillRect(-22, -11, 44, 22);
+
+            // Racing Stripes
+            ctx.fillStyle = carSpec.stripeColor;
+            ctx.fillRect(-22, -3, 44, 6);
+
+            // Hood Vents & Front Splitter
+            ctx.fillStyle = carSpec.accentColor;
+            ctx.fillRect(19, -11, 4, 22);
+
+            // Cabin / Roof & Windshield (stacked offset for 2.5D depth)
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(-11, -9, 21, 18);
+            ctx.fillStyle = carSpec.glassColor;
+            ctx.fillRect(2, -8, 7, 16); // Front windshield
+            ctx.fillRect(-9, -7, 4, 14); // Rear window
+            ctx.fillStyle = carSpec.bodyColor;
+            ctx.fillRect(-5, -8, 7, 16); // Roof top
+
+            // Rear Drift Spoiler Wing
+            ctx.fillStyle = carSpec.stripeColor;
+            ctx.fillRect(-23, -12, 5, 24);
+            ctx.fillStyle = carSpec.accentColor;
+            ctx.fillRect(-22, -12, 3, 24);
+
+            // Headlights
+            ctx.fillStyle = '#fef08a';
+            ctx.fillRect(20, -10, 3, 5);
+            ctx.fillRect(20, 5, 3, 5);
+
+            // Brake / Drift Tail Lights (glow bright red when drifting)
+            ctx.fillStyle = isDrifting ? '#ff1e42' : '#991b1b';
+            ctx.fillRect(-23, -10, 2, 5);
+            ctx.fillRect(-23, 5, 2, 5);
+
+            ctx.restore();
+        }
+
+        class Racer {
+            constructor(spec, isPlayer, name, startPos, startAngle, botDiff = 1) {
+                this.spec = spec;
+                this.isPlayer = isPlayer;
+                this.name = name;
+                this.x = startPos.x;
+                this.y = startPos.y;
+                this.prevX = this.x;
+                this.prevY = this.y;
+
+                // Heading angle vs Velocity vector for realistic slip-angle drifting
+                this.angle = startAngle;
+                this.vx = 0;
+                this.vy = 0;
+                this.speed = 0;
+                this.steerInput = 0;
+
+                // Drift Scoring & Telemetry
+                this.driftAngle = 0;
+                this.isDrifting = false;
+                this.driftIntensity = 0;
+                this.currentDriftScore = 0;
+                this.driftMultiplier = 1;
+                this.driftChainTimer = 0;
+                this.totalDriftScore = 0;
+                this.maxCombo = 1;
+
+                // Nitro Boost
+                this.nitro = 55;
+                this.isNitroActive = false;
+
+                // Oil hazard spinout state for opponents
+                this.oilSpinTimer = 0;
+
+                // Race Progress Tracking
+                this.wpIndex = 0;
+                this.lap = 1;
+                this.totalWaypointsPassed = 0;
+                this.finished = false;
+                this.eliminated = false;
+
+                // Bot AI & Remote Network Player state
+                this.botDiff = botDiff;
+                this.aiLaneOffset = (Math.random() - 0.5) * 75;
+                this.isRemote = false;
+                this.remotePeerId = null;
+                this.targetX = this.x;
+                this.targetY = this.y;
+                this.targetAngle = this.angle;
+                this.lastRemoteOilId = null;
+            }
+
+            update(dt, track, inputs, allRacers, particles) {
+                if (this.isRemote) {
+                    this.prevX = this.x;
+                    this.prevY = this.y;
+                    // Smooth network position & heading interpolation
+                    const blend = Math.min(1, dt * 12);
+                    this.x += (this.targetX - this.x) * blend;
+                    this.y += (this.targetY - this.y) * blend;
+                    let dAngle = this.targetAngle - this.angle;
+                    while (dAngle > Math.PI) dAngle -= Math.PI * 2;
+                    while (dAngle < -Math.PI) dAngle += Math.PI * 2;
+                    this.angle += dAngle * blend;
+                    this.speed = Math.hypot(this.vx, this.vy);
+
+                    if (this.isDrifting) {
+                        const cos = Math.cos(this.angle);
+                        const sin = Math.sin(this.angle);
+                        track.addSkidMark(
+                            this.prevX - cos * 10 - sin * 8,
+                            this.prevY - sin * 10 + cos * 8,
+                            this.x - cos * 10 - sin * 8,
+                            this.y - sin * 10 + cos * 8,
+                            this.spec.id === 'cyber' ? 'rgba(236, 72, 153, 0.38)' : null
+                        );
+                    }
+                    return;
+                }
+
+                if (this.eliminated) {
+                    this.vx *= 0.94;
+                    this.vy *= 0.94;
+                    this.x += this.vx * dt;
+                    this.y += this.vy * dt;
+                    return;
+                }
+
+                this.prevX = this.x;
+                this.prevY = this.y;
+
+                // Constant auto-gas is always active; Nitro button boosts & initiates power-drift when turning
+                let throttle = 1;
+                let steer = 0;
+                let wantNitro = false;
+
+                if (this.isPlayer && !this.finished) {
+                    throttle = 1; // Газ постоянно!
+                    const keySteer = (inputs.right ? 1 : 0) - (inputs.left ? 1 : 0);
+                    steer = Math.abs(inputs.stickSteer) > 0.05 ? inputs.stickSteer : keySteer;
+                    wantNitro = inputs.nitro;
+                } else {
+                    // AI Bot Driving & Corner Drifting Logic
+                    const ai = this.computeBotInputs(track);
+                    throttle = ai.throttle;
+                    steer = ai.steer;
+                    wantNitro = ai.wantNitro || ai.handbrake;
+                }
+
+                // If bot hit an oil puddle, spin them out and cut traction!
+                if (this.oilSpinTimer > 0) {
+                    this.oilSpinTimer -= dt;
+                    this.angle += 8.5 * dt;
+                    this.vx *= Math.exp(-2.6 * dt);
+                    this.vy *= Math.exp(-2.6 * dt);
+                    this.x += this.vx * dt;
+                    this.y += this.vy * dt;
+                    this.speed = Math.hypot(this.vx, this.vy);
+                    if (Math.random() < 0.65) {
+                        particles.push({
+                            x: this.x + (Math.random() - 0.5) * 14,
+                            y: this.y + (Math.random() - 0.5) * 14,
+                            vx: (Math.random() - 0.5) * 55,
+                            vy: (Math.random() - 0.5) * 55,
+                            size: 6,
+                            life: 0.4,
+                            maxLife: 0.4,
+                            color: '#1e1b4b'
+                        });
+                    }
+                    this.updateWaypointProgress(track);
+                    return;
+                }
+
+                this.steerInput = steer;
+
+                // Passive nitro regeneration so player can always initiate nitro-drifts
+                if (!wantNitro) {
+                    this.nitro = Math.min(100, this.nitro + 12 * dt);
+                }
+
+                // Pressing Nitro engages Turbo-Drift in corners or straight-line boost
+                const isTurningWithNitro = wantNitro && Math.abs(steer) > 0.08 && this.speed > 110;
+                if (wantNitro && (this.nitro > 2 || isTurningWithNitro)) {
+                    this.isNitroActive = true;
+                    // Drain nitro on straightaways, but recharge/sustain it when carving a drift in a corner!
+                    if (isTurningWithNitro) {
+                        this.nitro = Math.min(100, this.nitro + 18 * dt);
+                    } else {
+                        this.nitro = Math.max(0, this.nitro - 24 * dt);
+                    }
+                } else {
+                    this.isNitroActive = false;
+                }
+
+                // Steering rate scales with speed and boosts when drifting on Nitro
+                const speedFactor = Math.min(1, this.speed / 110);
+                const driftTurnBoost = isTurningWithNitro ? 1.45 : (this.isDrifting ? 1.22 : 1.0);
+                this.angle += steer * this.spec.turnRate * driftTurnBoost * speedFactor * dt;
+
+                // Forward & Lateral unit vectors
+                const fx = Math.cos(this.angle);
+                const fy = Math.sin(this.angle);
+                const rx = -fy;
+                const ry = fx;
+
+                // Project current velocity onto car's forward and lateral axes
+                let forwardVel = this.vx * fx + this.vy * fy;
+                let lateralVel = this.vx * rx + this.vy * ry;
+
+                // Check off-road distance from track centerline using fast local hintIndex
+                const nearest = track.getNearestWaypoint(this.x, this.y, this.wpIndex);
+                const isOffroad = nearest.dist > track.currentTrack.roadWidth * 0.54;
+
+                // Apply constant auto-gas engine acceleration & powerful Nitro boost
+                const nitroMult = this.isNitroActive ? 1.38 : 1.0;
+                const diffMult = this.isPlayer ? 1.0 : (0.90 + this.botDiff * 0.06);
+                const cornerDriftSpeedFactor = isTurningWithNitro ? 0.96 : 1.0;
+                const maxSpd = this.spec.maxSpeed * nitroMult * diffMult * cornerDriftSpeedFactor * (isOffroad ? 0.68 : 1.0);
+
+                if (throttle > 0) {
+                    forwardVel += this.spec.accel * nitroMult * diffMult * dt;
+                }
+                if (this.isNitroActive) {
+                    forwardVel += 240 * dt;
+                }
+
+                // Lateral Grip vs Nitro-Drift Slip Physics
+                const gripLevel = isTurningWithNitro ? 1.38 : (Math.abs(lateralVel) > 50 ? 2.9 * this.spec.driftGrip : 6.4);
+                lateralVel *= Math.exp(-gripLevel * dt);
+
+                // Kick out the tail smoothly into a power-drift when holding Nitro + steering
+                if (isTurningWithNitro && forwardVel > 115) {
+                    lateralVel -= steer * 315 * dt;
+                } else if (Math.abs(steer) > 0.65 && forwardVel > 260) {
+                    // Subtle natural slip on very sharp turns
+                    lateralVel -= steer * 110 * dt;
+                }
+
+                // Reconstruct world velocity vector
+                this.vx = fx * forwardVel + rx * lateralVel;
+                this.vy = fy * forwardVel + ry * lateralVel;
+
+                // Natural aerodynamic drag
+                const drag = isOffroad ? 1.8 : 0.45;
+                this.vx *= Math.exp(-drag * dt);
+                this.vy *= Math.exp(-drag * dt);
+
+                // Clamp maximum speed
+                this.speed = Math.hypot(this.vx, this.vy);
+                if (this.speed > maxSpd) {
+                    this.vx = (this.vx / this.speed) * maxSpd;
+                    this.vy = (this.vy / this.speed) * maxSpd;
+                    this.speed = maxSpd;
+                }
+
+                // Integrate position
+                this.x += this.vx * dt;
+                this.y += this.vy * dt;
+
+                // Soft track boundary pushback so cars never get lost outside world
+                if (nearest.dist > track.currentTrack.roadWidth * 0.78) {
+                    const pushX = (nearest.point.x - this.x) * 0.08;
+                    const pushY = (nearest.point.y - this.y) * 0.08;
+                    this.x += pushX;
+                    this.y += pushY;
+                    this.vx *= 0.92;
+                    this.vy *= 0.92;
+                }
+
+                // Compute Drift Angle (degrees between car nose and velocity vector)
+                if (this.speed > 105) {
+                    const velAngle = Math.atan2(this.vy, this.vx);
+                    let diff = this.angle - velAngle;
+                    while (diff > Math.PI) diff -= Math.PI * 2;
+                    while (diff < -Math.PI) diff += Math.PI * 2;
+                    this.driftAngle = Math.abs(diff) * (180 / Math.PI);
+                } else {
+                    this.driftAngle = 0;
+                }
+
+                this.isDrifting = (this.driftAngle > 11 || isTurningWithNitro) && this.driftAngle < 120 && this.speed > 120 && !isOffroad;
+                this.driftIntensity = this.isDrifting ? Math.min(1, Math.max(0.25, (this.driftAngle - 10) / 42)) : 0;
+
+                // Update Drift Scoring, Combos, Skid Marks & Tire Smoke
+                this.updateDriftAndVisuals(dt, track, particles);
+
+                // Update Waypoint & Lap progression
+                this.updateWaypointProgress(track);
+            }
+
+            computeBotInputs(track) {
+                const wp = track.waypoints;
+                const lookAheadIdx = (this.wpIndex + 10) % wp.length;
+                const target = wp[lookAheadIdx];
+                const tx = target.x + target.nx * this.aiLaneOffset;
+                const ty = target.y + target.ny * this.aiLaneOffset;
+
+                const desiredAngle = Math.atan2(ty - this.y, tx - this.x);
+                let diff = desiredAngle - this.angle;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+
+                const steer = Math.max(-1, Math.min(1, diff * 2.8));
+                const handbrake = Math.abs(diff) > 0.42 && this.speed > 260;
+                const wantNitro = Math.abs(diff) < 0.16 && this.nitro > 45;
+
+                return { throttle: 1, steer, handbrake, wantNitro };
+            }
+
+            updateDriftAndVisuals(dt, track, particles) {
+                if (this.isDrifting) {
+                    this.driftChainTimer = 1.65; // seconds before combo banks
+                    const ptsPerSec = (180 + this.driftAngle * 6.5) * (this.speed / 300);
+                    this.currentDriftScore += ptsPerSec * dt;
+
+                    // Increase multiplier as sustained drift score grows
+                    const newMult = Math.min(10, 1 + Math.floor(this.currentDriftScore / 420));
+                    if (newMult > this.driftMultiplier) {
+                        this.driftMultiplier = newMult;
+                        if (this.isPlayer) {
+                            this.maxCombo = Math.max(this.maxCombo, this.driftMultiplier);
+                        }
+                    }
+
+                    // Recharge Nitro rapidly while drifting with the handbrake!
+                    this.nitro = Math.min(100, this.nitro + 24 * dt);
+
+                    // Bonus points for clipping Apex Zones
+                    for (const apex of track.apexZones) {
+                        if (Math.hypot(this.x - apex.x, this.y - apex.y) < apex.radius) {
+                            this.currentDriftScore += 280 * dt;
+                        }
+                    }
+
+                    // Draw Rear Tire Skid Marks on Track Canvas (scaled for smaller cars)
+                    const cos = Math.cos(this.angle);
+                    const sin = Math.sin(this.angle);
+                    const rwx1 = this.prevX - cos * 10 - sin * 8;
+                    const rwy1 = this.prevY - sin * 10 + cos * 8;
+                    const rwx2 = this.x - cos * 10 - sin * 8;
+                    const rwy2 = this.y - sin * 10 + cos * 8;
+
+                    const lwx1 = this.prevX - cos * 10 + sin * 8;
+                    const lwy1 = this.prevY - sin * 10 - cos * 8;
+                    const lwx2 = this.x - cos * 10 + sin * 8;
+                    const lwy2 = this.y - sin * 10 - cos * 8;
+
+                    const skidCol = this.spec.id === 'cyber' ? 'rgba(236, 72, 153, 0.38)' : null;
+                    track.addSkidMark(rwx1, rwy1, rwx2, rwy2, skidCol);
+                    track.addSkidMark(lwx1, lwy1, lwx2, lwy2, skidCol);
+
+                    // Spawn Pixel Tire Smoke & Drift Sparks
+                    if (Math.random() < 0.75) {
+                        particles.push({
+                            x: rwx2 + (Math.random() - 0.5) * 5,
+                            y: rwy2 + (Math.random() - 0.5) * 5,
+                            vx: (Math.random() - 0.5) * 30,
+                            vy: (Math.random() - 0.5) * 30,
+                            size: 4 + Math.random() * 5,
+                            life: 0.42,
+                            maxLife: 0.42,
+                            color: this.driftMultiplier >= 4 ? '#facc15' : 'rgba(226, 232, 240, 0.75)'
+                        });
+                    }
+                } else if (this.driftChainTimer > 0) {
+                    this.driftChainTimer -= dt;
+                    if (this.driftChainTimer <= 0 && this.currentDriftScore > 0) {
+                        // Bank the drift combo!
+                        const banked = Math.round(this.currentDriftScore * this.driftMultiplier);
+                        this.totalDriftScore += banked;
+                        if (this.isPlayer && banked > 100) {
+                            sound.playComboCashIn(this.driftMultiplier);
+                        }
+                        this.currentDriftScore = 0;
+                        this.driftMultiplier = 1;
+                    }
+                }
+
+                // Check Track Boost Pads
+                for (const pad of track.boostPads) {
+                    if (Math.hypot(this.x - pad.x, this.y - pad.y) < pad.radius) {
+                        this.nitro = Math.min(100, this.nitro + 35 * dt);
+                        this.vx += Math.cos(this.angle) * 260 * dt;
+                        this.vy += Math.sin(this.angle) * 260 * dt;
+                    }
+                }
+            }
+
+            updateWaypointProgress(track) {
+                const wp = track.waypoints;
+                const n = wp.length;
+                // Search forward window around current waypoint
+                for (let step = 1; step <= 12; step++) {
+                    const checkIdx = (this.wpIndex + step) % n;
+                    const pt = wp[checkIdx];
+                    if (Math.hypot(this.x - pt.x, this.y - pt.y) < track.currentTrack.roadWidth * 0.85) {
+                        this.totalWaypointsPassed += step;
+                        if (this.wpIndex > n - 20 && checkIdx < 20 && this.totalWaypointsPassed > n * 0.65) {
+                            this.lap++;
+                        }
+                        this.wpIndex = checkIdx;
+                        break;
+                    }
+                }
+            }
+        }
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d', { alpha: false });
+        const minimapCanvas = document.getElementById('minimapCanvas');
+        const mctx = minimapCanvas.getContext('2d');
+        const previewCanvas = document.getElementById('carPreviewCanvas');
+        const pctx = previewCanvas.getContext('2d');
+
+        // Cached HUD DOM elements to avoid repeated getElementById and layout thrashing
+        const ui = {
+            centerBanner: document.getElementById('centerBanner'),
+            centerBannerText: document.getElementById('centerBannerText'),
+            centerBannerSub: document.getElementById('centerBannerSub'),
+            oilCooldownText: document.getElementById('oilCooldownText'),
+            hudLapLabel: document.getElementById('hudLapLabel'),
+            hudLap: document.getElementById('hudLap'),
+            hudPos: document.getElementById('hudPos'),
+            hudScore: document.getElementById('hudScore'),
+            hudSpeed: document.getElementById('hudSpeed'),
+            hudDriftAngle: document.getElementById('hudDriftAngle'),
+            nitroPct: document.getElementById('nitroPct'),
+            nitroBar: document.getElementById('nitroBar'),
+            driftComboBox: document.getElementById('driftComboBox'),
+            driftMult: document.getElementById('driftMult'),
+            driftCurrentPts: document.getElementById('driftCurrentPts'),
+            driftChainBar: document.getElementById('driftChainBar'),
+            driftTitle: document.getElementById('driftTitle'),
+            micLevelBar: document.getElementById('micLevelBar')
+        };
+
+        // Helper to update DOM text only when value actually changes
+        function setUiText(el, text) {
+            if (el && el._lastText !== text) {
+                el._lastText = text;
+                el.textContent = text;
+            }
+        }
+
+        const trackSystem = new TrackSystem();
+
+        const state = {
+            selectedCarIdx: 0,
+            selectedModeIdx: 0,
+            selectedTrackIdx: 0,
+            botDifficulty: 1,
+            phase: 'menu', // 'menu', 'countdown', 'racing', 'results'
+            countdownTimer: 3.4,
+            raceTime: 0,
+            eliminationTimer: 22,
+            racers: [],
+            player: null,
+            particles: [],
+            oilPuddles: [],
+            oilCooldown: 0,
+            camX: 600,
+            camY: 1450,
+            camZoom: 1.0,
+            screenShake: 0,
+            showTouchControls: true
+        };
+
+        const inputs = {
+            left: false,
+            right: false,
+            stickSteer: 0,
+            nitro: false
+        };
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+        let recognition = null;
+        let voiceListening = false;
+        let micStream = null;
+        let micAudioCtx = null;
+        let micAnalyser = null;
+        let micDataArray = null;
+        let lastVoiceTriggerTime = 0;
+        let lastSpeechTranscriptTime = 0;
+        let recognitionRestartCooldown = 0;
+        let voiceSpikeFrames = 0;
+
+        function checkTranscriptForOil(transcript) {
+            if (!transcript) return false;
+            const clean = transcript.toLowerCase().trim();
+            return (
+                clean.includes('масло') ||
+                clean.includes('масла') ||
+                clean.includes('маслу') ||
+                clean.includes('масл') ||
+                clean.includes('маслом') ||
+                clean.includes('maslo') ||
+                clean.includes('oil')
+            );
+        }
+
+        function sampleMicrophoneLevel() {
+            if (!voiceListening || !micAnalyser || !micDataArray) return;
+            micAnalyser.getByteFrequencyData(micDataArray);
+
+            let sum = 0;
+            const voiceBins = Math.min(36, micDataArray.length);
+            for (let i = 2; i < voiceBins; i++) {
+                sum += micDataArray[i];
+            }
+            const avg = sum / (voiceBins - 2);
+            const pct = Math.min(100, Math.round((avg / 140) * 100));
+            if (ui.micLevelBar) {
+                ui.micLevelBar.style.width = pct + '%';
+            }
+
+            // Acoustic voice command detector fallback (triggers if player speaks a clear word into mic)
+            const now = performance.now();
+            if (avg > 48) {
+                voiceSpikeFrames++;
+                if (
+                    voiceSpikeFrames >= 2 &&
+                    now - lastVoiceTriggerTime > 1500 &&
+                    now - lastSpeechTranscriptTime > 1200
+                ) {
+                    lastVoiceTriggerTime = now;
+                    voiceSpikeFrames = 0;
+                    dropOilPuddle('🎙️ «МАСЛО»!');
+                }
+            } else {
+                voiceSpikeFrames = 0;
+            }
+        }
+
+        function dropOilPuddle(sourceLabel = 'МАСЛО') {
+            if ((state.phase !== 'racing' && state.phase !== 'countdown') || !state.player || state.player.eliminated) return;
+            const toast = document.getElementById('oilToast');
+
+            if (state.oilCooldown > 0) return;
+
+            const pl = state.player;
+            const dropX = pl.x - Math.cos(pl.angle) * 28;
+            const dropY = pl.y - Math.sin(pl.angle) * 28;
+            const oilId = Date.now() + '_' + Math.floor(Math.random() * 1000);
+
+            state.oilPuddles.push({
+                id: oilId,
+                ownerId: window.mpBridge ? window.mpBridge.userId : 'local',
+                x: dropX,
+                y: dropY,
+                radius: 38,
+                life: 22,
+                maxLife: 22,
+                seed: Math.random() * 10
+            });
+            state.lastDroppedOil = { id: oilId, x: Math.round(dropX), y: Math.round(dropY) };
+            state.oilCooldown = 1.2;
+            sound.playOilDrop();
+
+            if (toast) {
+                toast.textContent = `🛢️ ${sourceLabel}`;
+                toast.classList.remove('hidden');
+                clearTimeout(window._oilToastTimeout);
+                window._oilToastTimeout = setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 1100);
+            }
+        }
+
+        async function startMicrophoneStream() {
+            const btnMic = document.getElementById('btnVoiceMic');
+            const micText = document.getElementById('micStatusText');
+
+            try {
+                if (!micStream && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    micStream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true
+                        }
+                    });
+
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    micAudioCtx = new AudioCtx();
+                    const source = micAudioCtx.createMediaStreamSource(micStream);
+                    micAnalyser = micAudioCtx.createAnalyser();
+                    micAnalyser.fftSize = 256;
+                    micAnalyser.smoothingTimeConstant = 0.5;
+                    source.connect(micAnalyser);
+                    micDataArray = new Uint8Array(micAnalyser.frequencyBinCount);
+                }
+            } catch (err) {
+                console.warn('Mic stream fallback:', err);
+            }
+
+            if (recognition) {
+                try { recognition.start(); } catch (e) {}
+            }
+
+            voiceListening = true;
+            btnMic.classList.add('mic-listening');
+            micText.textContent = 'Слушаю «Масло»';
+        }
+
+        function stopMicrophoneStream() {
+            const btnMic = document.getElementById('btnVoiceMic');
+            const micText = document.getElementById('micStatusText');
+
+            voiceListening = false;
+            btnMic.classList.remove('mic-listening');
+            micText.textContent = 'Микрофон Выкл';
+            if (ui.micLevelBar) ui.micLevelBar.style.width = '0%';
+            if (recognition) {
+                try { recognition.stop(); } catch (e) {}
+            }
+        }
+
+        function initVoiceControl() {
+            const btnMic = document.getElementById('btnVoiceMic');
+            const micText = document.getElementById('micStatusText');
+
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.lang = 'ru-RU';
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.maxAlternatives = 3;
+
+                recognition.onresult = (event) => {
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        for (let j = 0; j < event.results[i].length; j++) {
+                            const transcript = event.results[i][j].transcript;
+                            if (checkTranscriptForOil(transcript)) {
+                                lastSpeechTranscriptTime = performance.now();
+                                micText.textContent = '🎙️ «МАСЛО»!';
+                                dropOilPuddle('🎙️ «МАСЛО»!');
+                                return;
+                            }
+                        }
+                    }
+                };
+
+                recognition.onerror = (e) => {
+                    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+                        recognitionRestartCooldown = performance.now() + 60000;
+                    } else {
+                        recognitionRestartCooldown = performance.now() + 2500;
+                    }
+                };
+
+                recognition.onend = () => {
+                    if (voiceListening && performance.now() > recognitionRestartCooldown) {
+                        setTimeout(() => {
+                            if (voiceListening && performance.now() > recognitionRestartCooldown) {
+                                try { recognition.start(); } catch (e) {}
+                            }
+                        }, 1200);
+                    }
+                };
+            }
+
+            btnMic.onclick = () => {
+                if (!voiceListening) {
+                    startMicrophoneStream();
+                } else {
+                    stopMicrophoneStream();
+                }
+            };
+        }
+        initVoiceControl();
+
+        document.getElementById('btnOilManual').addEventListener('click', (e) => {
+            e.preventDefault();
+            dropOilPuddle('🛢️ МАСЛО!');
+        });
+        document.getElementById('btnOilManual').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            dropOilPuddle('🛢️ МАСЛО!');
+        }, { passive: false });
+
+        // Responsive Canvas Resizing
+        function resizeCanvases() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            // Adjust zoom automatically for phone screens so players see plenty of track ahead
+            const minDim = Math.min(window.innerWidth, window.innerHeight);
+            state.camZoom = minDim < 500 ? 0.68 : (minDim < 800 ? 0.85 : 1.0);
+        }
+        window.addEventListener('resize', resizeCanvases);
+        resizeCanvases();
+
+        function renderMenuSelections() {
+            const car = CARS[state.selectedCarIdx];
+            document.getElementById('carName').textContent = car.name;
+            document.getElementById('carTag').textContent = car.tag;
+            document.getElementById('carDesc').textContent = car.desc;
+            document.getElementById('statSpeedText').textContent = car.stats.speed + '%';
+            document.getElementById('statSpeedBar').style.width = car.stats.speed + '%';
+            document.getElementById('statDriftText').textContent = car.stats.drift + '%';
+            document.getElementById('statDriftBar').style.width = car.stats.drift + '%';
+            document.getElementById('statAccelText').textContent = car.stats.accel + '%';
+            document.getElementById('statAccelBar').style.width = car.stats.accel + '%';
+
+            // Populate Game Modes
+            const modeGrid = document.getElementById('modeButtonsGrid');
+            modeGrid.innerHTML = '';
+            GAME_MODES.forEach((m, idx) => {
+                const active = idx === state.selectedModeIdx;
+                const btn = document.createElement('button');
+                btn.className = `pixel-btn text-left p-2.5 rounded-xl transition ${
+                    active ? 'bg-amber-500/25 border-2 border-amber-400' : 'bg-slate-950/70 border border-slate-800 hover:bg-slate-800/70'
+                }`;
+                btn.innerHTML = `
+                    <div class="font-bold text-xs sm:text-sm ${active ? 'text-amber-300' : 'text-white'}">${m.name}</div>
+                    <div class="text-[11px] text-slate-300 mt-0.5 leading-snug">${m.desc}</div>
+                `;
+                btn.onclick = () => {
+                    sound.playTone(540, 0.07, 'square', 0.08);
+                    state.selectedModeIdx = idx;
+                    renderMenuSelections();
+                };
+                modeGrid.appendChild(btn);
+            });
+
+            // Populate Tracks
+            const trackGrid = document.getElementById('trackButtonsGrid');
+            trackGrid.innerHTML = '';
+            TRACKS.forEach((t, idx) => {
+                const active = idx === state.selectedTrackIdx;
+                const btn = document.createElement('button');
+                btn.className = `pixel-btn p-2 rounded-xl text-center transition ${
+                    active ? 'bg-emerald-500/25 border-2 border-emerald-400' : 'bg-slate-950/70 border border-slate-800 hover:bg-slate-800/70'
+                }`;
+                btn.innerHTML = `
+                    <div class="w-full h-3 rounded mb-1.5" style="background: linear-gradient(90deg, ${t.kerbA}, ${t.kerbB})"></div>
+                    <div class="font-bold text-xs ${active ? 'text-emerald-300' : 'text-white'}">${t.name}</div>
+                    <div class="text-[10px] text-slate-400">${t.subtitle}</div>
+                `;
+                btn.onclick = () => {
+                    sound.playTone(620, 0.07, 'square', 0.08);
+                    state.selectedTrackIdx = idx;
+                    trackSystem.build(TRACKS[state.selectedTrackIdx]);
+                    renderMenuSelections();
+                };
+                trackGrid.appendChild(btn);
+            });
+        }
+
+        document.getElementById('prevCarBtn').onclick = () => {
+            sound.playTone(480, 0.07);
+            state.selectedCarIdx = (state.selectedCarIdx - 1 + CARS.length) % CARS.length;
+            renderMenuSelections();
+        };
+        document.getElementById('nextCarBtn').onclick = () => {
+            sound.playTone(580, 0.07);
+            state.selectedCarIdx = (state.selectedCarIdx + 1) % CARS.length;
+            renderMenuSelections();
+        };
+
+        document.querySelectorAll('.diff-btn').forEach(btn => {
+            btn.onclick = () => {
+                sound.playTone(520, 0.06);
+                state.botDifficulty = parseInt(btn.dataset.diff, 10);
+                document.querySelectorAll('.diff-btn').forEach(b => {
+                    b.className = 'diff-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[11px] font-bold';
+                });
+                btn.className = 'diff-btn px-2 py-0.5 rounded bg-cyan-600 text-white text-[11px] font-bold';
+            };
+        });
+
+        // Fullscreen toggle with cross-browser support
+        function toggleFullscreen() {
+            sound.playTone(660, 0.08);
+            const doc = window.document;
+            const docEl = doc.documentElement;
+            const requestFs = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+            const cancelFs = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+
+            if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+                if (requestFs) {
+                    requestFs.call(docEl).catch(() => {});
+                }
+            } else {
+                if (cancelFs) {
+                    cancelFs.call(doc).catch(() => {});
+                }
+            }
+        }
+
+        document.getElementById('btnFullscreen').onclick = toggleFullscreen;
+        document.getElementById('menuFullscreenBtn').onclick = toggleFullscreen;
+
+        document.getElementById('btnToggleSound').onclick = () => {
+            const on = sound.toggle();
+            document.getElementById('soundIcon').textContent = on ? '🔊' : '🔇';
+        };
+
+        function updateTouchVisibility() {
+            const mc = document.getElementById('mobileControls');
+            mc.style.display = state.showTouchControls ? 'flex' : 'none';
+        }
+        document.getElementById('btnToggleTouch').onclick = () => {
+            state.showTouchControls = !state.showTouchControls;
+            updateTouchVisibility();
+        };
+        updateTouchVisibility();
+
+        const keyMap = {
+            KeyA: 'left', ArrowLeft: 'left',
+            KeyD: 'right', ArrowRight: 'right',
+            Space: 'nitro',
+            ShiftLeft: 'nitro', ShiftRight: 'nitro', KeyN: 'nitro', KeyE: 'nitro',
+            KeyW: 'nitro', ArrowUp: 'nitro'
+        };
+
+        window.addEventListener('keydown', (e) => {
+            const action = keyMap[e.code];
+            if (action) {
+                inputs[action] = true;
+                if (e.code === 'Space' || e.code.startsWith('Arrow')) e.preventDefault();
+            }
+            if (e.code === 'KeyM' || e.code === 'KeyO') {
+                dropOilPuddle('🛢️ МАСЛО!');
+            }
+            if (e.code === 'Escape' && state.phase === 'racing') {
+                returnToGarage();
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            const action = keyMap[e.code];
+            if (action) inputs[action] = false;
+        });
+
+        const joystickZone = document.getElementById('joystickZone');
+        const joystickKnob = document.getElementById('joystickKnob');
+        let stickTouchId = null;
+        let stickMouseDown = false;
+
+        function updateJoystickFromPoint(clientX) {
+            const rect = joystickZone.getBoundingClientRect();
+            const centerX = rect.left + rect.width * 0.5;
+            const maxOffset = (rect.width * 0.5) - 28;
+
+            let dx = clientX - centerX;
+            if (dx > maxOffset) dx = maxOffset;
+            if (dx < -maxOffset) dx = -maxOffset;
+
+            // Strictly horizontal movement (Y is locked to 0)
+            joystickKnob.style.transform = `translate(${dx}px, 0px)`;
+            // Smooth analog steering value between -1 (left) and +1 (right)
+            inputs.stickSteer = Math.max(-1, Math.min(1, dx / (maxOffset * 0.85)));
+        }
+
+        function resetJoystick() {
+            stickTouchId = null;
+            stickMouseDown = false;
+            joystickKnob.style.transform = 'translate(0px, 0px)';
+            inputs.stickSteer = 0;
+        }
+
+        joystickZone.addEventListener('touchstart', (e) => {
+            if (e.cancelable) e.preventDefault();
+            sound.resume();
+            const t = e.changedTouches[0];
+            stickTouchId = t.identifier;
+            updateJoystickFromPoint(t.clientX);
+        }, { passive: false });
+
+        joystickZone.addEventListener('touchmove', (e) => {
+            if (e.cancelable) e.preventDefault();
+            for (let i = 0; i < e.touches.length; i++) {
+                if (e.touches[i].identifier === stickTouchId) {
+                    updateJoystickFromPoint(e.touches[i].clientX);
+                    break;
+                }
+            }
+        }, { passive: false });
+
+        joystickZone.addEventListener('touchend', (e) => {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === stickTouchId) {
+                    resetJoystick();
+                    break;
+                }
+            }
+        }, { passive: false });
+
+        joystickZone.addEventListener('touchcancel', resetJoystick, { passive: false });
+
+        // Desktop mouse support for the horizontal stick
+        joystickZone.addEventListener('mousedown', (e) => {
+            sound.resume();
+            stickMouseDown = true;
+            updateJoystickFromPoint(e.clientX);
+        });
+        window.addEventListener('mousemove', (e) => {
+            if (stickMouseDown) updateJoystickFromPoint(e.clientX);
+        });
+        window.addEventListener('mouseup', () => {
+            if (stickMouseDown) resetJoystick();
+        });
+
+        // Multi-touch controller for Right-Hand Buttons (Handbrake & Nitro)
+        const actionButtons = document.querySelectorAll('[data-action]');
+        function syncActionButtons(e) {
+            if (e.cancelable) e.preventDefault();
+            sound.resume();
+            const activeActions = new Set();
+
+            for (let i = 0; i < e.touches.length; i++) {
+                const t = e.touches[i];
+                const el = document.elementFromPoint(t.clientX, t.clientY);
+                const btn = el ? el.closest('[data-action]') : null;
+                if (btn && btn.dataset.action) {
+                    activeActions.add(btn.dataset.action);
+                }
+            }
+
+            actionButtons.forEach(btn => {
+                const act = btn.dataset.action;
+                const isPressed = activeActions.has(act);
+                inputs[act] = isPressed;
+                btn.classList.toggle('pressed', isPressed);
+                if (act === 'nitro') {
+                    btn.classList.toggle('nitro-drift-active', isPressed);
+                }
+            });
+        }
+
+        actionButtons.forEach(btn => {
+            btn.addEventListener('touchstart', syncActionButtons, { passive: false });
+            btn.addEventListener('touchmove', syncActionButtons, { passive: false });
+            btn.addEventListener('touchend', syncActionButtons, { passive: false });
+            btn.addEventListener('touchcancel', syncActionButtons, { passive: false });
+
+            const act = btn.dataset.action;
+            btn.addEventListener('mousedown', () => {
+                sound.resume();
+                inputs[act] = true;
+                btn.classList.add('pressed');
+                if (act === 'nitro') btn.classList.add('nitro-drift-active');
+            });
+            window.addEventListener('mouseup', () => {
+                inputs[act] = false;
+                btn.classList.remove('pressed');
+                if (act === 'nitro') btn.classList.remove('nitro-drift-active');
+            });
+        });
+
+        function startRace() {
+            sound.resume();
+            sound.playCountdown(false);
+
+            // Automatically start listening for voice command "масло" when race begins
+            if (!voiceListening) {
+                startMicrophoneStream();
+            }
+
+            const trackCfg = TRACKS[state.selectedTrackIdx];
+            const modeCfg = GAME_MODES[state.selectedModeIdx];
+            trackSystem.build(trackCfg);
+
+            state.racers = [];
+            state.particles = [];
+            state.oilPuddles = [];
+            state.oilCooldown = 0;
+            state.raceTime = 0;
+            state.eliminationTimer = modeCfg.eliminationTime || 22;
+            state.countdownTimer = 3.2;
+            state.phase = 'countdown';
+
+            const wp0 = trackSystem.waypoints[0];
+            const remoteParticipants = (window.mpBridge && window.mpBridge.getRoomParticipants)
+                ? window.mpBridge.getRoomParticipants()
+                : [];
+
+            if (remoteParticipants.length > 0) {
+                const fillBots = document.getElementById('mpFillBotsCheck')?.checked ?? true;
+                const slots = [...remoteParticipants];
+                while (fillBots && slots.length < 1 + modeCfg.botCount) {
+                    const botIdx = slots.length;
+                    slots.push({
+                        uid: 'bot_' + botIdx,
+                        name: BOT_NAMES[botIdx % BOT_NAMES.length],
+                        carIdx: (state.selectedCarIdx + botIdx) % CARS.length,
+                        isBot: true
+                    });
+                }
+
+                const totalCars = slots.length;
+                for (let i = 0; i < totalCars; i++) {
+                    const slot = slots[i];
+                    const backDist = (totalCars - 1 - i) * 46;
+                    const sideOffset = (i % 2 === 0 ? -1 : 1) * 30;
+                    const sx = wp0.x - wp0.tx * backDist + wp0.nx * sideOffset;
+                    const sy = wp0.y - wp0.ty * backDist + wp0.ny * sideOffset;
+                    const spec = CARS[(slot.carIdx || 0) % CARS.length];
+
+                    if (slot.uid === window.mpBridge.userId) {
+                        const player = new Racer(spec, true, slot.name || 'ВЫ', { x: sx, y: sy }, wp0.angle, state.botDifficulty);
+                        state.player = player;
+                        state.racers.push(player);
+                    } else if (slot.isBot) {
+                        const bot = new Racer(spec, false, slot.name, { x: sx, y: sy }, wp0.angle, state.botDifficulty);
+                        state.racers.push(bot);
+                    } else {
+                        const remoteRacer = new Racer(spec, false, slot.name || 'ИГРОК', { x: sx, y: sy }, wp0.angle, state.botDifficulty);
+                        remoteRacer.isRemote = true;
+                        remoteRacer.remotePeerId = slot.uid;
+                        state.racers.push(remoteRacer);
+                    }
+                }
+                if (!state.player) {
+                    const fallback = new Racer(CARS[state.selectedCarIdx], true, 'ВЫ', { x: wp0.x, y: wp0.y }, wp0.angle, state.botDifficulty);
+                    state.player = fallback;
+                    state.racers.push(fallback);
+                }
+            } else {
+                const totalCars = 1 + modeCfg.botCount;
+                // Spawn grid positions (scaled spacing for smaller cars)
+                for (let i = 0; i < totalCars; i++) {
+                    const backDist = (totalCars - 1 - i) * 46;
+                    const sideOffset = (i % 2 === 0 ? -1 : 1) * 30;
+                    const sx = wp0.x - wp0.tx * backDist + wp0.nx * sideOffset;
+                    const sy = wp0.y - wp0.ty * backDist + wp0.ny * sideOffset;
+
+                    if (i === totalCars - 1) {
+                        // Player starts at the front-right slot
+                        const playerSpec = CARS[state.selectedCarIdx];
+                        const player = new Racer(playerSpec, true, 'ВЫ (ИГРОК)', { x: sx, y: sy }, wp0.angle, state.botDifficulty);
+                        state.player = player;
+                        state.racers.push(player);
+                    } else {
+                        const botSpec = CARS[(state.selectedCarIdx + i + 1) % CARS.length];
+                        const bot = new Racer(botSpec, false, BOT_NAMES[i % BOT_NAMES.length], { x: sx, y: sy }, wp0.angle, state.botDifficulty);
+                        state.racers.push(bot);
+                    }
+                }
+            }
+
+            state.camX = state.player.x;
+            state.camY = state.player.y;
+
+            // Update UI visibility
+            document.getElementById('menuModal').classList.add('hidden');
+            document.getElementById('mpModal').classList.add('hidden');
+            document.getElementById('mpModal').classList.remove('flex');
+            document.getElementById('resultsModal').classList.add('hidden');
+            document.getElementById('resultsModal').classList.remove('flex');
+            document.getElementById('hudLeft').classList.remove('hidden');
+            document.getElementById('hudLeft').classList.add('flex');
+            document.getElementById('gameplayFooter').classList.remove('hidden');
+            document.getElementById('btnPause').classList.remove('hidden');
+            updateTouchVisibility();
+        }
+
+        function returnToGarage() {
+            sound.silenceContinuous();
+            state.phase = 'menu';
+            document.getElementById('menuModal').classList.remove('hidden');
+            document.getElementById('resultsModal').classList.add('hidden');
+            document.getElementById('resultsModal').classList.remove('flex');
+            document.getElementById('hudLeft').classList.add('hidden');
+            document.getElementById('gameplayFooter').classList.add('hidden');
+            document.getElementById('btnPause').classList.add('hidden');
+            document.getElementById('centerBanner').classList.add('hidden');
+            document.getElementById('driftComboBox').classList.add('hidden');
+        }
+
+        document.getElementById('btnStartRace').onclick = startRace;
+        document.getElementById('btnRestartRace').onclick = startRace;
+        document.getElementById('btnBackMenu').onclick = returnToGarage;
+        document.getElementById('btnPause').onclick = returnToGarage;
+
+        // Car-to-Car Elastic Arcade Collisions (scaled for smaller cars)
+        function handleCarCollisions() {
+            const list = state.racers;
+            const minDist = 26;
+            for (let i = 0; i < list.length; i++) {
+                for (let j = i + 1; j < list.length; j++) {
+                    const a = list[i];
+                    const b = list[j];
+                    const dx = b.x - a.x;
+                    const dy = b.y - a.y;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist > 0 && dist < minDist) {
+                        const overlap = (minDist - dist) * 0.5;
+                        const nx = dx / dist;
+                        const ny = dy / dist;
+                        a.x -= nx * overlap;
+                        a.y -= ny * overlap;
+                        b.x += nx * overlap;
+                        b.y += ny * overlap;
+
+                        // Exchange momentum
+                        const relVx = a.vx - b.vx;
+                        const relVy = a.vy - b.vy;
+                        const sepVel = relVx * nx + relVy * ny;
+                        if (sepVel > 0) {
+                            const impulse = sepVel * 0.65;
+                            a.vx -= nx * impulse;
+                            a.vy -= ny * impulse;
+                            b.vx += nx * impulse;
+                            b.vy += ny * impulse;
+                            if (a.isPlayer || b.isPlayer) {
+                                state.screenShake = Math.min(10, state.screenShake + 5);
+                                sound.playCrash();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Rank racers based on current mode rules
+        function getSortedStandings() {
+            const mode = GAME_MODES[state.selectedModeIdx];
+            const copy = [...state.racers];
+            copy.sort((a, b) => {
+                if (a.eliminated !== b.eliminated) return a.eliminated ? 1 : -1;
+                if (mode.id === 'drift_battle' || mode.id === 'time_attack') {
+                    const scoreA = a.totalDriftScore + a.currentDriftScore * a.driftMultiplier;
+                    const scoreB = b.totalDriftScore + b.currentDriftScore * b.driftMultiplier;
+                    return scoreB - scoreA;
+                }
+                return b.totalWaypointsPassed - a.totalWaypointsPassed;
+            });
+            return copy;
+        }
+
+        function finishRace() {
+            // Bank any unbanked drift score for all racers
+            state.racers.forEach(r => {
+                if (r.currentDriftScore > 0) {
+                    r.totalDriftScore += Math.round(r.currentDriftScore * r.driftMultiplier);
+                    r.currentDriftScore = 0;
+                }
+            });
+
+            state.phase = 'results';
+            sound.silenceContinuous();
+            sound.playCountdown(true);
+
+            const standings = getSortedStandings();
+            const playerRank = standings.findIndex(r => r.isPlayer) + 1;
+            const mode = GAME_MODES[state.selectedModeIdx];
+
+            document.getElementById('resBadge').textContent = mode.name.toUpperCase();
+            document.getElementById('resTitle').textContent =
+                playerRank === 1 ? '🏆 1 МЕСТО — ПОБЕДА!' : `ФИНИШ: ${playerRank} МЕСТО`;
+            document.getElementById('resSubtitle').textContent =
+                playerRank === 1
+                    ? 'Вы покорили трассу и оставили соперников позади в клубах дыма!'
+                    : 'Отличный заезд! Попробуйте удерживать комбо дрифта дольше.';
+
+            const table = document.getElementById('resTable');
+            table.innerHTML = '';
+            standings.forEach((r, idx) => {
+                const row = document.createElement('div');
+                row.className = `flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs sm:text-sm ${
+                    r.isPlayer ? 'bg-cyan-500/25 border border-cyan-400 font-bold' : 'bg-slate-900/80'
+                }`;
+                const valText = `${Math.round(r.totalDriftScore).toLocaleString('ru-RU')} очк.`;
+                row.innerHTML = `
+                    <div class="flex items-center gap-1.5 sm:gap-2">
+                        <span class="font-pixel text-[10px] sm:text-xs text-yellow-400">#${idx + 1}</span>
+                        <span class="w-2.5 h-2.5 rounded-full inline-block shrink-0" style="background:${r.spec.bodyColor}"></span>
+                        <span>${r.name}</span>
+                        <span class="hidden sm:inline text-[10px] text-slate-400">(${r.spec.name})</span>
+                    </div>
+                    <div class="font-pixel text-[10px] sm:text-xs text-emerald-400 shrink-0 ml-1">${valText}</div>
+                `;
+                table.appendChild(row);
+            });
+
+            document.getElementById('resPlayerDrift').textContent = Math.round(state.player.totalDriftScore).toLocaleString('ru-RU');
+            document.getElementById('resMaxCombo').textContent = 'x' + state.player.maxCombo;
+
+            const mins = Math.floor(state.raceTime / 60).toString().padStart(2, '0');
+            const secs = Math.floor(state.raceTime % 60).toString().padStart(2, '0');
+            document.getElementById('resTime').textContent = `${mins}:${secs}`;
+
+            document.getElementById('resultsModal').classList.remove('hidden');
+            document.getElementById('resultsModal').classList.add('flex');
+            document.getElementById('driftComboBox').classList.add('hidden');
+            document.getElementById('centerBanner').classList.add('hidden');
+        }
+
+        let lastTime = performance.now();
+        let previewRotation = 0;
+        let hudThrottleCounter = 0;
+
+        function updateGame(dt) {
+            // Animate 360-degree car preview in the Garage Menu
+            if (state.phase === 'menu') {
+                previewRotation += dt * 1.4;
+                pctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+                const car = CARS[state.selectedCarIdx];
+                drawPixelCar(pctx, 80, 50, previewRotation, Math.sin(previewRotation * 2) * 0.6, car, true, true, false, 1.35);
+                return;
+            }
+
+            // Sample microphone volume once every 3 frames (~20Hz) without extra loops
+            hudThrottleCounter++;
+            if (hudThrottleCounter % 3 === 0) {
+                sampleMicrophoneLevel();
+            }
+
+            const mode = GAME_MODES[state.selectedModeIdx];
+            const banner = ui.centerBanner;
+            const bannerText = ui.centerBannerText;
+            const bannerSub = ui.centerBannerSub;
+
+            if (state.phase === 'countdown') {
+                const prevSec = Math.ceil(state.countdownTimer);
+                state.countdownTimer -= dt;
+                const currSec = Math.ceil(state.countdownTimer);
+
+                banner.classList.remove('hidden');
+                if (state.countdownTimer > 0.4) {
+                    setUiText(bannerText, String(currSec));
+                    setUiText(bannerSub, '');
+                    if (currSec !== prevSec && currSec > 0) {
+                        sound.playCountdown(false);
+                    }
+                } else if (state.countdownTimer > 0) {
+                    setUiText(bannerText, 'СТАРТ!');
+                    setUiText(bannerSub, '');
+                    if (prevSec >= 1 && currSec <= 0) {
+                        sound.playCountdown(true);
+                    }
+                } else {
+                    banner.classList.add('hidden');
+                    state.phase = 'racing';
+                }
+                return;
+            }
+
+            if (state.phase !== 'racing') return;
+
+            state.raceTime += dt;
+            if (state.screenShake > 0) state.screenShake = Math.max(0, state.screenShake - 25 * dt);
+
+            if (state.oilCooldown > 0) {
+                state.oilCooldown = Math.max(0, state.oilCooldown - dt);
+                setUiText(ui.oilCooldownText, `${state.oilCooldown.toFixed(1)}с`);
+            } else {
+                setUiText(ui.oilCooldownText, 'МАСЛО');
+            }
+
+            // Update Oil Puddles & Check Opponent Collisions
+            for (let i = state.oilPuddles.length - 1; i >= 0; i--) {
+                const puddle = state.oilPuddles[i];
+                puddle.life -= dt;
+                if (puddle.life <= 0) {
+                    state.oilPuddles.splice(i, 1);
+                    continue;
+                }
+                const myUid = window.mpBridge ? window.mpBridge.userId : 'local';
+                for (const r of state.racers) {
+                    if (r.isRemote || r.eliminated || r.oilSpinTimer > 0) continue;
+                    // Player does not slip on their own freshly dropped puddle, but slips on enemy puddles!
+                    if (r.isPlayer && puddle.ownerId === myUid) continue;
+                    const dist = Math.hypot(r.x - puddle.x, r.y - puddle.y);
+                    if (dist < puddle.radius + 12) {
+                        r.oilSpinTimer = 1.15;
+                        sound.playOilSlip();
+                        for (let k = 0; k < 10; k++) {
+                            state.particles.push({
+                                x: r.x,
+                                y: r.y,
+                                vx: (Math.random() - 0.5) * 160,
+                                vy: (Math.random() - 0.5) * 160,
+                                size: 7,
+                                life: 0.5,
+                                maxLife: 0.5,
+                                color: '#a855f7'
+                            });
+                        }
+                    }
+                }
+            }
+
+            // Broadcast player telemetry to QR multiplayer room if active
+            if (window.mpBridge && window.mpBridge.broadcastTelemetry) {
+                window.mpBridge.broadcastTelemetry(state.player, state.lastDroppedOil);
+            }
+
+            // Update all Racers
+            state.racers.forEach(r => r.update(dt, trackSystem, inputs, state.racers, state.particles));
+            handleCarCollisions();
+
+            // Cap particles count to prevent lag spikes
+            if (state.particles.length > 140) {
+                state.particles.splice(0, state.particles.length - 140);
+            }
+
+            // Update Smoke & Spark Particles
+            for (let i = state.particles.length - 1; i >= 0; i--) {
+                const p = state.particles[i];
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.life -= dt;
+                if (p.life <= 0) state.particles.splice(i, 1);
+            }
+
+            // Camera Smooth Look-Ahead Tracking
+            const pl = state.player;
+            const targetCamX = pl.x + pl.vx * 0.28;
+            const targetCamY = pl.y + pl.vy * 0.28;
+            state.camX += (targetCamX - state.camX) * Math.min(1, 8 * dt);
+            state.camY += (targetCamY - state.camY) * Math.min(1, 8 * dt);
+
+            // Continuous Sound Engine Modulation
+            sound.updateContinuous(
+                pl.speed / pl.spec.maxSpeed,
+                pl.driftIntensity,
+                pl.isNitroActive,
+                true
+            );
+
+            // Mode Specific Rules (Time Attack, Elimination, Lap Finish)
+            const standings = getSortedStandings();
+            const playerPos = standings.findIndex(r => r.isPlayer) + 1;
+
+            if (mode.id === 'time_attack') {
+                const rem = Math.max(0, mode.duration - state.raceTime);
+                setUiText(ui.hudLapLabel, 'Таймер');
+                setUiText(ui.hudLap, Math.ceil(rem) + 'с');
+                if (rem <= 0) finishRace();
+            } else if (mode.id === 'elimination') {
+                state.eliminationTimer -= dt;
+                setUiText(ui.hudLapLabel, 'Вылет через');
+                setUiText(ui.hudLap, Math.ceil(state.eliminationTimer) + 'с');
+                if (state.eliminationTimer <= 0) {
+                    const alive = standings.filter(r => !r.eliminated);
+                    if (alive.length > 1) {
+                        const victim = alive[alive.length - 1];
+                        victim.eliminated = true;
+                        sound.playCrash();
+                        state.eliminationTimer = mode.eliminationTime;
+                        for (let k = 0; k < 20; k++) {
+                            state.particles.push({
+                                x: victim.x, y: victim.y,
+                                vx: (Math.random() - 0.5) * 320,
+                                vy: (Math.random() - 0.5) * 320,
+                                size: 10, life: 0.7, maxLife: 0.7,
+                                color: '#ef4444'
+                            });
+                        }
+                    }
+                    const remainingAlive = state.racers.filter(r => !r.eliminated);
+                    if (remainingAlive.length <= 1 || pl.eliminated) {
+                        finishRace();
+                    }
+                }
+            } else {
+                setUiText(ui.hudLapLabel, 'Круг');
+                setUiText(ui.hudLap, `${Math.min(pl.lap, mode.laps)}/${mode.laps}`);
+                if (pl.lap > mode.laps) {
+                    finishRace();
+                }
+            }
+
+            // Throttle non-critical HUD text updates to every 3 frames (~20 FPS) to avoid DOM reflows
+            if (hudThrottleCounter % 3 === 0) {
+                setUiText(ui.hudPos, `${playerPos}/${state.racers.length}`);
+                const liveScore = Math.round(pl.totalDriftScore + pl.currentDriftScore * pl.driftMultiplier);
+                setUiText(ui.hudScore, liveScore.toLocaleString('ru-RU'));
+                setUiText(ui.hudSpeed, String(Math.round(pl.speed * 0.45)));
+                setUiText(ui.hudDriftAngle, `УГОЛ: ${Math.round(pl.driftAngle)}°`);
+                const nitroRounded = Math.round(pl.nitro);
+                setUiText(ui.nitroPct, nitroRounded + '%');
+                ui.nitroBar.style.width = nitroRounded + '%';
+            }
+
+            // Floating Drift Combo UI
+            const comboBox = ui.driftComboBox;
+            if (pl.currentDriftScore > 25) {
+                if (comboBox.classList.contains('hidden')) {
+                    comboBox.classList.remove('hidden');
+                    comboBox.classList.add('flex');
+                }
+                if (hudThrottleCounter % 2 === 0) {
+                    setUiText(ui.driftMult, 'x' + pl.driftMultiplier);
+                    setUiText(ui.driftCurrentPts, '+' + Math.round(pl.currentDriftScore * pl.driftMultiplier));
+                    ui.driftChainBar.style.width = Math.min(100, Math.round((pl.driftChainTimer / 1.65) * 100)) + '%';
+                    setUiText(
+                        ui.driftTitle,
+                        pl.driftAngle > 45 ? 'БЕЗУМНЫЙ УГОЛ!' : (pl.driftMultiplier >= 5 ? 'МЕГА ДРИФТ!' : 'ДРИФТ КОМБО!')
+                    );
+                }
+            } else if (!comboBox.classList.contains('hidden')) {
+                comboBox.classList.add('hidden');
+                comboBox.classList.remove('flex');
+            }
+        }
+
+        function drawVisibleTrackSlice(camCenterX, camCenterY, viewW, viewH) {
+            const halfW = viewW * 0.5 + 96;
+            const halfH = viewH * 0.5 + 96;
+
+            const worldLeft = Math.max(0, Math.floor((camCenterX - halfW) / 2) * 2);
+            const worldTop = Math.max(0, Math.floor((camCenterY - halfH) / 2) * 2);
+            const worldRight = Math.min(WORLD_W, Math.ceil((camCenterX + halfW) / 2) * 2);
+            const worldBottom = Math.min(WORLD_H, Math.ceil((camCenterY + halfH) / 2) * 2);
+
+            const w = worldRight - worldLeft;
+            const h = worldBottom - worldTop;
+            if (w <= 0 || h <= 0) return;
+
+            ctx.drawImage(
+                trackSystem.buffer,
+                worldLeft * BUFFER_SCALE,
+                worldTop * BUFFER_SCALE,
+                w * BUFFER_SCALE,
+                h * BUFFER_SCALE,
+                worldLeft,
+                worldTop,
+                w,
+                h
+            );
+        }
+
+        function renderGame() {
+            ctx.fillStyle = trackSystem.currentTrack.bgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const viewW = canvas.width / state.camZoom;
+            const viewH = canvas.height / state.camZoom;
+
+            ctx.save();
+            const shakeX = (Math.random() - 0.5) * state.screenShake;
+            const shakeY = (Math.random() - 0.5) * state.screenShake;
+            ctx.translate(canvas.width * 0.5 + shakeX, canvas.height * 0.5 + shakeY);
+            ctx.scale(state.camZoom, state.camZoom);
+
+            // Slowly pan over track when in menu
+            if (state.phase === 'menu') {
+                const t = performance.now() * 0.00025;
+                const mx = WORLD_W * 0.5 + Math.cos(t) * 450;
+                const my = WORLD_H * 0.5 + Math.sin(t) * 350;
+                ctx.translate(-mx, -my);
+                drawVisibleTrackSlice(mx, my, viewW, viewH);
+                ctx.restore();
+                return;
+            }
+
+            ctx.translate(-state.camX, -state.camY);
+
+            // 1. Draw only the visible viewport slice of the Track Buffer
+            drawVisibleTrackSlice(state.camX, state.camY, viewW, viewH);
+
+            const cullHalfW = viewW * 0.55;
+            const cullHalfH = viewH * 0.55;
+
+            // 1.2 Batch-render visible tire skidmarks in a single stroke
+            if (trackSystem.skidMarks.length > 0) {
+                ctx.save();
+                ctx.strokeStyle = trackSystem.currentTrack.skidColor;
+                ctx.lineWidth = 3.5;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                for (let i = 0; i < trackSystem.skidMarks.length; i++) {
+                    const s = trackSystem.skidMarks[i];
+                    if (Math.abs(s.x1 - state.camX) < cullHalfW && Math.abs(s.y1 - state.camY) < cullHalfH) {
+                        ctx.moveTo(s.x1, s.y1);
+                        ctx.lineTo(s.x2, s.y2);
+                    }
+                }
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // 1.5 Draw Oil Puddles on Track (with viewport culling)
+            for (const puddle of state.oilPuddles) {
+                if (Math.abs(puddle.x - state.camX) > cullHalfW || Math.abs(puddle.y - state.camY) > cullHalfH) continue;
+                ctx.save();
+                ctx.translate(puddle.x, puddle.y);
+                ctx.globalAlpha = Math.min(1, puddle.life / 2);
+                ctx.fillStyle = '#090a0f';
+                ctx.beginPath();
+                ctx.arc(0, 0, puddle.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillRect(-puddle.radius * 0.8, -puddle.radius * 0.9, puddle.radius * 1.6, puddle.radius * 1.8);
+                ctx.fillStyle = '#7e22ce';
+                ctx.fillRect(-puddle.radius * 0.5, -puddle.radius * 0.4, puddle.radius * 0.9, puddle.radius * 0.7);
+                ctx.fillStyle = '#06b6d4';
+                ctx.fillRect(-puddle.radius * 0.2, -puddle.radius * 0.2, puddle.radius * 0.6, puddle.radius * 0.4);
+                ctx.restore();
+            }
+
+            // 2. Draw Tire Smoke & Drift Spark Particles
+            for (const p of state.particles) {
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+                const sz = p.size;
+                ctx.fillRect(p.x - sz * 0.5, p.y - sz * 0.5, sz, sz);
+            }
+            ctx.globalAlpha = 1.0;
+
+            // 3. Draw All Racers & Floating Bot Names
+            for (const r of state.racers) {
+                if (Math.abs(r.x - state.camX) > cullHalfW + 80 || Math.abs(r.y - state.camY) > cullHalfH + 80) continue;
+                drawPixelCar(ctx, r.x, r.y, r.angle, r.steerInput, r.spec, r.isDrifting, r.isNitroActive, r.eliminated, 0.72);
+
+                ctx.save();
+                ctx.translate(r.x, r.y - 23);
+                ctx.font = 'bold 10px Rubik, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+                ctx.fillRect(-36, -10, 72, 14);
+                ctx.fillStyle = r.isPlayer ? '#38bdf8' : (r.oilSpinTimer > 0 ? '#facc15' : (r.eliminated ? '#ef4444' : '#f8fafc'));
+                ctx.fillText(r.eliminated ? 'ВЫБЫЛ' : (r.oilSpinTimer > 0 ? '🌀 В МАСЛЕ!' : r.name), 0, 0);
+                ctx.restore();
+            }
+
+            ctx.restore();
+
+            // 4. Render Live Radar Minimap (throttled to every 2nd frame)
+            if (hudThrottleCounter % 2 === 0) {
+                renderMinimap();
+            }
+        }
+
+        function renderMinimap() {
+            mctx.clearRect(0, 0, minimapCanvas.width, minimapCanvas.height);
+            mctx.drawImage(trackSystem.minimapBuffer, 0, 0);
+
+            const sx = minimapCanvas.width / WORLD_W;
+            const sy = minimapCanvas.height / WORLD_H;
+
+            for (const r of state.racers) {
+                if (r.eliminated) continue;
+                mctx.fillStyle = r.isPlayer ? '#facc15' : '#f43f5e';
+                const rad = r.isPlayer ? 3.5 : 2.5;
+                mctx.beginPath();
+                mctx.arc(r.x * sx, r.y * sy, rad, 0, Math.PI * 2);
+                mctx.fill();
+            }
+        }
+
+        function gameLoop(now) {
+            const dt = Math.min(0.05, (now - lastTime) / 1000);
+            lastTime = now;
+            updateGame(dt);
+            renderGame();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Start game loop on window load
+        window.onload = function () {
+            trackSystem.build(TRACKS[0]);
+            renderMenuSelections();
+            requestAnimationFrame(gameLoop);
+        };
+
+        // Expose hooks for the QR Multiplayer module
+        window.gameApp = {
+            state,
+            CARS,
+            TRACKS,
+            GAME_MODES,
+            trackSystem,
+            renderMenuSelections,
+            startRace
+        };
+    </script>
+
+    <!-- QR Generator & Scanner Libraries loaded safely inside body -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'pixel-drift-turbo-gp';
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+        let currentRoomCode = null;
+        let roomUnsubscribe = null;
+        let allRoomsUnsubscribe = null;
+        let currentRoomData = null;
+        let lastBroadcastTime = 0;
+        let lastStartedRaceStamp = 0;
+
+        // Camera QR Scanner state
+        let qrStream = null;
+        let qrScanning = false;
+
+        const mpModal = document.getElementById('mpModal');
+        const qrCanvas = document.getElementById('qrCanvas');
+        const mpStatusToast = document.getElementById('mpStatusToast');
+
+        function setMpStatus(msg, isError = false) {
+            if (!mpStatusToast) return;
+            mpStatusToast.textContent = msg;
+            mpStatusToast.className = `text-center text-xs font-bold mb-2 min-h-[1.25rem] ${isError ? 'text-rose-400' : 'text-cyan-300'}`;
+        }
+
+        function renderQrCodeToCanvas(text) {
+            const qctx = qrCanvas.getContext('2d');
+            const size = qrCanvas.width;
+            qctx.fillStyle = '#ffffff';
+            qctx.fillRect(0, 0, size, size);
+
+            if (typeof qrcode !== 'undefined') {
+                try {
+                    const qr = qrcode(0, 'M');
+                    qr.addData(text);
+                    qr.make();
+                    const count = qr.getModuleCount();
+                    const cellSize = Math.floor(size / (count + 2));
+                    const offset = Math.floor((size - cellSize * count) / 2);
+
+                    qctx.fillStyle = '#090a0f';
+                    for (let r = 0; r < count; r++) {
+                        for (let c = 0; c < count; c++) {
+                            if (qr.isDark(r, c)) {
+                                qctx.fillRect(offset + c * cellSize, offset + r * cellSize, cellSize, cellSize);
+                            }
+                        }
+                    }
+                    return;
+                } catch (e) {
+                    console.warn('QR render error:', e);
+                }
+            }
+            // Fallback visual code block if offline
+            qctx.fillStyle = '#090a0f';
+            qctx.font = 'bold 16px monospace';
+            qctx.textAlign = 'center';
+            qctx.fillText(currentRoomCode || 'DRIFT', size / 2, size / 2);
+        }
+
+        function getShareUrl(code) {
+            try {
+                const url = new URL(window.location.href);
+                url.searchParams.set('room', code);
+                return url.toString();
+            } catch (e) {
+                return code;
+            }
+        }
+
+        async function initMultiplayer() {
+            try {
+                if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                    const firebaseConfig = JSON.parse(__firebase_config);
+                    const app = initializeApp(firebaseConfig);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
+
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+
+                    currentUser = auth.currentUser;
+                    onAuthStateChanged(auth, (u) => {
+                        currentUser = u;
+                        if (u) {
+                            document.getElementById('mpUserIdDisplay').textContent = u.uid;
+                        }
+                    });
+
+                    if (currentUser) {
+                        document.getElementById('mpUserIdDisplay').textContent = currentUser.uid;
+                        subscribeToPublicRoomsList();
+
+                        // Auto-join room if URL contains ?room=XXXX from scanning QR code
+                        const params = new URLSearchParams(window.location.search);
+                        const urlRoom = params.get('room');
+                        if (urlRoom) {
+                            openMpModal();
+                            await joinRoom(urlRoom.toUpperCase());
+                        }
+                    }
+                } else {
+                    document.getElementById('mpNetStatus').textContent = 'Локальный режим';
+                    document.getElementById('mpUserIdDisplay').textContent = 'local-' + Math.floor(1000 + Math.random() * 9000);
+                }
+            } catch (err) {
+                console.warn('Multiplayer init issue:', err);
+                document.getElementById('mpNetStatus').textContent = 'Оффлайн';
+            }
+        }
+
+        function subscribeToPublicRoomsList() {
+            if (!currentUser || !db) return;
+            const roomsCol = collection(db, 'artifacts', appId, 'public', 'data', 'drift_rooms');
+            if (allRoomsUnsubscribe) allRoomsUnsubscribe();
+
+            allRoomsUnsubscribe = onSnapshot(
+                roomsCol,
+                (snapshot) => {
+                    const listEl = document.getElementById('mpOpenRoomsList');
+                    const rooms = [];
+                    const now = Date.now();
+                    snapshot.forEach((docSnap) => {
+                        const data = docSnap.data();
+                        if (data && data.code && (now - (data.updatedAt || 0) < 600000)) {
+                            rooms.push(data);
+                        }
+                    });
+
+                    rooms.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+                    if (rooms.length === 0) {
+                        listEl.innerHTML = `<div class="text-slate-500 text-[11px] text-center py-2">Нет активных комнат. Создайте свою!</div>`;
+                        return;
+                    }
+
+                    listEl.innerHTML = '';
+                    rooms.slice(0, 6).forEach((rm) => {
+                        const pCount = rm.players ? Object.keys(rm.players).length : 1;
+                        const row = document.createElement('div');
+                        row.className = 'flex items-center justify-between bg-slate-900 px-2.5 py-1.5 rounded border border-slate-800';
+                        row.innerHTML = `
+                            <div>
+                                <span class="font-pixel text-yellow-300 text-[11px]">${rm.code}</span>
+                                <span class="text-[10px] text-slate-400 ml-1">(${pCount}/4 игр.)</span>
+                            </div>
+                            <button class="pixel-btn bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-2 py-0.5 rounded">Войти</button>
+                        `;
+                        row.querySelector('button').onclick = () => joinRoom(rm.code);
+                        listEl.appendChild(row);
+                    });
+                },
+                (err) => {
+                    console.warn('Rooms list snapshot error:', err);
+                }
+            );
+        }
+
+        function generateRoomCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let code = '';
+            for (let i = 0; i < 4; i++) {
+                code += chars[Math.floor(Math.random() * chars.length)];
+            }
+            return code;
+        }
+
+        function getPlayerNick() {
+            const inp = document.getElementById('mpPlayerNameInput');
+            return (inp && inp.value.trim()) ? inp.value.trim().toUpperCase() : 'ПИЛОТ';
+        }
+
+        async function createRoom() {
+            const code = generateRoomCode();
+            renderQrCodeToCanvas(getShareUrl(code));
+            document.getElementById('mpCurrentRoomCode').textContent = code;
+
+            if (!currentUser || !db) {
+                currentRoomCode = code;
+                setMpStatus(`Создан код ${code}. Покажите QR-код другу!`);
+                return;
+            }
+
+            const g = window.gameApp;
+            const uid = currentUser.uid;
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'drift_rooms', code);
+
+            const initialRoom = {
+                code,
+                hostId: uid,
+                trackIdx: g.state.selectedTrackIdx,
+                modeIdx: g.state.selectedModeIdx,
+                status: 'waiting',
+                raceStamp: 0,
+                updatedAt: Date.now(),
+                players: {
+                    [uid]: {
+                        uid,
+                        name: getPlayerNick(),
+                        carIdx: g.state.selectedCarIdx,
+                        x: 900,
+                        y: 2850,
+                        angle: 0,
+                        vx: 0,
+                        vy: 0,
+                        isDrifting: false,
+                        isNitro: false,
+                        score: 0,
+                        wpPassed: 0,
+                        lap: 1,
+                        oil: null,
+                        joinedAt: Date.now()
+                    }
+                }
+            };
+
+            try {
+                await setDoc(roomRef, initialRoom);
+                await subscribeToRoom(code);
+                setMpStatus(`Комната ${code} создана! Отсканируйте QR-код со второго телефона.`);
+            } catch (e) {
+                setMpStatus('Ошибка создания комнаты', true);
+            }
+        }
+
+        async function joinRoom(rawCode) {
+            const code = (rawCode || '').trim().toUpperCase();
+            if (!code || code.length < 3) {
+                setMpStatus('Введите корректный код комнаты', true);
+                return;
+            }
+
+            renderQrCodeToCanvas(getShareUrl(code));
+            document.getElementById('mpCurrentRoomCode').textContent = code;
+            document.getElementById('mpJoinCodeInput').value = code;
+
+            if (!currentUser || !db) {
+                setMpStatus('Ожидание подключения к облаку...', true);
+                return;
+            }
+
+            const g = window.gameApp;
+            const uid = currentUser.uid;
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'drift_rooms', code);
+
+            try {
+                const snap = await getDoc(roomRef);
+                if (!snap.exists()) {
+                    setMpStatus(`Комната ${code} не найдена`, true);
+                    return;
+                }
+
+                await updateDoc(roomRef, {
+                    updatedAt: Date.now(),
+                    [`players.${uid}`]: {
+                        uid,
+                        name: getPlayerNick(),
+                        carIdx: g.state.selectedCarIdx,
+                        x: 900,
+                        y: 2850,
+                        angle: 0,
+                        vx: 0,
+                        vy: 0,
+                        isDrifting: false,
+                        isNitro: false,
+                        score: 0,
+                        wpPassed: 0,
+                        lap: 1,
+                        oil: null,
+                        joinedAt: Date.now()
+                    }
+                });
+
+                await subscribeToRoom(code);
+                stopQrScanner();
+                setMpStatus(`Вы подключились к комнате ${code}!`);
+            } catch (e) {
+                setMpStatus('Не удалось подключиться к комнате', true);
+            }
+        }
+
+        async function subscribeToRoom(code) {
+            if (!currentUser || !db) return;
+            if (roomUnsubscribe) roomUnsubscribe();
+
+            currentRoomCode = code;
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'drift_rooms', code);
+
+            document.getElementById('btnLeaveRoom').classList.remove('hidden');
+            document.getElementById('menuRoomBanner').classList.remove('hidden');
+            document.getElementById('menuRoomBanner').classList.add('flex');
+            document.getElementById('bannerRoomCode').textContent = code;
+
+            roomUnsubscribe = onSnapshot(
+                roomRef,
+                (snap) => {
+                    if (!snap.exists()) return;
+                    const data = snap.data();
+                    currentRoomData = data;
+
+                    const g = window.gameApp;
+                    const playersMap = data.players || {};
+                    const participants = Object.values(playersMap).sort((a, b) => (a.joinedAt || 0) - (b.joinedAt || 0));
+
+                    document.getElementById('bannerPlayersCount').textContent = `(Игроков: ${participants.length})`;
+                    document.getElementById('topNetBadge').textContent = `${code} (${participants.length})`;
+
+                    renderLobbyParticipants(participants, data.hostId);
+
+                    // Sync selected track and mode from Host
+                    if (data.hostId !== currentUser.uid) {
+                        if (typeof data.trackIdx === 'number' && data.trackIdx !== g.state.selectedTrackIdx) {
+                            g.state.selectedTrackIdx = data.trackIdx;
+                            g.trackSystem.build(g.TRACKS[g.state.selectedTrackIdx]);
+                            g.renderMenuSelections();
+                        }
+                        if (typeof data.modeIdx === 'number' && data.modeIdx !== g.state.selectedModeIdx) {
+                            g.state.selectedModeIdx = data.modeIdx;
+                            g.renderMenuSelections();
+                        }
+                    }
+
+                    // Trigger synchronized race start when host presses Start
+                    if (data.raceStamp && data.raceStamp > lastStartedRaceStamp) {
+                        lastStartedRaceStamp = data.raceStamp;
+                        g.startRace();
+                    }
+
+                    // Apply live telemetry to remote cars during race
+                    if (g.state.phase === 'racing' || g.state.phase === 'countdown') {
+                        for (const r of g.state.racers) {
+                            if (r.isRemote && r.remotePeerId && playersMap[r.remotePeerId]) {
+                                const netP = playersMap[r.remotePeerId];
+                                r.targetX = netP.x ?? r.x;
+                                r.targetY = netP.y ?? r.y;
+                                r.targetAngle = netP.angle ?? r.angle;
+                                r.vx = netP.vx ?? 0;
+                                r.vy = netP.vy ?? 0;
+                                r.isDrifting = !!netP.isDrifting;
+                                r.isNitroActive = !!netP.isNitro;
+                                r.totalDriftScore = netP.score ?? 0;
+                                r.totalWaypointsPassed = netP.wpPassed ?? 0;
+                                r.lap = netP.lap ?? 1;
+
+                                // Spawn opponent's voice-activated oil puddle if new!
+                                if (netP.oil && netP.oil.id && netP.oil.id !== r.lastRemoteOilId) {
+                                    r.lastRemoteOilId = netP.oil.id;
+                                    g.state.oilPuddles.push({
+                                        id: netP.oil.id,
+                                        ownerId: r.remotePeerId,
+                                        x: netP.oil.x,
+                                        y: netP.oil.y,
+                                        radius: 38,
+                                        life: 22,
+                                        maxLife: 22
+                                    });
+                                }
+                            }
+                        }
+                    }
+                },
+                (err) => {
+                    console.warn('Room snapshot error:', err);
+                }
+            );
+        }
+
+        function renderLobbyParticipants(participants, hostId) {
+            const container = document.getElementById('mpLobbyPlayersList');
+            container.innerHTML = '';
+            const g = window.gameApp;
+
+            participants.forEach((p, idx) => {
+                const car = g.CARS[(p.carIdx || 0) % g.CARS.length];
+                const isMe = currentUser && p.uid === currentUser.uid;
+                const isHost = p.uid === hostId;
+                const card = document.createElement('div');
+                card.className = `flex items-center justify-between px-3 py-2 rounded-xl border ${
+                    isMe ? 'bg-cyan-950/60 border-cyan-400' : 'bg-slate-900 border-slate-800'
+                }`;
+                card.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="w-3.5 h-3.5 rounded-full inline-block border border-white/40" style="background:${car.bodyColor}"></span>
+                        <div>
+                            <div class="text-xs font-bold text-white flex items-center gap-1">
+                                <span>${p.name || 'ПИЛОТ'}</span>
+                                ${isHost ? '<span class="text-[9px] bg-amber-400 text-black font-pixel px-1 rounded">ХОСТ</span>' : ''}
+                            </div>
+                            <div class="text-[10px] text-slate-400">${car.name}</div>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-pixel text-emerald-400">#${idx + 1}</span>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function leaveRoom() {
+            if (roomUnsubscribe) {
+                roomUnsubscribe();
+                roomUnsubscribe = null;
+            }
+            if (currentRoomCode && currentUser && db) {
+                try {
+                    const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'drift_rooms', currentRoomCode);
+                    const snap = await getDoc(roomRef);
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        if (data.players && data.players[currentUser.uid]) {
+                            delete data.players[currentUser.uid];
+                            await setDoc(roomRef, data);
+                        }
+                    }
+                } catch (e) {}
+            }
+            currentRoomCode = null;
+            currentRoomData = null;
+            document.getElementById('mpCurrentRoomCode').textContent = '----';
+            document.getElementById('btnLeaveRoom').classList.add('hidden');
+            document.getElementById('menuRoomBanner').classList.add('hidden');
+            document.getElementById('menuRoomBanner').classList.remove('flex');
+            document.getElementById('topNetBadge').textContent = 'QR Сеть';
+            document.getElementById('mpLobbyPlayersList').innerHTML =
+                `<div class="text-xs text-slate-400 py-2 text-center col-span-2">Вы вышли из комнаты</div>`;
+        }
+
+        async function toggleQrScanner() {
+            if (qrScanning) {
+                stopQrScanner();
+                return;
+            }
+            const box = document.getElementById('qrScannerBox');
+            const video = document.getElementById('qrVideo');
+            const btnText = document.getElementById('qrScanBtnText');
+
+            try {
+                qrStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' }
+                });
+                video.srcObject = qrStream;
+                await video.play();
+                qrScanning = true;
+                box.classList.remove('hidden');
+                btnText.textContent = 'Остановить камеру';
+                requestAnimationFrame(scanQrFrame);
+            } catch (e) {
+                setMpStatus('Камера недоступна — введите 4-значный код комнаты вручную', true);
+            }
+        }
+
+        function stopQrScanner() {
+            qrScanning = false;
+            if (qrStream) {
+                qrStream.getTracks().forEach(t => t.stop());
+                qrStream = null;
+            }
+            const box = document.getElementById('qrScannerBox');
+            const btnText = document.getElementById('qrScanBtnText');
+            if (box) box.classList.add('hidden');
+            if (btnText) btnText.textContent = 'Сканировать QR камерой';
+        }
+
+        function scanQrFrame() {
+            if (!qrScanning) return;
+            const video = document.getElementById('qrVideo');
+            const scanCanvas = document.getElementById('qrScanCanvas');
+            if (video.readyState === video.HAVE_ENOUGH_DATA && typeof jsQR !== 'undefined') {
+                scanCanvas.width = video.videoWidth;
+                scanCanvas.height = video.videoHeight;
+                const sctx = scanCanvas.getContext('2d');
+                sctx.drawImage(video, 0, 0, scanCanvas.width, scanCanvas.height);
+                const imgData = sctx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
+                const qrCode = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'dontInvert' });
+
+                if (qrCode && qrCode.data) {
+                    let extractedCode = qrCode.data.trim();
+                    try {
+                        const parsedUrl = new URL(extractedCode);
+                        const roomParam = parsedUrl.searchParams.get('room');
+                        if (roomParam) extractedCode = roomParam;
+                    } catch (e) {}
+                    stopQrScanner();
+                    joinRoom(extractedCode.toUpperCase());
+                    return;
+                }
+            }
+            if (qrScanning) {
+                requestAnimationFrame(scanQrFrame);
+            }
+        }
+
+        function openMpModal() {
+            mpModal.classList.remove('hidden');
+            mpModal.classList.add('flex');
+            if (!currentRoomCode) {
+                createRoom();
+            } else {
+                renderQrCodeToCanvas(getShareUrl(currentRoomCode));
+            }
+        }
+
+        function closeMpModal() {
+            stopQrScanner();
+            mpModal.classList.add('hidden');
+            mpModal.classList.remove('flex');
+        }
+
+        document.getElementById('btnTopQrNet').onclick = openMpModal;
+        document.getElementById('menuQrNetBtn').onclick = openMpModal;
+        document.getElementById('bannerOpenQrBtn').onclick = openMpModal;
+        document.getElementById('btnCloseMpModal').onclick = closeMpModal;
+        document.getElementById('btnCreateRoom').onclick = createRoom;
+        document.getElementById('btnLeaveRoom').onclick = leaveRoom;
+        document.getElementById('btnToggleQrScan').onclick = toggleQrScanner;
+
+        document.getElementById('btnJoinByCode').onclick = () => {
+            const code = document.getElementById('mpJoinCodeInput').value;
+            joinRoom(code);
+        };
+
+        document.getElementById('btnCopyRoomLink').onclick = () => {
+            const textToCopy = currentRoomCode ? getShareUrl(currentRoomCode) : window.location.href;
+            if (document.body) {
+                const tempInput = document.createElement('textarea');
+                tempInput.value = textToCopy;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+            }
+            setMpStatus(`Ссылка и код (${currentRoomCode || ''}) скопированы в буфер!`);
+        };
+
+        document.getElementById('btnStartMpRace').onclick = async () => {
+            const g = window.gameApp;
+            if (currentRoomCode && currentUser && db) {
+                try {
+                    const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'drift_rooms', currentRoomCode);
+                    const stamp = Date.now();
+                    lastStartedRaceStamp = stamp;
+                    await updateDoc(roomRef, {
+                        trackIdx: g.state.selectedTrackIdx,
+                        modeIdx: g.state.selectedModeIdx,
+                        status: 'racing',
+                        raceStamp: stamp,
+                        updatedAt: stamp
+                    });
+                } catch (e) {}
+            }
+            closeMpModal();
+            g.startRace();
+        };
+
+        // Bridge for main game loop telemetry (~7 Hz throttled Firestore updates)
+        window.mpBridge = {
+            get userId() {
+                return currentUser ? currentUser.uid : 'local';
+            },
+            getRoomParticipants() {
+                if (!currentRoomCode || !currentRoomData || !currentRoomData.players) return [];
+                return Object.values(currentRoomData.players).sort((a, b) => (a.joinedAt || 0) - (b.joinedAt || 0));
+            },
+            broadcastTelemetry(player, lastOil) {
+                if (!currentRoomCode || !currentUser || !db || !player) return;
+                const now = performance.now();
+                if (now - lastBroadcastTime < 140) return;
+                lastBroadcastTime = now;
+
+                const uid = currentUser.uid;
+                const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'drift_rooms', currentRoomCode);
+                const liveScore = Math.round(player.totalDriftScore + player.currentDriftScore * player.driftMultiplier);
+
+                updateDoc(roomRef, {
+                    updatedAt: Date.now(),
+                    [`players.${uid}.name`]: getPlayerNick(),
+                    [`players.${uid}.carIdx`]: window.gameApp.state.selectedCarIdx,
+                    [`players.${uid}.x`]: Math.round(player.x),
+                    [`players.${uid}.y`]: Math.round(player.y),
+                    [`players.${uid}.angle`]: Number(player.angle.toFixed(2)),
+                    [`players.${uid}.vx`]: Math.round(player.vx),
+                    [`players.${uid}.vy`]: Math.round(player.vy),
+                    [`players.${uid}.isDrifting`]: player.isDrifting,
+                    [`players.${uid}.isNitro`]: player.isNitroActive,
+                    [`players.${uid}.score`]: liveScore,
+                    [`players.${uid}.wpPassed`]: player.totalWaypointsPassed,
+                    [`players.${uid}.lap`]: player.lap,
+                    [`players.${uid}.oil`]: lastOil || null
+                }).catch(() => {});
+            }
+        };
+
+        initMultiplayer();
+    </script>
+</body>
+</html>

@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>COSMO JUNK // NEO-CARTRIDGE</title>
+<style>
+  :root {
+    --bg: #04060c;
+    --panel: rgba(8, 15, 28, 0.94);
+    --line: rgba(59, 130, 246, 0.35);
+    --accent: #3b82f6;
+    --accent-soft: #60a5fa;
+    --phosphor: #7dd3fc;
+    --danger: #ff3b5b;
+    --ok: #3bff8f;
+    --text: #dbeafe;
+    --muted: #7b8ba6;
+    --font: "JetBrains Mono", "Consolas", "Courier New", monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ---------- Верхняя служебная панель ---------- */
+  .cj-bar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 42px;
+    padding: 0 12px;
+    background: linear-gradient(180deg, #0a1524 0%, #060c16 100%);
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
+    z-index: 20;
+    user-select: none;
+  }
+
+  .cj-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--phosphor);
+    white-space: nowrap;
+  }
+
+  .cj-brand .cj-logo {
+    width: 18px;
+    height: 18px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    color: var(--accent-soft);
+    font-size: 11px;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+  }
+
+  .cj-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .cj-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #64748b;
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+    transition: background 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .cj-dot.online {
+    background: var(--ok);
+    box-shadow: 0 0 8px var(--ok);
+    animation: cj-pulse 1.8s ease-in-out infinite;
+  }
+
+  .cj-dot.offline {
+    background: var(--danger);
+    box-shadow: 0 0 8px var(--danger);
+  }
+
+  .cj-dot.checking {
+    background: #fbbf24;
+    box-shadow: 0 0 8px #fbbf24;
+  }
+
+  @keyframes cj-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+  }
+
+  .cj-spacer { flex: 1 1 auto; }
+
+  .cj-url {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    max-width: 34vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    opacity: 0.8;
+  }
+
+  .cj-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 26px;
+    padding: 0 10px;
+    font-family: var(--font);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--accent-soft);
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .cj-btn:hover {
+    background: rgba(59, 130, 246, 0.22);
+    color: #eaf4ff;
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.45);
+  }
+
+  .cj-btn:active { transform: translateY(1px); }
+
+  .cj-btn.cj-icon { padding: 0 8px; }
+
+  /* ---------- Игровое поле ---------- */
+  .cj-stage {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    background: #000;
+  }
+
+  #cj-frame {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+    background: #000;
+  }
+
+  /* ---------- Оверлей помощи / офлайна ---------- */
+  .cj-overlay {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(59, 130, 246, 0.16), transparent 55%),
+      radial-gradient(circle at 82% 78%, rgba(168, 85, 247, 0.14), transparent 55%),
+      rgba(2, 5, 12, 0.92);
+    backdrop-filter: blur(3px);
+    z-index: 30;
+  }
+
+  .cj-overlay.open { display: flex; }
+
+  .cj-panel {
+    width: min(560px, 100%);
+    max-height: 100%;
+    overflow: auto;
+    padding: 20px 22px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  .cj-panel h2 {
+    margin: 0 0 4px;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    color: var(--phosphor);
+    text-transform: uppercase;
+  }
+
+  .cj-panel .cj-sub {
+    margin: 0 0 16px;
+    font-size: 11px;
+    line-height: 1.55;
+    color: var(--muted);
+  }
+
+  .cj-panel h3 {
+    margin: 16px 0 8px;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--accent-soft);
+    text-transform: uppercase;
+  }
+
+  .cj-panel p {
+    margin: 0 0 10px;
+    font-size: 11px;
+    line-height: 1.6;
+    color: #b6c6dd;
+  }
+
+  .cj-code {
+    position: relative;
+    margin: 0 0 8px;
+    padding: 10px 12px;
+    font-size: 11px;
+    line-height: 1.7;
+    color: #c9e8ff;
+    background: #02060e;
+    border: 1px solid rgba(59, 130, 246, 0.25);
+    border-radius: 5px;
+    overflow-x: auto;
+    white-space: pre;
+    user-select: text;
+  }
+
+  .cj-code .c { color: #64748b; }
+  .cj-code .g { color: var(--ok); }
+
+  .cj-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .cj-input {
+    flex: 1 1 240px;
+    min-width: 0;
+    height: 32px;
+    padding: 0 10px;
+    font-family: var(--font);
+    font-size: 11px;
+    color: var(--text);
+    background: #02060e;
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    border-radius: 4px;
+    outline: none;
+  }
+
+  .cj-input:focus {
+    border-color: var(--accent-soft);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  }
+
+  .cj-note {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed rgba(59, 130, 246, 0.2);
+    font-size: 10px;
+    line-height: 1.6;
+    color: #64748b;
+  }
+
+  @media (max-width: 640px) {
+    .cj-url { display: none; }
+    .cj-btn span.cj-label { display: none; }
+    .cj-brand { font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="cj-bar">
+    <div class="cj-brand"><span class="cj-logo">CJ</span> COSMO JUNK</div>
+    <div class="cj-status">
+      <span class="cj-dot checking" id="cj-dot"></span>
+      <span id="cj-status-text">ПРОВЕРКА СВЯЗИ...</span>
+    </div>
+    <div class="cj-spacer"></div>
+    <div class="cj-url" id="cj-url-label"></div>
+    <button class="cj-btn cj-icon" id="cj-reload" title="Перезагрузить игру" aria-label="Перезагрузить игру">&#10227;</button>
+    <button class="cj-btn cj-icon" id="cj-tab" title="Открыть в новой вкладке" aria-label="Открыть в новой вкладке">&#8599;</button>
+    <button class="cj-btn" id="cj-help" title="Справка и настройки"><span class="cj-label">СПРАВКА</span><span aria-hidden="true">?</span></button>
+  </div>
+
+  <div class="cj-stage">
+    <iframe id="cj-frame" title="Cosmo Junk — игра" allow="fullscreen; autoplay; clipboard-write; gamepad" allowfullscreen></iframe>
+
+    <div class="cj-overlay" id="cj-overlay" role="dialog" aria-modal="true" aria-labelledby="cj-overlay-title">
+      <div class="cj-panel">
+        <h2 id="cj-overlay-title">Сервер не отвечает</h2>
+        <p class="cj-sub" id="cj-overlay-sub">
+          Cosmo Junk — сетевая кооп-игра. Консоль показывает её через iframe,
+          поэтому рядом должен быть запущен сервер игры.
+        </p>
+
+        <h3>Запуск сервера — без установки</h3>
+        <p>Откройте PowerShell и выполните:</p>
+        <div class="cj-code"><span class="c"># перейти в папку игры (внутри neo_cartridge)</span>
+cd D:\Projects\Gemini\neo_cartridge\games\cosmo-junk-game-concept
+
+<span class="c"># автономный сервер: без npm install и без PostgreSQL</span>
+node standalone\server.js</div>
+        <p>
+          Игра поднимется на <span class="g">http://localhost:3000</span>. Другой порт — так же,
+          с номером: <span class="g">node standalone\server.js 3100</span>.
+          Комнаты живут в памяти, рекорды — в <span class="g">standalone\data\leaderboard.json</span>.
+        </p>
+
+        <h3>Полная версия (Next.js + PostgreSQL)</h3>
+        <p>
+          Если нужна оригинальная сборка — рабочая копия
+          <span class="g">D:\Projects\cosmo-junk-game-concept</span>:
+        </p>
+        <div class="cj-code">cd D:\Projects\cosmo-junk-game-concept
+npm install
+npm run dev
+<span class="c"># PostgreSQL быстрый путь — docker compose из папки игры:</span>
+<span class="c">#   docker compose up -d</span></div>
+
+        <h3>Адрес игры</h3>
+        <div class="cj-row">
+          <input class="cj-input" id="cj-url-input" type="text" spellcheck="false" placeholder="http://localhost:3000" aria-label="Адрес сервера игры">
+          <button class="cj-btn" id="cj-apply">ПОДКЛЮЧИТЬ</button>
+        </div>
+
+        <div class="cj-row">
+          <button class="cj-btn" id="cj-retry">ПОВТОРИТЬ ПРОВЕРКУ</button>
+          <button class="cj-btn" id="cj-close">ЗАКРЫТЬ</button>
+        </div>
+
+        <div class="cj-note">
+          Подсказка: адрес можно передать параметром в URL консоли —
+          <span style="color:#93c5fd">cosmo_junk.html?url=http://localhost:3001</span>.
+          Выбранный адрес запоминается в браузере.
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+
+  var DEFAULT_URL = 'http://localhost:3000';
+  var STORAGE_KEY = 'neo_cartridge.cosmo_junk.url';
+
+  var frame = document.getElementById('cj-frame');
+  var overlay = document.getElementById('cj-overlay');
+  var dot = document.getElementById('cj-dot');
+  var statusText = document.getElementById('cj-status-text');
+  var urlLabel = document.getElementById('cj-url-label');
+  var urlInput = document.getElementById('cj-url-input');
+  var overlayTitle = document.getElementById('cj-overlay-title');
+  var overlaySub = document.getElementById('cj-overlay-sub');
+
+  var gameUrl = resolveUrl();
+  var checkTimer = null;
+  var pingToken = 0;
+
+  function normalize(raw) {
+    var value = String(raw || '').trim();
+    if (!value) return DEFAULT_URL;
+    if (!/^https?:\/\//i.test(value)) value = 'http://' + value;
+    return value.replace(/\/+$/, '');
+  }
+
+  function resolveUrl() {
+    var fromQuery = null;
+    try {
+      fromQuery = new URLSearchParams(window.location.search).get('url');
+    } catch (e) { /* очень старый браузер */ }
+
+    if (fromQuery) return normalize(fromQuery);
+
+    try {
+      var saved = window.localStorage.getItem(STORAGE_KEY);
+      if (saved) return normalize(saved);
+    } catch (e) { /* localStorage может быть отключён */ }
+
+    return DEFAULT_URL;
+  }
+
+  function setStatus(state, text) {
+    dot.className = 'cj-dot ' + state;
+    statusText.textContent = text;
+  }
+
+  function showOverlay(title, sub) {
+    if (title) overlayTitle.textContent = title;
+    if (sub) overlaySub.textContent = sub;
+    overlay.classList.add('open');
+  }
+
+  function hideOverlay() {
+    overlay.classList.remove('open');
+  }
+
+  function loadGame() {
+    urlLabel.textContent = gameUrl;
+    urlInput.value = gameUrl;
+    setStatus('checking', 'ПОДКЛЮЧЕНИЕ...');
+    frame.src = gameUrl;
+    ping();
+  }
+
+  function ping() {
+    var token = ++pingToken;
+    var controller = null;
+    var timer = null;
+    var settled = false;
+
+    function succeed() {
+      if (settled || token !== pingToken) return;
+      settled = true;
+      if (timer) clearTimeout(timer);
+      setStatus('online', 'СЕРВЕР ОНЛАЙН');
+      hideOverlay();
+    }
+
+    function fail() {
+      if (settled || token !== pingToken) return;
+      settled = true;
+      if (timer) clearTimeout(timer);
+      setStatus('offline', 'СЕРВЕР НЕДОСТУПЕН');
+      showOverlay();
+    }
+
+    // Резервная проверка через <img>: работает даже там, где fetch из file:// запрещён.
+    function imageProbe() {
+      var img = new Image();
+      img.onload = succeed;
+      img.onerror = fail;
+      img.src = gameUrl + '/icon.svg?ping=' + Date.now();
+    }
+
+    try {
+      controller = new AbortController();
+      timer = setTimeout(function () {
+        if (controller) controller.abort();
+        imageProbe();
+      }, 5000);
+    } catch (e) { /* без AbortController */ }
+
+    fetch(gameUrl + '/api/health', {
+      mode: 'no-cors',
+      cache: 'no-store',
+      signal: controller ? controller.signal : undefined
+    })
+      .then(succeed)
+      .catch(function () {
+        if (timer) clearTimeout(timer);
+        imageProbe();
+      });
+  }
+
+  function applyUrl(raw) {
+    var next = normalize(raw);
+    try { window.localStorage.setItem(STORAGE_KEY, next); } catch (e) { /* ignore */ }
+    gameUrl = next;
+    hideOverlay();
+    loadGame();
+  }
+
+  // ---------- События ----------
+  document.getElementById('cj-reload').addEventListener('click', function () {
+    frame.src = 'about:blank';
+    setTimeout(loadGame, 60);
+  });
+
+  document.getElementById('cj-tab').addEventListener('click', function () {
+    window.open(gameUrl, '_blank', 'noopener');
+  });
+
+  document.getElementById('cj-help').addEventListener('click', function () {
+    showOverlay();
+  });
+
+  document.getElementById('cj-close').addEventListener('click', hideOverlay);
+
+  document.getElementById('cj-retry').addEventListener('click', function () {
+    hideOverlay();
+    loadGame();
+  });
+
+  document.getElementById('cj-apply').addEventListener('click', function () {
+    applyUrl(urlInput.value);
+  });
+
+  urlInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') applyUrl(urlInput.value);
+  });
+
+  // Escape закрывает оверлей, не мешая игре внутри iframe.
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) {
+      e.stopPropagation();
+      hideOverlay();
+    }
+  }, true);
+
+  // Если сервер подняли позже — достаточно вернуться на вкладку.
+  window.addEventListener('focus', function () {
+    if (!overlay.classList.contains('open')) return;
+    ping();
+  });
+
+  // Первичная проверка через 2 секунды: даём iframe шанс загрузиться.
+  loadGame();
+  checkTimer = setTimeout(function () {
+    if (dot.classList.contains('checking')) ping();
+  }, 2500);
+
+  window.addEventListener('beforeunload', function () {
+    if (checkTimer) clearTimeout(checkTimer);
+  });
+})();
+</script>
+</body>
+</html>

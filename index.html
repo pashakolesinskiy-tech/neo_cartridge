@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEO-CARTRIDGE // ZERO — Zero-Server Игровая Ретро-Консоль</title>
+  <meta name="description" content="Полноразмерный игровой портал без единого сервера: WebAssembly, процедурный чиптюн-звук, P2P дуэли по WebRTC, локальные сохранения и встроенный редактор карт.">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+
+  <!-- Fonts: Space Grotesk & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/console.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+  <!-- Top System Bar -->
+  <header class="top-nav" role="banner">
+    <div class="container nav-row">
+      <div class="brand-wrap">
+        <img src="assets/logo.svg" alt="NEO-CARTRIDGE // ZERO" style="height: 38px; width: auto;">
+      </div>
+
+      <div class="nav-badges">
+        <div class="system-pill" title="0 обращений к внешним серверам">
+          <span class="dot"></span>
+          <span>ZERO-SERVER: 100% CLIENT</span>
+        </div>
+        <div class="system-pill" id="p2p-status-pill">
+          <span class="dot" style="background:var(--accent-gold); box-shadow:0 0 6px var(--accent-gold);"></span>
+          <span>P2P: WEBRTC ГОТОВ</span>
+        </div>
+        <button class="btn-tactile" style="padding:4px 10px; font-size:0.6875rem; color:var(--crt-cyan); border-color:var(--console-border);" onclick="App.openModal('settings-modal')" title="Открыть настройки консоли">
+          <span>⚙️ НАСТРОЙКИ</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Arcade Playground -->
+  <main class="arcade-layout" role="main">
+    <div class="container">
+      
+      <!-- Physical Console Chassis -->
+      <section class="console-body" aria-label="Игровая консоль">
+        <!-- Corner mounting bolts -->
+        <div class="console-bolt bolt-tl" aria-hidden="true"></div>
+        <div class="console-bolt bolt-tr" aria-hidden="true"></div>
+        <div class="console-bolt bolt-bl" aria-hidden="true"></div>
+        <div class="console-bolt bolt-br" aria-hidden="true"></div>
+
+        <!-- Physical Console Deck (Power switch, Cartridge Slot, Eject Lever, Status LEDs) -->
+        <div class="console-deck-bay">
+          <!-- Power Section -->
+          <div class="deck-power-section">
+            <div class="power-switch-wrap">
+              <span class="deck-label">POWER // ПИТАНИЕ</span>
+              <button id="btn-console-power" class="power-rocker-btn" role="switch" aria-checked="false" aria-label="Включить консоль" onclick="App.togglePower()">
+                <span class="rocker-lever"></span>
+                <span class="rocker-label-off">OFF</span>
+                <span class="rocker-label-on">ON</span>
+              </button>
+            </div>
+            <div class="deck-led-wrap">
+              <span id="console-power-led" class="deck-led led-standby" title="Состояние питания"></span>
+              <span id="console-power-text" class="deck-led-text">STANDBY</span>
+            </div>
+          </div>
+
+          <!-- Physical Cartridge Slot Bay -->
+          <div class="deck-cartridge-slot" id="deck-cartridge-slot">
+            <div class="slot-bevel">
+              <div class="slot-dust-flaps"></div>
+              <!-- Visible seated cartridge when inserted -->
+              <div id="deck-inserted-cartridge" class="deck-inserted-cartridge" style="display:none;">
+                <div class="inserted-cart-grip"></div>
+                <div class="inserted-cart-label">
+                  <span id="inserted-cart-rom">ROM #01</span>
+                  <span id="inserted-cart-title">STICK_FIGHTING</span>
+                </div>
+              </div>
+              <div id="deck-slot-empty-label" class="slot-empty-label">// СЛОТ СВОБОДЕН: ВЫБЕРИТЕ КАРТРИДЖ //</div>
+            </div>
+            <div class="slot-sub-info">
+              <span>ROM BUS: 64-BIT DUAL PIN</span>
+              <span id="deck-cart-ready-tag" style="color:var(--crt-phosphor);">ГОТОВ К ВКЛЮЧЕНИЮ</span>
+            </div>
+          </div>
+
+          <!-- Eject & Reset Lever -->
+          <div class="deck-actions-section">
+            <button id="btn-console-eject" class="deck-lever-btn btn-eject" title="Извлечь картридж (ESC)" onclick="App.ejectCartridge()">
+              <span>⏏ ИЗВЛЕЧЬ</span>
+            </button>
+            <button id="btn-console-reset" class="deck-lever-btn btn-reset" title="Перезагрузить текущий картридж" onclick="App.restartGame()">
+              <span>🔄 СБРОС</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="console-inner-grid">
+          
+          <!-- Screen Side -->
+          <div class="screen-housing crt-active" id="screen-housing">
+            <div class="screen-header-bar">
+              <span id="screen-status-label">// MATRIX DISPLAY 60FPS</span>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <button id="screen-poweroff-btn" class="btn-tactile btn-danger-action" style="display:none; padding:3px 8px; font-size:0.625rem;" onclick="App.powerOffConsole()">⏻ ВЫКЛ (ESC)</button>
+                <button class="btn-tactile" style="padding:3px 8px; font-size:0.625rem;" onclick="App.openModal('settings-modal')">⚙️ НАСТРОЙКИ</button>
+                <span id="crt-status-indicator" style="display:none;">CRT FILTER: ACTIVE</span>
+              </div>
+            </div>
+
+            <!-- Canvas & Iframe Screen Area -->
+            <div class="screen-canvas-wrapper" id="screen-canvas-wrapper">
+              
+              <!-- Vertical Card Slider (Menu Mode) -->
+              <div id="deck-view" class="deck-view">
+                <div class="deck-slider-stage" id="deck-stage">
+                  <div class="deck-ambient-bg"></div>
+
+                  <!-- Visual Rail Guide Backdrop -->
+                  <div class="slider-rail-backdrop">
+                    <div class="slider-target-reticle"></div>
+                  </div>
+
+                  <!-- Vertical Slider Viewport -->
+                  <div class="vertical-slider-viewport" id="vertical-slider-viewport">
+                    <div class="vertical-card-stack" id="vertical-card-stack">
+
+                      <!-- Card 0: STICK_FIGHTING -->
+                      <div class="sts-card active" data-index="0" data-game="stick_fighting" onclick="App.onCardClick(0)">
+                        <div class="sts-card-inner card-theme-red">
+                          <div class="sts-energy-gem" title="Стоимость энергии: 1">
+                            <span class="gem-cost">1</span>
+                          </div>
+                          <div class="sts-title-bar">
+                            <span class="sts-title-text">STICK_FIGHTING</span>
+                            <span class="sts-rom-badge">ROM #01</span>
+                          </div>
+                          <div class="sts-card-content">
+                            <div class="sts-art-window art-stick">
+                              <canvas class="sts-gameplay-canvas" id="preview-canvas-0" width="160" height="130"></canvas>
+                              <div class="sts-art-scanlines"></div>
+                              <div class="sts-live-badge"><span class="live-dot"></span>LIVE</div>
+                            </div>
+                            <div class="sts-info-column">
+                              <div class="sts-type-ribbon">2D PIXEL FIGHTER</div>
+                              <div class="sts-desc-box">
+                                <p>3 бойца, 3 живые арены, комбо-система и WebRTC мультиплеер без сервера.</p>
+                              </div>
+                              <div class="sts-card-footer">
+                                <span>64-MB // ATK</span>
+                                <span class="sts-preload-badge" id="preload-badge-0" title="Предзагрузка ROM в быструю память">
+                                  <span class="preload-dot"></span><span class="preload-text">PRELOADED</span>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Card 1: PIXEL_DRIFT -->
+                      <div class="sts-card" data-index="1" data-game="pixel_drift" onclick="App.onCardClick(1)">
+                        <div class="sts-card-inner card-theme-cyan">
+                          <div class="sts-energy-gem" title="Стоимость энергии: 2">
+                            <span class="gem-cost">2</span>
+                          </div>
+                          <div class="sts-title-bar">
+                            <span class="sts-title-text">PIXEL_DRIFT</span>
+                            <span class="sts-rom-badge">ROM #02</span>
+                          </div>
+                          <div class="sts-card-content">
+                            <div class="sts-art-window art-drift">
+                              <canvas class="sts-gameplay-canvas" id="preview-canvas-1" width="160" height="130"></canvas>
+                              <div class="sts-art-scanlines"></div>
+                              <div class="sts-live-badge"><span class="live-dot"></span>LIVE</div>
+                            </div>
+                            <div class="sts-info-column">
+                              <div class="sts-type-ribbon">ARCADE DRIFT GP</div>
+                              <div class="sts-desc-box">
+                                <p>Неоновые трассы, динамический дрифт, тайм-триал и рекордные заезды.</p>
+                              </div>
+                              <div class="sts-card-footer">
+                                <span>64-MB // SKILL</span>
+                                <span class="sts-preload-badge" id="preload-badge-1" title="Предзагрузка ROM в быструю память">
+                                  <span class="preload-dot"></span><span class="preload-text">PRELOADED</span>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Card 2: CHRONO_BLADE -->
+                      <div class="sts-card" data-index="2" data-game="chrono_blade" onclick="App.onCardClick(2)">
+                        <div class="sts-card-inner card-theme-purple">
+                          <div class="sts-energy-gem" title="Стоимость энергии: 3">
+                            <span class="gem-cost">3</span>
+                          </div>
+                          <div class="sts-title-bar">
+                            <span class="sts-title-text">CHRONO_BLADE</span>
+                            <span class="sts-rom-badge">ROM #03</span>
+                          </div>
+                          <div class="sts-card-content">
+                            <div class="sts-art-window art-chrono">
+                              <canvas class="sts-gameplay-canvas" id="preview-canvas-2" width="160" height="130"></canvas>
+                              <div class="sts-art-scanlines"></div>
+                              <div class="sts-live-badge"><span class="live-dot"></span>LIVE</div>
+                            </div>
+                            <div class="sts-info-column">
+                              <div class="sts-type-ribbon">CYBER SLASHER</div>
+                              <div class="sts-desc-box">
+                                <p>Кибернетический экшен: замедление времени, отражение пуль катаной и боссы.</p>
+                              </div>
+                              <div class="sts-card-footer">
+                                <span>64-MB // POWER</span>
+                                <span class="sts-preload-badge" id="preload-badge-2" title="Предзагрузка ROM в быструю память">
+                                  <span class="preload-dot"></span><span class="preload-text">PRELOADED</span>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Card 3: MECHA_SIEGE -->
+                      <div class="sts-card" data-index="3" data-game="mecha_siege" onclick="App.onCardClick(3)">
+                        <div class="sts-card-inner card-theme-amber">
+                          <div class="sts-energy-gem" title="Стоимость энергии: 4">
+                            <span class="gem-cost">4</span>
+                          </div>
+                          <div class="sts-title-bar">
+                            <span class="sts-title-text">MECHA_SIEGE</span>
+                            <span class="sts-rom-badge">ROM #04</span>
+                          </div>
+                          <div class="sts-card-content">
+                            <div class="sts-art-window art-mecha">
+                              <canvas class="sts-gameplay-canvas" id="preview-canvas-3" width="160" height="130"></canvas>
+                              <div class="sts-art-scanlines"></div>
+                              <div class="sts-live-badge"><span class="live-dot"></span>LIVE</div>
+                            </div>
+                            <div class="sts-info-column">
+                              <div class="sts-type-ribbon">16-BIT MECH TD</div>
+                              <div class="sts-desc-box">
+                                <p>Тактический TD: 5 типов турелей, волны шагоходов, орбитальный залп и 2P кооп.</p>
+                              </div>
+                              <div class="sts-card-footer">
+                                <span>64-MB // ELITE</span>
+                                <span class="sts-preload-badge" id="preload-badge-3" title="Предзагрузка ROM в быструю память">
+                                  <span class="preload-dot"></span><span class="preload-text">PRELOADED</span>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Card 4: WORMS_ARMAGEDDON -->
+                      <div class="sts-card" data-index="4" data-game="worms_armageddon" onclick="App.onCardClick(4)">
+                        <div class="sts-card-inner card-theme-emerald">
+                          <div class="sts-energy-gem" title="Стоимость энергии: 5">
+                            <span class="gem-cost">5</span>
+                          </div>
+                          <div class="sts-title-bar">
+                            <span class="sts-title-text">WORMS_ARMAGEDDON</span>
+                            <span class="sts-rom-badge">ROM #05</span>
+                          </div>
+                          <div class="sts-card-content">
+                            <div class="sts-art-window art-worms">
+                              <canvas class="sts-gameplay-canvas" id="preview-canvas-4" width="160" height="130"></canvas>
+                              <div class="sts-art-scanlines"></div>
+                              <div class="sts-live-badge"><span class="live-dot"></span>LIVE</div>
+                            </div>
+                            <div class="sts-info-column">
+                              <div class="sts-type-ribbon">2D TACTICAL ARTILLERY</div>
+                              <div class="sts-desc-box">
+                                <p>Разрушаемая карта, 34 вида оружия, ИИ, Hot-Seat, онлайн по коду/QR и мобильный пульт.</p>
+                              </div>
+                              <div class="sts-card-footer">
+                                <span>64-MB // 34 WPN</span>
+                                <span class="sts-preload-badge" id="preload-badge-4" title="Предзагрузка ROM в быструю память">
+                                  <span class="preload-dot"></span><span class="preload-text">PRELOADED</span>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Card 5: COSMO_JUNK -->
+                      <div class="sts-card" data-index="5" data-game="cosmo_junk" onclick="App.onCardClick(5)">
+                        <div class="sts-card-inner card-theme-blue">
+                          <div class="sts-energy-gem" title="Стоимость энергии: 6">
+                            <span class="gem-cost">6</span>
+                          </div>
+                          <div class="sts-title-bar">
+                            <span class="sts-title-text">COSMO_JUNK</span>
+                            <span class="sts-rom-badge">ROM #06</span>
+                          </div>
+                          <div class="sts-card-content">
+                            <div class="sts-art-window art-cosmo">
+                              <canvas class="sts-gameplay-canvas" id="preview-canvas-5" width="160" height="130"></canvas>
+                              <div class="sts-art-scanlines"></div>
+                              <div class="sts-live-badge"><span class="live-dot"></span>LIVE</div>
+                            </div>
+                            <div class="sts-info-column">
+                              <div class="sts-type-ribbon">ONLINE SPACE ARENA</div>
+                              <div class="sts-desc-box">
+                                <p>Сетевая космическая арена: комнаты по коду, живой бой и таблица лидеров. Нужен запущенный сервер игры.</p>
+                              </div>
+                              <div class="sts-card-footer">
+                                <span>SERVER // ONLINE</span>
+                                <span class="sts-preload-badge" id="preload-badge-5" title="Предзагрузка ROM в быструю память">
+                                  <span class="preload-dot"></span><span class="preload-text">PRELOADED</span>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div> <!-- end vertical-card-stack -->
+                  </div> <!-- end vertical-slider-viewport -->
+
+                  <!-- Vertical Slider Rail Controller (Бегунок слайдера справа) -->
+                  <div class="deck-slider-rail" id="deck-slider-rail">
+                    <button class="deck-nav-btn deck-nav-up" aria-label="Предыдущий картридж (Вверх)" onclick="App.rotateDeck(-1)">▲</button>
+                    
+                    <div class="deck-slider-channel" id="deck-slider-channel" title="Слайдер картриджей: потяните бегунок или кликните">
+                      <div class="slider-groove"></div>
+                      <div class="deck-slider-thumb" id="deck-slider-thumb">
+                        <div class="thumb-grip-lines"><span></span><span></span><span></span></div>
+                      </div>
+                      <div class="deck-dots-col" id="deck-dots">
+                        <span class="dot active" data-index="0" onclick="App.setDeckIndex(0)" title="ROM #01: Stick Fighting"></span>
+                        <span class="dot" data-index="1" onclick="App.setDeckIndex(1)" title="ROM #02: Pixel Drift"></span>
+                        <span class="dot" data-index="2" onclick="App.setDeckIndex(2)" title="ROM #03: Chrono Blade"></span>
+                        <span class="dot" data-index="3" onclick="App.setDeckIndex(3)" title="ROM #04: Mecha Siege"></span>
+                        <span class="dot" data-index="4" onclick="App.setDeckIndex(4)" title="ROM #05: Worms Armageddon"></span>
+                        <span class="dot" data-index="5" onclick="App.setDeckIndex(5)" title="ROM #06: Cosmo Junk"></span>
+                      </div>
+                    </div>
+
+                    <button class="deck-nav-btn deck-nav-down" aria-label="Следующий картридж (Вниз)" onclick="App.rotateDeck(1)">▼</button>
+                  </div>
+
+                  <div class="deck-hint-bar">
+                    <span>Слайдер: Drag мышью / Свайп / Колесико / Бегунок справа | Клик / ENTER — Вставить в консоль</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- BIOS Boot Screen Overlay -->
+              <div id="bios-boot-screen" class="bios-boot-screen" style="display:none;">
+                <div class="bios-inner">
+                  <div class="bios-logo-wrap">
+                    <div class="bios-logo">NEO-CARTRIDGE // ZERO</div>
+                    <div class="bios-subtitle">AUTHENTIC 16-BIT ZERO-SERVER ARCHITECTURE</div>
+                  </div>
+                  <div class="bios-terminal-log" id="bios-log">
+                    <div>ROM BUS INITIALIZED: 64-BIT DUAL CHANNEL [OK]</div>
+                    <div id="bios-preload-status">ROM CACHE: 100% PRE-LOADED [FAST BOOT]</div>
+                    <div>VRAM CHIP: 128KB EXPANSION BUFFER [OK]</div>
+                    <div id="bios-rom-name">MOUNTING CARTRIDGE ROM...</div>
+                    <div class="bios-blinker">INSTANT START CORE: ACTIVE █</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Running Game Iframe -->
+              <iframe id="game-iframe" style="width:100%; height:100%; border:none; background:#000; display:none;" allow="autoplay" title="Game Screen"></iframe>
+              <!-- CRT Scanline & Phosphor Overlay -->
+              <div class="crt-overlay" aria-hidden="true"></div>
+            </div>
+          </div>
+
+          <!-- Console Dashboard & Cartridge Management -->
+          <div class="console-side-panel">
+            <div class="slot-dashboard-box">
+              <div id="slot-tag-label" class="slot-tag">// КАРТРИДЖ В ФОКУСЕ</div>
+              <h2 id="slot-game-title" class="slot-title">STICK_FIGHTING</h2>
+              <div id="slot-game-genre" class="slot-genre">2D Pixel Fighter (Phaser 3)</div>
+              <p id="slot-game-desc" class="slot-desc">
+                Полноразмерный 2D файтинг: 3 бойца (Вихрь, Искра, Титан), 3 живые арены, комбо-система и WebRTC мультиплеер без сервера. Играйте против ИИ или с другом по сети!
+              </p>
+
+              <div class="slot-metrics">
+                <div>
+                  <div style="font-size:0.6875rem; color:var(--text-muted);">РЕКОРД КАРТРИДЖА</div>
+                  <div id="slot-game-record" class="score-val">0</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:0.6875rem; color:var(--text-muted);">УПРАВЛЕНИЕ</div>
+                  <div id="slot-game-controls" style="font-size:0.75rem; color:var(--text-main);">Стрелки — Движение, J/K/U/I — Удары, O — Спецприем</div>
+                </div>
+              </div>
+
+              <!-- Primary Action in Menu Mode -->
+              <div id="menu-power-btn-wrap" style="margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;">
+                <button id="btn-main-power" class="btn-tactile btn-power-big" onclick="App.powerOnCartridge()">
+                  <span class="power-icon">▶</span>
+                  <span>ВСТАВИТЬ И ВКЛЮЧИТЬ [ENTER]</span>
+                </button>
+                <button class="btn-tactile btn-settings-main" onclick="App.openModal('settings-modal')">
+                  <span>⚙️ НАСТРОЙКИ КОНСОЛИ</span>
+                </button>
+              </div>
+
+              <!-- Quick Toggles when Game is Active -->
+              <div id="game-active-controls-wrap" style="display:none; margin-bottom: 12px; flex-direction: column; gap: 8px;">
+                <div style="display:flex; gap:8px;">
+                  <button class="btn-tactile btn-danger-action" style="flex:1;" onclick="App.powerOffConsole()">
+                    <span>⏻ ВЫКЛЮЧИТЬ (ESC)</span>
+                  </button>
+                  <button class="btn-tactile btn-primary-action" style="flex:1;" onclick="App.restartGame()">
+                    <span>🔄 РЕСТАРТ</span>
+                  </button>
+                </div>
+                <div style="display:flex; gap:8px;">
+                  <button class="btn-tactile" style="flex:1;" onclick="App.openFullscreenGame()">
+                    <span>⛶ ВЕСЬ ЭКРАН</span>
+                  </button>
+                  <button class="btn-tactile btn-settings-main" style="flex:1;" onclick="App.openModal('settings-modal')">
+                    <span>⚙️ НАСТРОЙКИ</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Modals & Overlays -->
+  <div id="console-backdrop" class="console-backdrop" aria-hidden="true"></div>
+
+  <!-- Settings Modal (All console audio, screen, and tool controls) -->
+  <div id="settings-modal" class="console-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div class="modal-title-row">
+      <span id="settings-title">// НАСТРОЙКИ КОНСОЛИ // SYSTEM CONFIG</span>
+      <button class="modal-close-btn" onclick="App.closeModal('settings-modal')" aria-label="Закрыть">✕</button>
+    </div>
+
+    <div class="settings-modal-content">
+      <!-- Group 1: Экран и Графика -->
+      <div class="settings-group">
+        <div class="settings-group-header">
+          <span>📺 ЭКРАН И ГРАФИКА</span>
+        </div>
+        <div class="settings-item-row">
+          <div class="settings-item-info">
+            <div class="item-title">ЭЛТ-фильтр (CRT Scanlines & Phosphor)</div>
+            <div class="item-desc">Сканлайны кинескопа, легкая выпуклость стекла и свечение люминофора</div>
+          </div>
+          <button id="btn-setting-crt" class="btn-tactile btn-toggle active" onclick="App.toggleCRT()">
+            <span class="toggle-indicator"></span>
+            <span id="label-setting-crt">ВКЛ</span>
+          </button>
+        </div>
+
+        <div class="settings-item-row">
+          <div class="settings-item-info">
+            <div class="item-title">Полноэкранный режим</div>
+            <div class="item-desc">Развернуть экран игры на весь монитор без рамок</div>
+          </div>
+          <button class="btn-tactile" onclick="App.openFullscreenGame()">
+            <span>⛶ НА ВЕСЬ ЭКРАН</span>
+          </button>
+        </div>
+
+        <div class="settings-item-row">
+          <div class="settings-item-info">
+            <div class="item-title">Отдельное окно браузера</div>
+            <div class="item-desc">Запустить текущую игру в новой чистой вкладке</div>
+          </div>
+          <button class="btn-tactile" onclick="App.openStandaloneTab()">
+            <span>↗ ОТКРЫТЬ ОКНО</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Group 2: Звук и Музыка -->
+      <div class="settings-group">
+        <div class="settings-group-header">
+          <span>🔊 ЗВУК И МУЗЫКА</span>
+        </div>
+        <div class="settings-item-row">
+          <div class="settings-item-info">
+            <div class="item-title">Фоновый чиптюн (BGM)</div>
+            <div class="item-desc">8-битная ностальгическая мелодия на Web Audio API</div>
+          </div>
+          <button id="btn-setting-bgm" class="btn-tactile btn-toggle" onclick="App.toggleBGM()">
+            <span class="toggle-indicator"></span>
+            <span id="label-setting-bgm">ВЫКЛ</span>
+          </button>
+        </div>
+
+        <div class="settings-item-row">
+          <div class="settings-item-info">
+            <div class="item-title">Звуковые эффекты консоли</div>
+            <div class="item-desc">Щелчки питания, пружинный выброс картриджа и бипы BIOS</div>
+          </div>
+          <button id="btn-setting-mute" class="btn-tactile btn-toggle active" onclick="App.toggleAudioMute()">
+            <span class="toggle-indicator"></span>
+            <span id="label-setting-mute">ВКЛ</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Group 3: Инструменты и Модули -->
+      <div class="settings-group">
+        <div class="settings-group-header">
+          <span>🛠️ ИНСТРУМЕНТЫ И МОДУЛИ</span>
+        </div>
+        <div class="settings-tools-grid">
+          <button class="btn-tactile tool-card-btn" onclick="App.closeModal('settings-modal'); App.openModal('achieve-modal');">
+            <span class="tool-icon">🏆</span>
+            <span class="tool-name">ЗАЛ ДОСТИЖЕНИЙ</span>
+            <span class="tool-sub">Список трофеев и рекорды</span>
+          </button>
+          <button class="btn-tactile tool-card-btn" onclick="App.closeModal('settings-modal'); App.openModal('p2p-modal');">
+            <span class="tool-icon">🔗</span>
+            <span class="tool-name">P2P ДУЭЛЬ</span>
+            <span class="tool-sub">WebRTC игра без сервера</span>
+          </button>
+          <button class="btn-tactile tool-card-btn" onclick="App.closeModal('settings-modal'); App.openModal('studio-modal');">
+            <span class="tool-icon">🎨</span>
+            <span class="tool-name">СТУДИЯ КАРТ</span>
+            <span class="tool-sub">Пиксельный редактор арены</span>
+          </button>
+          <button class="btn-tactile tool-card-btn" onclick="App.closeModal('settings-modal'); App.openModal('save-modal');">
+            <span class="tool-icon">💾</span>
+            <span class="tool-name">МЕНЕДЖЕР СЕЙВОВ</span>
+            <span class="tool-sub">Экспорт и импорт .cart</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Modals & Overlays -->
+  <div id="console-backdrop" class="console-backdrop" aria-hidden="true"></div>
+
+  <!-- Studio Level Editor Modal -->
+  <div id="studio-modal" class="console-modal" role="dialog" aria-modal="true" aria-labelledby="studio-title">
+    <div class="modal-title-row">
+      <span id="studio-title">// CARTRIDGE STUDIO: ПИКСЕЛЬ-АРТ РЕДАКТОР</span>
+      <button class="modal-close-btn" onclick="App.closeModal('studio-modal')" aria-label="Закрыть">✕</button>
+    </div>
+    <div class="studio-layout">
+      <div class="studio-canvas-housing">
+        <canvas id="studio-canvas" width="256" height="256" role="img" aria-label="Сетка редактора"></canvas>
+      </div>
+      <div id="studio-palette" class="studio-palette-row"></div>
+      
+      <div style="width:100%; display:flex; gap:8px;">
+        <input type="text" id="studio-map-name" placeholder="Название карты (напр. CYBER_BASE_01)" style="flex:1; background:#0e1015; border:1px solid var(--console-border); color:#fff; padding:8px 12px; font-family:var(--font-retro); font-size:0.75rem; border-radius:4px;">
+        <button class="btn-tactile" onclick="Editor.clear()">Очистить</button>
+      </div>
+
+      <div style="width:100%; display:flex; gap:8px;">
+        <button class="btn-tactile btn-primary-action" style="flex:1;" onclick="Editor.saveCustomMap()">Сохранить во флеш-чип</button>
+        <button class="btn-tactile" onclick="Editor.exportAsPNG()">Скачать PNG</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Achievements Hall Modal -->
+  <div id="achieve-modal" class="console-modal" role="dialog" aria-modal="true" aria-labelledby="achieve-title">
+    <div class="modal-title-row">
+      <span id="achieve-title">// ЗАЛ ДОСТИЖЕНИЙ (TROPHY HALL)</span>
+      <button class="modal-close-btn" onclick="App.closeModal('achieve-modal')" aria-label="Закрыть">✕</button>
+    </div>
+    <div id="achievements-grid" class="achievements-grid"></div>
+  </div>
+
+  <!-- P2P Duel Setup Modal -->
+  <div id="p2p-modal" class="console-modal" role="dialog" aria-modal="true" aria-labelledby="p2p-title">
+    <div class="modal-title-row">
+      <span id="p2p-title">// WEBRTC P2P: ДУЭЛЬ БЕЗ СЕРВЕРА</span>
+      <button class="modal-close-btn" onclick="App.closeModal('p2p-modal')" aria-label="Закрыть">✕</button>
+    </div>
+    <div style="font-size:0.875rem; color:var(--text-muted); line-height:1.5;">
+      <p style="margin-bottom:12px;">
+        Связь устанавливается напрямую между браузерами двух игроков без промежуточного сервера базы данных или матчинга.
+      </p>
+      
+      <div style="background:#0d0f14; border:1px solid var(--console-border); border-radius:6px; padding:12px; margin-bottom:14px;">
+        <div style="font-family:var(--font-retro); font-size:0.75rem; color:var(--crt-phosphor); margin-bottom:6px;">ССЫЛКА ДЛЯ ВТОРОГО ИГРОКА:</div>
+        <input type="text" id="p2p-share-code" readonly value="Нажмите «Создать комнату» для генерации ссылки" style="width:100%; background:#161922; border:1px solid var(--console-border); color:var(--text-main); font-family:var(--font-retro); font-size:0.75rem; padding:8px; border-radius:4px;">
+      </div>
+
+      <div style="display:flex; gap:8px;">
+        <button id="btn-create-p2p" class="btn-tactile btn-primary-action" style="flex:1;">Создать комнату</button>
+        <button id="btn-copy-p2p" class="btn-tactile">Копировать ссылку</button>
+      </div>
+
+      <div style="margin-top:16px; border-top:1px dashed var(--console-border); padding-top:12px; font-family:var(--font-retro); font-size:0.75rem;">
+        ★ РЕЖИМ HOT-SEAT: Вы также можете играть вдвоем за одной клавиатурой (Игрок 1: WASD, Игрок 2: Стрелки)!
+      </div>
+    </div>
+  </div>
+
+  <!-- Save Manager Modal -->
+  <div id="save-modal" class="console-modal" role="dialog" aria-modal="true" aria-labelledby="save-title">
+    <div class="modal-title-row">
+      <span id="save-title">// МЕНЕДЖЕР КАРТРИДЖ-СЕЙВОВ</span>
+      <button class="modal-close-btn" onclick="App.closeModal('save-modal')" aria-label="Закрыть">✕</button>
+    </div>
+    <div style="font-size:0.875rem; color:var(--text-muted); line-height:1.5;">
+      <p>
+        Ваши рекорды, открытые ачивки и кастомные уровни хранятся в памяти браузера. Вы можете экспортировать их в файл <code>.cart</code> или перенести на другое устройство:
+      </p>
+
+      <div style="margin:16px 0;">
+        <button class="btn-tactile btn-primary-action" style="width:100%; padding:12px;" onclick="Storage.exportSaveFile()">
+          ⬇ Экспортировать сейв (.cart файл)
+        </button>
+      </div>
+
+      <label class="save-drop-area" style="display:block;">
+        <div style="font-size:1.5rem; margin-bottom:6px;">📁</div>
+        <div style="font-family:var(--font-retro); font-size:0.75rem; color:var(--text-main);">НАЖМИТЕ ДЛЯ ИМПОРТА СЕЙВА (.CART)</div>
+        <div style="font-size:0.6875rem; color:var(--text-dim);">или перетащите файл сюда</div>
+        <input type="file" accept=".cart,.json" style="display:none;" onchange="Storage.importSaveFile(this.files[0], (ok, msg) => { if(ok) { alert('Сейв успешно загружен!'); App.closeModal('save-modal'); location.reload(); } else { alert(msg); } })">
+      </label>
+    </div>
+  </div>
+
+  <!-- Core Scripts -->
+  <script src="js/audio.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/editor.js"></script>
+  <script src="js/p2p.js"></script>
+  <script src="js/previews.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
