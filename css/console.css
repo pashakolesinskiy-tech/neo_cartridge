@@ -2000,8 +2000,8 @@ body {
 }
 .thumb-worms {
   background-image: url('../games/worms-armageddon/assets/worms-sheet.png');
-  background-size: cover;
-  background-position: center;
+  background-size: 600% 400%;
+  background-position: 0% 0%;
 }
 .thumb-cosmo {
   background-image: url('../games/sprites/cosmo_junk_sheet.png');

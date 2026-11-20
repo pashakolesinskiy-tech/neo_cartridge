@@ -225,7 +225,7 @@ const P2P = {
   updateStatusUI(state) {
     const statusEl = document.getElementById('p2p-status-pill');
     if (!statusEl) return;
-    const span = statusEl.querySelector('span');
+    const span = statusEl.querySelector('span:last-child');
     if (state === 'connected') {
       statusEl.classList.add('connected');
       if (span) span.textContent = 'P2P: ПОДКЛЮЧЕНО';

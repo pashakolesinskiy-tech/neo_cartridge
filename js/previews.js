@@ -263,10 +263,8 @@ const Previews = {
       this.drawCell(ctx, 'mecha', 0, 0, w * 0.70, h * 0.56 + bob, 74, 74, 0, false, 1);
       this.drawCell(ctx, 'mecha', 2, 2, w * 0.88, h * 0.56 - bob, 86, 86, Math.PI, false, 1);
     } else if (active === 'worms_armageddon') {
-      if (this.isSheetReady('worms')) {
-        const img = this.sheets.worms;
-        ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, w * 0.55, h * 0.14 + bob, 145, 92);
-      }
+      this.drawCell(ctx, 'worms', 0, 0, w * 0.65, h * 0.56 + bob, 78, 78, 0, false, 1);
+      this.drawCell(ctx, 'worms', 2, 1, w * 0.85, h * 0.56 - bob, 78, 78, 0, true, 1);
     } else if (active === 'cosmo_junk') {
       this.drawCell(ctx, 'cosmo', 4, 0, w * 0.53, h * 0.55, 76, 76, 0, false, 0.9);
       this.drawCell(ctx, 'cosmo', 1, 0, w * 0.72, h * 0.54 + bob, 92, 92, 0, false, 1);
@@ -754,6 +752,23 @@ const Previews = {
     const droneX = 125;
     const droneY = 68 + Math.sin(s.tick * 0.1) * 4;
 
+    // Ninja actions (computed before chrono sprite render)
+    let ninjaX = 35;
+    let pose = 'run';
+    if (cycle >= 75 && cycle < 105) {
+      ninjaX = 35 + (cycle - 75) * 3;
+      pose = 'slash';
+      if (cycle === 85) {
+        this.addSparks(s.sparks, 80, 80, '#a855f7');
+      }
+      if (cycle === 104) {
+        this.addSparks(s.sparks, droneX, droneY, '#f43f5e');
+      }
+    } else if (cycle >= 105) {
+      ninjaX = 115;
+      pose = 'sheath';
+    }
+
     if (this.isSheetReady('chrono')) {
       if (droneAlive) {
         this.drawCell(ctx, 'chrono', cycle >= 30 && cycle < 65 ? 1 : 0, 1, droneX, droneY, 36, 36, 0, true, 1);
@@ -812,24 +827,6 @@ const Previews = {
       ctx.fillStyle = '#4c1d95';
       ctx.fillRect(droneX - tExplode * 0.5, droneY - tExplode * 0.8, 6, 6);
       ctx.fillRect(droneX + tExplode * 0.5, droneY + tExplode * 0.8, 6, 6);
-    }
-
-    // Ninja actions
-    let ninjaX = 35;
-    let pose = 'run';
-    if (cycle >= 75 && cycle < 105) {
-      // Teleport Dash & Slash
-      ninjaX = 35 + (cycle - 75) * 3;
-      pose = 'slash';
-      if (cycle === 85) {
-        this.addSparks(s.sparks, 80, 80, '#a855f7');
-      }
-      if (cycle === 104) {
-        this.addSparks(s.sparks, droneX, droneY, '#f43f5e');
-      }
-    } else if (cycle >= 105) {
-      ninjaX = 115;
-      pose = 'sheath';
     }
 
     // Draw Cyber Ninja
