@@ -75,11 +75,11 @@ export class OnlineGame {
 
   // ---- Connecting ----------------------------------------------------------------------------
 
-  /** Host: create a room with a 6-char code and QR code. */
-  begin() {
+  /** Host: create a room with a 6-char code (or fixedCode) and QR code. */
+  begin(fixedCode?: string) {
     return this.guard(async () => {
       this.update({ code: '', link: 'gathering', ended: false });
-      const code = await this.fresh().createRoom();
+      const code = await this.fresh().createRoom(fixedCode);
       this.update({ code });
     });
   }

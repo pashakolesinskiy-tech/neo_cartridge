@@ -123,6 +123,8 @@ class RoomSignaler {
   private room: string;
   private bc: BroadcastChannel | null = null;
   private peerWs: WebSocket | null = null;
+  private peerWsReady = false;
+  private peerWsQueue: string[] = [];
   private ntfyWs: WebSocket | null = null;
   private heartbeatTimer = 0;
   private seenIds = new Set<string>();
@@ -170,9 +172,17 @@ class RoomSignaler {
       const token = Math.random().toString(36).slice(2, 10);
       const ws = new WebSocket(`wss://0.peerjs.com/peerjs?key=peerjs&id=${encodeURIComponent(this.myId)}&token=${token}`);
       this.peerWs = ws;
+      this.peerWsReady = false;
       ws.onmessage = event => {
         try {
           const data = JSON.parse(String(event.data));
+          if (data?.type === 'OPEN') {
+            this.peerWsReady = true;
+            while (this.peerWsQueue.length > 0 && ws.readyState === WebSocket.OPEN) {
+              const raw = this.peerWsQueue.shift();
+              if (raw) ws.send(raw);
+            }
+          }
           if (data && data.payload) this.handleIncoming(data.payload);
         } catch { /* Ignore malformed packet */ }
       };
@@ -187,7 +197,7 @@ class RoomSignaler {
   private setupNtfySocket() {
     try {
       const topic = `sf26-room-sig-${this.room.toLowerCase()}`;
-      const ws = new WebSocket(`wss://ntfy.sh/${topic}/ws`);
+      const ws = new WebSocket(`wss://ntfy.sh/${topic}/ws?since=15s`);
       this.ntfyWs = ws;
       ws.onmessage = event => {
         try {
@@ -211,10 +221,15 @@ class RoomSignaler {
 
     try { this.bc?.postMessage(msg); } catch { /* Ignore */ }
 
-    if (this.peerWs && this.peerWs.readyState === WebSocket.OPEN && to !== '*') {
-      try {
-        this.peerWs.send(JSON.stringify({ type: 'CANDIDATE', dst: to, payload: msg }));
-      } catch { /* Ignore */ }
+    if (this.peerWs && to !== '*') {
+      const frame = JSON.stringify({ type: 'CANDIDATE', dst: to, payload: msg });
+      if (this.peerWs.readyState === WebSocket.OPEN && this.peerWsReady) {
+        try {
+          this.peerWs.send(frame);
+        } catch { /* Ignore */ }
+      } else if (this.peerWs.readyState === WebSocket.CONNECTING || (this.peerWs.readyState === WebSocket.OPEN && !this.peerWsReady)) {
+        if (this.peerWsQueue.length < 40) this.peerWsQueue.push(frame);
+      }
     }
 
     const topic = `sf26-room-sig-${this.room.toLowerCase()}`;
@@ -251,9 +266,9 @@ export class NetSession {
   onFast: ((msg: FastMsg) => void) | null = null;
   onStats: (() => void) | null = null;
 
-  private pc: RTCPeerConnection;
-  private ctl: RTCDataChannel;
-  private fast: RTCDataChannel;
+  private pc!: RTCPeerConnection;
+  private ctl!: RTCDataChannel;
+  private fast!: RTCDataChannel;
   private signaler: RoomSignaler | null = null;
   private joinRetryTimer = 0;
   private connectTimeoutTimer = 0;
@@ -271,6 +286,10 @@ export class NetSession {
   constructor(host: boolean) {
     if (typeof RTCPeerConnection === 'undefined') throw new SignalError('Этот браузер не поддерживает сетевую игру (WebRTC).');
     this.host = host;
+    this.initPeerConnection();
+  }
+
+  private initPeerConnection() {
     this.pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
     this.ctl = this.pc.createDataChannel('ctl', { negotiated: true, id: 0 });
     this.fast = this.pc.createDataChannel('fast', { negotiated: true, id: 1, ordered: false, maxRetransmits: 0 });
@@ -288,6 +307,22 @@ export class NetSession {
     };
   }
 
+  private resetPeerConnection() {
+    try {
+      this.ctl.onclose = null;
+      this.pc.onconnectionstatechange = null;
+      this.pc.onicecandidate = null;
+      this.ctl.close();
+      this.fast.close();
+      this.pc.close();
+    } catch { /* Ignore */ }
+    this.remoteDescSet = false;
+    this.answerApplied = false;
+    this.pendingCandidates = [];
+    this.makingOffer = false;
+    this.initPeerConnection();
+  }
+
   get isOpen() { return this.status === 'open'; }
 
   private setStatus(status: LinkStatus, detail = '') {
@@ -298,9 +333,10 @@ export class NetSession {
 
   // ---- Automatic Room Connection (QR & 6-char room code) ------------------------------------
 
-  /** Host: create a room with a short 6-char code and wait for a guest via QR or code. */
-  async createRoom(): Promise<string> {
-    const roomCode = randomRoomCode(6);
+  /** Host: create a room with a 6-char code (or optional fixedCode) and wait for a guest via QR or code. */
+  async createRoom(fixedCode?: string): Promise<string> {
+    const cleanFixed = fixedCode ? normalizeRoomCode(fixedCode) : '';
+    const roomCode = cleanFixed.length >= 4 && cleanFixed.length <= 12 ? cleanFixed : randomRoomCode(6);
     this.signaler?.close();
     this.signaler = new RoomSignaler(roomCode, true);
     this.setStatus('waiting');
@@ -351,6 +387,11 @@ export class NetSession {
 
     if (msg.sig === 'join') {
       if (this.makingOffer) return;
+      // Reset stale pre-connection offer if a different/reloaded guest joins before handshake completed
+      if (this.remotePeerId && this.remotePeerId !== msg.from && !this.answerApplied) {
+        this.resetPeerConnection();
+        this.remotePeerId = '';
+      }
       // If a new guest joins or retries before answer was applied, create/send offer
       if (!this.remotePeerId || this.remotePeerId === msg.from) {
         this.remotePeerId = msg.from;

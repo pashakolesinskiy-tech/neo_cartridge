@@ -150,16 +150,17 @@ export default function App() {
       });
     } catch { setToast('Не удалось начать сетевую игру в этом браузере.'); return; }
     onlineRef.current = game; setOnline(game.view);
-    if (role === 'host') void game.begin();
+    if (role === 'host') void game.begin(autoJoinCode);
     else if (autoJoinCode) void game.join(autoJoinCode);
   }, []);
 
-  // Автоматический вход в лобби при переходе по QR-коду (?join=...)
+  // Автоматический вход в лобби при переходе по QR-коду (?join=... / ?room=...) или запуске хоста (?host=...)
   useEffect(() => {
     if (qrHandledRef.current || !engineRef.current) return;
     const params = new URLSearchParams(window.location.search);
-    const joinCode = params.get('join')?.trim();
-    if (!joinCode) return;
+    const hostCode = params.get('host')?.trim();
+    const joinCode = (params.get('join') || params.get('room'))?.trim();
+    if (!hostCode && !joinCode) return;
 
     qrHandledRef.current = true;
     const cleanUrl = window.location.pathname + window.location.hash;
@@ -167,7 +168,8 @@ export default function App() {
 
     window.scrollTo(0, 0);
     setScreen('online');
-    chooseRole('guest', joinCode);
+    if (hostCode) chooseRole('host', hostCode);
+    else chooseRole('guest', joinCode);
   }, [chooseRole]);
 
   const startMatch = useCallback(() => {

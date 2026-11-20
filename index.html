@@ -19,8 +19,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/console.css?v=3">
-  <link rel="stylesheet" href="css/components.css?v=3">
+  <link rel="stylesheet" href="css/console.css?v=4">
+  <link rel="stylesheet" href="css/components.css?v=4">
 </head>
 <body>
 
@@ -548,7 +548,7 @@
             <span class="tool-name">ЗАЛ ДОСТИЖЕНИЙ</span>
             <span class="tool-sub">Список трофеев и рекорды</span>
           </button>
-          <button class="btn-tactile tool-card-btn" onclick="App.closeModal('settings-modal'); App.openModal('p2p-modal');">
+          <button class="btn-tactile tool-card-btn" onclick="App.closeModal('settings-modal'); if (window.P2P && P2P.syncSelectedGameFromConsole) P2P.syncSelectedGameFromConsole(); App.openModal('p2p-modal');">
             <span class="tool-icon">🔗</span>
             <span class="tool-name">P2P ДУЭЛЬ</span>
             <span class="tool-sub">WebRTC игра без сервера</span>
@@ -630,26 +630,47 @@
   <!-- P2P Duel Setup Modal -->
   <div id="p2p-modal" class="console-modal" role="dialog" aria-modal="true" aria-labelledby="p2p-title">
     <div class="modal-title-row">
-      <span id="p2p-title">// WEBRTC P2P: ДУЭЛЬ БЕЗ СЕРВЕРА</span>
+      <span id="p2p-title">// WEBRTC P2P: КОМНАТЫ БЕЗ СЕРВЕРА</span>
       <button class="modal-close-btn" onclick="App.closeModal('p2p-modal')" aria-label="Закрыть">✕</button>
     </div>
     <div style="font-size:0.875rem; color:var(--text-muted); line-height:1.5;">
-      <p style="margin-bottom:12px;">
-        Связь устанавливается напрямую между браузерами двух игроков без промежуточного сервера базы данных или матчинга.
+      <p style="margin-bottom:10px;">
+        Прямое соединение WebRTC между браузерами и телефонами через комнату по коду или ссылке, без выделенного сервера.
       </p>
+
+      <div style="margin-bottom:10px;">
+        <label for="p2p-game-select" style="display:block; font-family:var(--font-retro); font-size:0.72rem; color:var(--crt-cyan); margin-bottom:5px;">КАРТРИДЖ ДЛЯ ОНЛАЙН-ИГРЫ:</label>
+        <select id="p2p-game-select" style="width:100%; background:#161922; border:1px solid var(--console-border); color:var(--text-main); font-family:var(--font-retro); font-size:0.78rem; padding:8px 10px; border-radius:4px;"></select>
+      </div>
       
-      <div style="background:#0d0f14; border:1px solid var(--console-border); border-radius:6px; padding:12px; margin-bottom:14px;">
-        <div style="font-family:var(--font-retro); font-size:0.75rem; color:var(--crt-phosphor); margin-bottom:6px;">ССЫЛКА ДЛЯ ВТОРОГО ИГРОКА:</div>
-        <input type="text" id="p2p-share-code" readonly value="Нажмите «Создать комнату» для генерации ссылки" style="width:100%; background:#161922; border:1px solid var(--console-border); color:var(--text-main); font-family:var(--font-retro); font-size:0.75rem; padding:8px; border-radius:4px;">
+      <div style="background:#0d0f14; border:1px solid var(--console-border); border-radius:6px; padding:12px; margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;">
+          <span style="font-family:var(--font-retro); font-size:0.72rem; color:var(--crt-phosphor);">ССЫЛКА ДЛЯ ДРУГА:</span>
+          <span style="font-family:var(--font-retro); font-size:0.75rem; color:#fff;">КОД: <b id="p2p-room-code-badge" style="color:var(--crt-phosphor); letter-spacing:2px;">------</b></span>
+        </div>
+        <input type="text" id="p2p-share-code" readonly value="Нажмите «Создать комнату» для генерации ссылки" style="width:100%; background:#161922; border:1px solid var(--console-border); color:var(--text-main); font-family:var(--font-retro); font-size:0.72rem; padding:8px; border-radius:4px;">
       </div>
 
-      <div style="display:flex; gap:8px;">
-        <button id="btn-create-p2p" class="btn-tactile btn-primary-action" style="flex:1;">Создать комнату</button>
+      <div style="display:flex; flex-wrap:wrap; gap:8px;">
+        <button id="btn-create-p2p" class="btn-tactile btn-primary-action" style="flex:1; min-width:140px;">Создать комнату</button>
         <button id="btn-copy-p2p" class="btn-tactile">Копировать ссылку</button>
+        <button id="btn-launch-p2p-host" class="btn-tactile" style="flex:1 1 100%; border-color:var(--crt-phosphor); color:var(--crt-phosphor);" disabled>▶ Запустить картридж как Хост</button>
       </div>
 
-      <div style="margin-top:16px; border-top:1px dashed var(--console-border); padding-top:12px; font-family:var(--font-retro); font-size:0.75rem;">
-        ★ РЕЖИМ HOT-SEAT: Вы также можете играть вдвоем за одной клавиатурой (Игрок 1: WASD, Игрок 2: Стрелки)!
+      <div id="p2p-status-text" style="margin-top:10px; font-family:var(--font-retro); font-size:0.72rem; color:var(--crt-cyan); min-height:1.2em;">
+        Выберите игру и создайте код комнаты либо введите код друга ниже.
+      </div>
+
+      <div style="margin-top:12px; border-top:1px dashed var(--console-border); padding-top:12px;">
+        <div style="font-family:var(--font-retro); font-size:0.72rem; color:var(--text-main); margin-bottom:6px;">ВОЙТИ В ЧУЖУЮ КОМНАТУ ПО КОДУ ИЛИ ССЫЛКЕ:</div>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="p2p-join-input" placeholder="Например: AB12CD" style="flex:1; background:#161922; border:1px solid var(--console-border); color:#fff; font-family:var(--font-retro); font-size:0.78rem; padding:8px; border-radius:4px; text-transform:uppercase;">
+          <button id="btn-join-p2p" class="btn-tactile">Войти</button>
+        </div>
+      </div>
+
+      <div style="margin-top:12px; border-top:1px dashed var(--console-border); padding-top:10px; font-family:var(--font-retro); font-size:0.72rem;">
+        ★ РЕЖИМ HOT-SEAT: Можно также играть вдвоем на одном устройстве (Chrono Blade / Mecha Siege / Worms).
       </div>
     </div>
   </div>
@@ -725,9 +746,10 @@
   <script src="js/audio.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/editor.js"></script>
-  <script src="js/p2p.js"></script>
+  <script src="js/webrtc-room.js?v=4"></script>
+  <script src="js/p2p.js?v=4"></script>
   <script src="js/previews.js"></script>
-  <script src="js/pwa.js?v=3"></script>
-  <script src="js/app.js?v=3"></script>
+  <script src="js/pwa.js?v=4"></script>
+  <script src="js/app.js?v=4"></script>
 </body>
 </html>

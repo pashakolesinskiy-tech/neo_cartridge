@@ -123,9 +123,12 @@ function extractRoomCode(raw) {
 }
 
 function getInviteUrl() {
-  const base = onlineAddrSelect.value || window.location.origin;
+  const base = (onlineAddrSelect.value || window.location.origin).replace(/\/$/, '');
   const code = online.roomCode || '';
-  return `${base.replace(/\/$/, '')}/?room=${code}`;
+  if (setupState.hasSameOriginApi || (online.serverUrl && !online.serverUrl.startsWith(window.location.origin))) {
+    return `${base}/?room=${code}`;
+  }
+  return `${base}${window.location.pathname}?room=${code}`;
 }
 
 function refreshInviteAndQR() {
@@ -152,7 +155,7 @@ async function loadNetworkAddresses() {
     host === '127.0.0.1' ||
     /^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[0-1])\.)/.test(host);
 
-  if (isLocalHost && proto !== 'file:') {
+  if (isLocalHost && proto !== 'file:' && (window.location.pathname === '/' || window.location.pathname === '/index.html')) {
     try {
       const res = await fetch('/api/network-info', { cache: 'no-store' });
       if (res.ok) {
@@ -165,25 +168,7 @@ async function loadNetworkAddresses() {
         }
       }
     } catch {
-      // Fall through to local Worms server probe
-    }
-  }
-
-  if (!loaded && isLocalHost && proto !== 'https:') {
-    const probeHost = host || '127.0.0.1';
-    const candidateOrigin = `http://${probeHost}:4174`;
-    try {
-      const res = await fetch(`${candidateOrigin}/api/network-info`, { cache: 'no-store' });
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data.addresses) && data.addresses.length > 0) {
-          setupState.networkAddresses = data.addresses;
-          online.serverUrl = candidateOrigin;
-          loaded = true;
-        }
-      }
-    } catch {
-      // Offline / no room server running on 4174
+      // Fall through to WebRTC P2P / local probe
     }
   }
 
@@ -192,9 +177,10 @@ async function loadNetworkAddresses() {
     setupState.networkAddresses = [
       { name: 'Local Worms Server', ip: '127.0.0.1', url: 'http://127.0.0.1:4174', kind: 'local' },
     ];
-  } else if (!loaded && !isLocalHost) {
+  } else if (!loaded) {
+    online.serverUrl = null;
     setupState.networkAddresses = [
-      { name: 'Web (HTTPS)', ip: window.location.host, url: window.location.origin, kind: 'web' },
+      { name: window.location.host || 'WebRTC P2P', ip: window.location.host || 'p2p', url: window.location.origin, kind: 'web' },
     ];
   }
 
@@ -358,9 +344,10 @@ btnCreateRoom.addEventListener('click', async () => {
   game.sound.unlock();
   const hostName = onlineHostNameInput.value.trim() || TEAM_PALETTES[0].name;
   setupState.hostName = hostName;
-  if (!setupState.hasSameOriginApi && !online.serverUrl) {
+  if (!setupState.hasSameOriginApi && !online.serverUrl && window.location.protocol === 'file:') {
     await loadNetworkAddresses();
   }
+  online.preferLocalWs = Boolean(setupState.hasSameOriginApi);
   try {
     await online.createRoom(hostName, getLobbyState());
     game.setNetworkMode('host', 0);
@@ -368,10 +355,7 @@ btnCreateRoom.addEventListener('click', async () => {
     refreshInviteAndQR();
     updateSetupControlsState();
   } catch (err) {
-    const hint = !setupState.hasSameOriginApi
-      ? ' (start server: node games/worms-armageddon/server.mjs)'
-      : '';
-    setStatusBox(hostStatusEl, `Failed to create room: ${err.message}${hint}`, 'error');
+    setStatusBox(hostStatusEl, `Failed to create room: ${err.message}`, 'error');
     hostRoomCard.classList.remove('hidden');
   }
 });
@@ -401,9 +385,10 @@ async function handleJoinRoom() {
   const guestName = onlineGuestNameInput.value.trim() || TEAM_PALETTES[1].name;
   setupState.guestName = guestName;
   setStatusBox(joinStatusEl, `Connecting to room ${code}...`, 'info');
-  if (!setupState.hasSameOriginApi && !online.serverUrl) {
+  if (!setupState.hasSameOriginApi && !online.serverUrl && window.location.protocol === 'file:') {
     await loadNetworkAddresses();
   }
+  online.preferLocalWs = Boolean(setupState.hasSameOriginApi);
   try {
     const res = await online.joinRoom(code, guestName);
     game.setNetworkMode('guest', 1);
@@ -416,10 +401,7 @@ async function handleJoinRoom() {
     );
     updateSetupControlsState();
   } catch (err) {
-    const hint = !setupState.hasSameOriginApi
-      ? ' (start server: node games/worms-armageddon/server.mjs)'
-      : '';
-    setStatusBox(joinStatusEl, `Could not join room: ${err.message}${hint}`, 'error');
+    setStatusBox(joinStatusEl, `Could not join room: ${err.message}`, 'error');
     updateSetupControlsState();
   }
 }
@@ -1835,8 +1817,25 @@ loadNetworkAddresses();
 updateSetupControlsState();
 
 const urlParams = new URLSearchParams(window.location.search);
+const autoHost = extractRoomCode(urlParams.get('host'));
 const autoRoom = extractRoomCode(urlParams.get('room'));
-if (autoRoom) {
+if (autoHost) {
+  setupState.mode = 'online';
+  setupState.onlineSubMode = 'host';
+  updateSetupControlsState();
+  const hostName = onlineHostNameInput.value.trim() || TEAM_PALETTES[0].name;
+  setupState.hostName = hostName;
+  online.preferLocalWs = Boolean(setupState.hasSameOriginApi);
+  online.createRoom(hostName, getLobbyState(), autoHost).then(() => {
+    game.setNetworkMode('host', 0);
+    setStatusBox(hostStatusEl, 'Waiting for Player 2 to join via code or QR...', 'info');
+    refreshInviteAndQR();
+    updateSetupControlsState();
+  }).catch((err) => {
+    setStatusBox(hostStatusEl, `Failed to create room: ${err.message}`, 'error');
+    hostRoomCard.classList.remove('hidden');
+  });
+} else if (autoRoom) {
   setupState.mode = 'online';
   setupState.onlineSubMode = 'join';
   joinCodeInput.value = autoRoom;

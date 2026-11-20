@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Press+Start+2P&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+  <script src="../js/webrtc-room.js"></script>
 
   <style>
     :root {
@@ -1621,18 +1622,21 @@
       <div class="menu-title" style="color:var(--accent-cyan);">P2P КООПЕРАТИВ БЕЗ СЕРВЕРА</div>
       <div class="menu-subtitle">Связь между двумя браузерами по протоколу WebRTC</div>
 
-      <div style="background:#141824; border:1px solid #28334a; padding:12px; border-radius:6px; margin-bottom:14px;">
+      <div style="background:#141824; border:1px solid #28334a; padding:12px; border-radius:6px; margin-bottom:10px;">
         <div style="font-size:0.6875rem; color:var(--accent-cyan); margin-bottom:4px;">ВАШ КОД КОМНАТЫ:</div>
-        <div id="p2p-my-code" style="font-family:var(--font-pixel); font-size:1rem; color:#fff; letter-spacing:0.1em;">MECHA-77</div>
+        <div id="p2p-my-code" style="font-family:var(--font-pixel); font-size:1rem; color:#fff; letter-spacing:0.1em;">------</div>
       </div>
 
-      <div style="display:flex; gap:8px; margin-bottom:14px;">
-        <button class="menu-btn" style="flex:1; justify-content:center;" onclick="Game.copyRoomLink()">📋 КОПИРОВАТЬ ССЫЛКУ</button>
+      <div id="p2p-status" style="font-size:0.75rem; color:var(--accent-cyan); margin-bottom:12px; min-height:1.2em;">Ожидание напарника...</div>
+
+      <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
+        <button class="menu-btn" style="flex:1; min-width:160px; justify-content:center;" onclick="Game.copyRoomLink()">📋 КОПИРОВАТЬ ССЫЛКУ</button>
+        <button id="btn-p2p-start" class="menu-btn" style="flex:1; min-width:140px; justify-content:center; border-color:var(--accent-green); color:var(--accent-green);" onclick="Game.startCoopFromLobby()">▶ НАЧАТЬ КООП</button>
       </div>
 
       <div style="margin-bottom:14px;">
         <div style="font-size:0.6875rem; color:var(--text-dim); margin-bottom:4px;">ИЛИ ВВЕДИТЕ КОД ДРУГА:</div>
-        <input type="text" id="p2p-join-input" placeholder="НАПРИМЕР: MECHA-77" style="width:100%; background:#141824; border:1px solid #28334a; color:#fff; font-family:var(--font-code); font-size:0.8125rem; padding:8px 12px; border-radius:4px; text-transform:uppercase;">
+        <input type="text" id="p2p-join-input" placeholder="НАПРИМЕР: AB12CD" style="width:100%; background:#141824; border:1px solid #28334a; color:#fff; font-family:var(--font-code); font-size:0.8125rem; padding:8px 12px; border-radius:4px; text-transform:uppercase;">
       </div>
 
       <div style="display:flex; gap:8px;">
@@ -2211,6 +2215,11 @@
       mode: 'solo', // 'solo', 'hotseat', 'p2p_coop'
       isRunning: false,
       isPaused: false,
+      _lastTs: 0,
+      netRoom: null,
+      netRole: null,
+      currentRoomCode: '',
+      _lastSyncTs: 0,
 
       // Resources & Core State
       scrap: 400,
@@ -2312,6 +2321,20 @@
         this.setupKeyboard();
         this.setupTouch();
 
+        // Check URL for P2P Room Host / Join (?host= or ?room=)
+        const urlParams = new URLSearchParams(window.location.search);
+        const hostCode = urlParams.get('host');
+        const joinCode = urlParams.get('room');
+        if (hostCode) {
+          this.openNetworkModal(hostCode);
+        } else if (joinCode) {
+          document.getElementById('menu-modal').style.display = 'none';
+          document.getElementById('p2p-modal').style.display = 'flex';
+          const inp = document.getElementById('p2p-join-input');
+          if (inp) inp.value = joinCode;
+          this.initP2PChannel(joinCode, false);
+        }
+
         // Start animation loop
         requestAnimationFrame((t) => this.loop(t));
       },
@@ -2325,6 +2348,7 @@
 
       setupKeyboard() {
         window.addEventListener('keydown', (e) => {
+          if (e.target && e.target.closest && e.target.closest('input, textarea, select')) return;
           AudioEngine.resume();
 
           // Quick Start / Menu hotkeys if menu is open
@@ -2494,19 +2518,20 @@
         }
       },
 
-      quickBuild(typeKey, player = 'p1') {
-        const padIndex = (player === 'p1' || this.mode !== 'hotseat') ? this.selectedPadIndex : this.selectedPadP2Index;
-        const pad = this.buildPads[padIndex];
+      quickBuild(typeKey, player = 'p1', fromRemote = false, padIdOverride = null) {
+        const pad = padIdOverride !== null
+          ? this.buildPads.find(p => p.id === padIdOverride)
+          : this.buildPads[(player === 'p1' || this.mode !== 'hotseat') ? this.selectedPadIndex : this.selectedPadP2Index];
         const proto = TOWER_TYPES[typeKey];
         if (!pad || !proto) return;
 
         if (pad.tower) {
-          this.triggerFloatingText(pad.x, pad.y - 20, 'СЛОТ ЗАНЯТ!', '#ff0055');
+          if (!fromRemote) this.triggerFloatingText(pad.x, pad.y - 20, 'СЛОТ ЗАНЯТ!', '#ff0055');
           return;
         }
 
         if (this.scrap < proto.cost) {
-          this.triggerFloatingText(pad.x, pad.y - 20, 'НЕДОСТАТОЧНО $!', '#ff0055');
+          if (!fromRemote) this.triggerFloatingText(pad.x, pad.y - 20, 'НЕДОСТАТОЧНО $!', '#ff0055');
           return;
         }
 
@@ -2544,9 +2569,9 @@
         this.updatePadInfoUI();
         this.updateHUD();
 
-        // Broadcast to P2P peer if connected
-        if (this.bc) {
-          this.bc.postMessage({ type: 'build', padId: pad.id, towerType: typeKey });
+        // Broadcast to P2P peer only when triggered locally (never re-broadcast remote events)
+        if (!fromRemote && this.mode === 'p2p_coop' && this.netRoom && this.netRoom.getConnectedPeerIds().length > 0) {
+          this.netRoom.send({ t: 'build', padId: pad.id, towerType: typeKey });
         }
       },
 
@@ -2635,10 +2660,11 @@
         this.isUpgradeChoosing = false;
       },
 
-      applyUpgrade(pad, chosenAbility) {
-        const t = pad.tower;
+      applyUpgrade(pad, chosenAbility, fromRemote = false) {
+        const t = pad && pad.tower;
+        if (!t) return;
         if (this.scrap < t.upgradeCost) {
-          this.triggerFloatingText(pad.x, pad.y - 20, 'НЕДОСТАТОЧНО $!', '#ff0055');
+          if (!fromRemote) this.triggerFloatingText(pad.x, pad.y - 20, 'НЕДОСТАТОЧНО $!', '#ff0055');
           return;
         }
 
@@ -2721,11 +2747,16 @@
         this.triggerFloatingText(pad.x, pad.y - 25, `★ ${nameTag}!`, '#00f3ff', 13);
         this.updatePadInfoUI();
         this.updateHUD();
+
+        if (!fromRemote && this.mode === 'p2p_coop' && this.netRoom && this.netRoom.getConnectedPeerIds().length > 0) {
+          this.netRoom.send({ t: 'upgrade', padId: pad.id, abilityId: chosenAbility ? chosenAbility.id : null });
+        }
       },
 
-      sellSelectedPad(player = 'p1') {
-        const padIndex = (player === 'p1' || this.mode !== 'hotseat') ? this.selectedPadIndex : this.selectedPadP2Index;
-        const pad = this.buildPads[padIndex];
+      sellSelectedPad(player = 'p1', fromRemote = false, padIdOverride = null) {
+        const pad = padIdOverride !== null
+          ? this.buildPads.find(p => p.id === padIdOverride)
+          : this.buildPads[(player === 'p1' || this.mode !== 'hotseat') ? this.selectedPadIndex : this.selectedPadP2Index];
         if (!pad || !pad.tower) return;
 
         const refund = Math.floor(pad.tower.cost * 0.7);
@@ -2741,23 +2772,31 @@
         this.triggerFloatingText(pad.x, pad.y - 20, `+${refund}🔩 ПРОДАНО`, '#00ff88');
         this.updatePadInfoUI();
         this.updateHUD();
+
+        if (!fromRemote && this.mode === 'p2p_coop' && this.netRoom && this.netRoom.getConnectedPeerIds().length > 0) {
+          this.netRoom.send({ t: 'sell', padId: pad.id });
+        }
       },
 
-      callNextWaveEarly() {
+      callNextWaveEarly(fromRemote = false) {
         if (this.waveInProgress && this.enemies.length > 0) return;
         this.waveTimer = 0;
         this.scrap += 25; // Bonus for calling wave early!
         this.triggerFloatingText(this.corePos.x, this.corePos.y - 30, '+25🔩 РАННЯЯ ВОЛНА!', '#ffb800');
         AudioEngine.playAlarm();
         this.startNextWave();
+
+        if (!fromRemote && this.mode === 'p2p_coop' && this.netRoom && this.netRoom.getConnectedPeerIds().length > 0) {
+          this.netRoom.send({ t: 'wave_early' });
+        }
       },
 
-      triggerSuper(type) {
+      triggerSuper(type, fromRemote = false) {
         if (this.cooldowns[type] > 0) return;
 
         if (type === 'emp') {
           if (this.scrap < 200) {
-            this.triggerFloatingText(this.width / 2, 100, 'НЕДОСТАТОЧНО $200!', '#ff0055');
+            if (!fromRemote) this.triggerFloatingText(this.width / 2, 100, 'НЕДОСТАТОЧНО $200!', '#ff0055');
             return;
           }
           this.scrap -= 200;
@@ -2774,7 +2813,7 @@
           this.triggerFloatingText(this.width / 2, 120, '⚡ ОРБИТАЛЬНЫЙ ЭМИ-УДАР!', '#00f3ff', 20);
         } else if (type === 'napalm') {
           if (this.scrap < 250) {
-            this.triggerFloatingText(this.width / 2, 100, 'НЕДОСТАТОЧНО $250!', '#ff0055');
+            if (!fromRemote) this.triggerFloatingText(this.width / 2, 100, 'НЕДОСТАТОЧНО $250!', '#ff0055');
             return;
           }
           this.scrap -= 250;
@@ -2799,7 +2838,7 @@
           this.triggerFloatingText(this.width / 2, 120, '🔥 НАПАЛМОВАЯ БОМБАРДИРОВКА!', '#ff5500', 20);
         } else if (type === 'overdrive') {
           if (this.scrap < 180) {
-            this.triggerFloatingText(this.width / 2, 100, 'НЕДОСТАТОЧНО $180!', '#ff0055');
+            if (!fromRemote) this.triggerFloatingText(this.width / 2, 100, 'НЕДОСТАТОЧНО $180!', '#ff0055');
             return;
           }
           this.scrap -= 180;
@@ -2807,6 +2846,10 @@
           this.overdriveTimer = 6.0;
           AudioEngine.playBuild();
           this.triggerFloatingText(this.width / 2, 120, '⚡ НАНИТОВЫЙ ФОРСАЖ ТУРЕЛЕЙ!', '#00ff88', 20);
+        }
+
+        if (!fromRemote && this.mode === 'p2p_coop' && this.netRoom && this.netRoom.getConnectedPeerIds().length > 0) {
+          this.netRoom.send({ t: 'super', superType: type });
         }
 
         this.updateHUD();
@@ -2823,7 +2866,9 @@
           const banner = document.getElementById('boss-banner');
           if (banner) {
             banner.style.display = 'block';
-            banner.textContent = this.wave === 5 ? '⚠️ БОСС: ШТУРМОВОЙ КОЛОСС BRUTUS-7' : '⚠️ СУПЕР-БОСС: ДРЕДНОУТ GOLIATH-X';
+            banner.textContent = this.wave === 5
+              ? '⚠️ БОСС: ШТУРМОВОЙ КОЛОСС BRUTUS-7'
+              : (this.wave === 15 ? '⚠️ ФИНАЛЬНЫЙ СУПЕР-БОСС: ДРЕДНОУТ GOLIATH-X + BRUTUS-7' : '⚠️ СУПЕР-БОСС: ДРЕДНОУТ GOLIATH-X');
             setTimeout(() => { banner.style.display = 'none'; }, 4500);
           }
           AudioEngine.playAlarm();
@@ -2844,11 +2889,14 @@
           this.spawnQueue.push({ type, lane, delay: i * 0.9 });
         }
 
-        // Add Boss at the end of boss wave
+        // Add Boss at the end of boss wave (Waves 5, 10, 15)
         if (this.wave === 5) {
           this.spawnQueue.push({ type: 'boss_brutus', lane: 'north', delay: count * 0.9 + 2 });
         } else if (this.wave === 10) {
           this.spawnQueue.push({ type: 'boss_goliath', lane: 'west', delay: count * 0.9 + 2 });
+        } else if (this.wave === 15) {
+          this.spawnQueue.push({ type: 'boss_brutus', lane: 'north', delay: count * 0.9 + 1.5 });
+          this.spawnQueue.push({ type: 'boss_goliath', lane: 'west', delay: count * 0.9 + 3 });
         }
 
         this.updateHUD();
@@ -2920,6 +2968,12 @@
         this.wave = 1;
         this.waveTimer = 15;
         this.waveInProgress = false;
+        this.spawnQueue = [];
+        this.spawnTimer = 0;
+        this.cooldowns = { emp: 0, napalm: 0, overdrive: 0 };
+        this.overdriveTimer = 0;
+        this._lastTs = 0;
+        this.floatingTexts = [];
 
         this.towers = [];
         this.enemies = [];
@@ -2982,44 +3036,140 @@
         document.getElementById('gameover-modal').style.display = 'none';
       },
 
-      openNetworkModal() {
-        const myCode = 'MECHA-' + Math.floor(10 + Math.random() * 89);
-        document.getElementById('p2p-my-code').textContent = myCode;
+      setNetStatus(text, isErr = false) {
+        const el = document.getElementById('p2p-status');
+        if (!el) return;
+        el.textContent = text;
+        el.style.color = isErr ? 'var(--accent-pink)' : 'var(--accent-cyan)';
+      },
+
+      openNetworkModal(fixedHostCode) {
+        const clean = typeof fixedHostCode === 'string' && fixedHostCode.trim()
+          ? (window.NeoP2PRoom ? NeoP2PRoom.normalizeCode(fixedHostCode) : fixedHostCode.trim().toUpperCase())
+          : (window.NeoP2PRoom ? NeoP2PRoom.generateCode(6) : 'MC' + Math.floor(1000 + Math.random() * 8999));
         document.getElementById('menu-modal').style.display = 'none';
         document.getElementById('p2p-modal').style.display = 'flex';
-        this.initP2PChannel(myCode);
+        this.initP2PChannel(clean, true);
       },
 
-      initP2PChannel(roomCode) {
-        try {
-          this.bc = new BroadcastChannel('mecha_siege_' + roomCode);
-          this.bc.onmessage = (e) => {
-            if (e.data && e.data.type === 'build') {
-              const pad = this.buildPads.find(p => p.id === e.data.padId);
-              if (pad && !pad.tower) {
-                this.selectedPadIndex = this.buildPads.indexOf(pad);
-                this.quickBuild(e.data.towerType, 'peer');
-              }
+      startCoopFromLobby() {
+        if (this.netRoom && this.netRole === 'host' && this.netRoom.getConnectedPeerIds().length > 0) {
+          this.netRoom.send({ t: 'start_coop' });
+        }
+        this.startMode('p2p_coop');
+      },
+
+      async initP2PChannel(roomCode, isHost = true) {
+        if (this.netRoom) {
+          this.netRoom.close();
+          this.netRoom = null;
+        }
+        const cleanCode = window.NeoP2PRoom ? NeoP2PRoom.normalizeCode(roomCode) : String(roomCode || '').toUpperCase();
+        this.currentRoomCode = cleanCode;
+        this.netRole = isHost ? 'host' : 'guest';
+        const myCodeEl = document.getElementById('p2p-my-code');
+        if (myCodeEl) myCodeEl.textContent = cleanCode;
+        this.setNetStatus(isHost ? `Комната ${cleanCode} открыта. Ожидание напарника...` : `Подключение к комнате ${cleanCode}...`);
+
+        if (!window.NeoP2PRoom) {
+          this.setNetStatus('WebRTC модуль не найден.', true);
+          return;
+        }
+
+        this.netRoom = new NeoP2PRoom({
+          namespace: 'mechasiege',
+          maxPeers: 1,
+          codeLength: 6,
+          onStatus: (st) => {
+            if (st === 'timeout') {
+              this.setNetStatus(`Не удалось найти комнату ${cleanCode}. Проверьте код.`, true);
             }
-          };
-        } catch (_) {}
+          },
+          onPeerOpen: () => {
+            this.setNetStatus('Напарник подключён! Запуск кооператива...');
+            if (this.netRole === 'host') {
+              this.netRoom.send({ t: 'start_coop' });
+              if (this.mode !== 'p2p_coop' || !this.isRunning) {
+                this.startMode('p2p_coop');
+              }
+            } else if (this.mode !== 'p2p_coop' || !this.isRunning) {
+              this.startMode('p2p_coop');
+            }
+          },
+          onPeerClose: () => {
+            this.setNetStatus('Напарник отключился от P2P комнаты.', true);
+          },
+          onMessage: (msg) => {
+            if (!msg || !msg.t) return;
+            if (msg.t === 'start_coop') {
+              this.closeModals();
+              if (this.mode !== 'p2p_coop' || !this.isRunning) {
+                this.startMode('p2p_coop');
+              }
+              return;
+            }
+            if (msg.t === 'build') {
+              this.quickBuild(msg.towerType, 'peer', true, msg.padId);
+            } else if (msg.t === 'upgrade') {
+              const pad = this.buildPads.find(p => p.id === msg.padId);
+              if (pad && pad.tower) {
+                let ability = null;
+                if (msg.abilityId && UPGRADE_ABILITIES[pad.tower.type]) {
+                  const choices = UPGRADE_ABILITIES[pad.tower.type][pad.tower.tier + 1];
+                  if (choices) {
+                    if (choices.a && choices.a.id === msg.abilityId) ability = choices.a;
+                    else if (choices.b && choices.b.id === msg.abilityId) ability = choices.b;
+                  }
+                }
+                this.applyUpgrade(pad, ability, true);
+              }
+            } else if (msg.t === 'sell') {
+              this.sellSelectedPad('peer', true, msg.padId);
+            } else if (msg.t === 'wave_early') {
+              this.callNextWaveEarly(true);
+            } else if (msg.t === 'super') {
+              this.triggerSuper(msg.superType, true);
+            } else if (msg.t === 'sync' && this.netRole === 'guest') {
+              this.scrap = msg.scrap;
+              this.coreHp = msg.coreHp;
+              this.score = msg.score;
+              this.waveTimer = msg.waveTimer;
+              this.updateHUD();
+            }
+          },
+          onError: (err) => {
+            this.setNetStatus((err && err.message) || 'Ошибка WebRTC P2P', true);
+          }
+        });
+
+        try {
+          if (isHost) await this.netRoom.host(cleanCode);
+          else await this.netRoom.join(cleanCode);
+        } catch (err) {
+          this.setNetStatus((err && err.message) || 'Ошибка подключения', true);
+        }
       },
 
-      copyRoomLink() {
-        const code = document.getElementById('p2p-my-code').textContent;
+      async copyRoomLink() {
+        const code = this.currentRoomCode || document.getElementById('p2p-my-code').textContent;
         const link = window.location.origin + window.location.pathname + '?room=' + code;
-        navigator.clipboard.writeText(link).then(() => {
-          alert('Ссылка на P2P комнату скопирована в буфер обмена!\nОтправьте её другу:\n' + link);
-          this.startMode('p2p_coop');
-        });
+        const ok = window.NeoP2PRoom ? await NeoP2PRoom.copyText(link) : false;
+        this.setNetStatus(
+          ok
+            ? `Ссылка на комнату ${code} скопирована! Отправьте её другу и дождитесь входа.`
+            : `Код комнаты: ${code}. Передайте его другу.`,
+          !ok
+        );
       },
 
       joinRoom() {
         const input = document.getElementById('p2p-join-input');
-        if (input && input.value.trim()) {
-          this.initP2PChannel(input.value.trim().toUpperCase());
-          this.startMode('p2p_coop');
+        const val = input ? input.value.trim() : '';
+        if (!val) {
+          this.setNetStatus('Введите код комнаты друга.', true);
+          return;
         }
+        this.initP2PChannel(val, false);
       },
 
       showGameOver(victory) {
@@ -3418,12 +3568,25 @@
       loop(timestamp) {
         requestAnimationFrame((t) => this.loop(t));
 
+        const dt = this._lastTs ? Math.min(0.05, Math.max(0.001, (timestamp - this._lastTs) / 1000)) : 1 / 60;
+        this._lastTs = timestamp;
+
         if (!this.isRunning || this.isPaused) {
           this.render();
           return;
         }
 
-        const dt = 1 / 60;
+        if (this.mode === 'p2p_coop' && this.netRole === 'host' && this.netRoom && this.netRoom.getConnectedPeerIds().length > 0 && timestamp - this._lastSyncTs >= 2500) {
+          this._lastSyncTs = timestamp;
+          this.netRoom.send({
+            t: 'sync',
+            wave: this.wave,
+            scrap: this.scrap,
+            coreHp: this.coreHp,
+            score: this.score,
+            waveTimer: this.waveTimer
+          });
+        }
 
         // Wave Timers & Spawn Processing
         if (this.waveInProgress) {

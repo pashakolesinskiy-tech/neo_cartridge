@@ -263,6 +263,7 @@
         }
       }
     </style>
+    <script src="../js/webrtc-room.js"></script>
   </head>
   <body class="min-h-screen antialiased selection:bg-[#57e6e6] selection:text-[#04060e]">
     <script>
@@ -314,7 +315,7 @@
         const STORAGE_LAN_KEY = "cosmo_junk_v1_lan_server";
         const ROLES = ["pilot", "engineer", "gunner", "navigator"];
         const ADJ = ["РЖАВЫЙ", "ХРОМОЙ", "ДЫРЯВЫЙ", "СКРИПУЧИЙ", "КОПЧЁНЫЙ", "БЕЗУМНЫЙ", "ПЬЯНЫЙ", "ВЕЗУЧИЙ", "СВЕТЯЩИЙСЯ", "ГРОМКИЙ"];
-        const NOUN = ["БАКЛАН", "БОЛТ", "ПЫЛЕСОС", "САМОВАР", "ПЕПЕЛАЦ", "ТАРАНТАС", "КАРАСЬ", "УТЮГ", "ШПateЛЬ", "ЧЕМОДАН"];
+        const NOUN = ["БАКЛАН", "БОЛТ", "ПЫЛЕСОС", "САМОВАР", "ПЕПЕЛАЦ", "ТАРАНТАС", "КАРАСЬ", "УТЮГ", "ШПАТЕЛЬ", "ЧЕМОДАН"];
         const CALLSIGNS = ["ГАЙКА", "ШПЛИНТ", "КЛЕЙ", "ШЛАНГ", "ЗАКЛЁПКА", "ТРУБА", "ФИТИЛЬ", "КЛЮЧ", "ПОРШЕНЬ", "ШАЙБА", "ВИНТ", "ЗУБИЛО"];
         const HOST_TIMEOUT = 7000;
         const PLAYER_TIMEOUT = 9000;
@@ -538,6 +539,7 @@
           }
           if (method === "POST" && pathname === "/api/rooms") {
             const room = createRoom();
+            ensureCosmoHost(room.code);
             return jsonResp(200, { code: room.code, shipName: room.shipName });
           }
 
@@ -558,7 +560,10 @@
             if (method === "GET" && !sub) {
               const isHost = urlObj.searchParams.get("host") === "1";
               const playerId = urlObj.searchParams.get("player");
-              if (isHost) room.hostLastSeen = Date.now();
+              if (isHost) {
+                room.hostLastSeen = Date.now();
+                ensureCosmoHost(code);
+              }
               if (playerId) {
                 room.lastSeen = room.lastSeen || {};
                 room.lastSeen[playerId] = Date.now();
@@ -720,7 +725,123 @@
           return jsonResp(404, { error: "UNKNOWN_API" });
         }
 
-        // Intercept window.fetch for /api/* calls
+        // Cross-Device WebRTC P2P RPC Bridge (Ship Host <-> Standalone Phone Controller)
+        let cjHostRoom = null;
+        let cjHostCode = "";
+        let cjGuestRoom = null;
+        let cjGuestCode = "";
+        let cjRpcSeq = 1;
+        const cjPendingRpc = new Map();
+        let cjGuestWaiters = [];
+
+        function ensureCosmoHost(code) {
+          const clean = String(code || "").toUpperCase();
+          if (!clean || !window.NeoP2PRoom || isEmbed) return;
+          if (cjHostRoom && cjHostCode === clean) return;
+          if (cjHostRoom) {
+            try { cjHostRoom.close(); } catch {}
+          }
+          cjHostCode = clean;
+          cjHostRoom = new NeoP2PRoom({
+            namespace: "cosmojunk",
+            maxPeers: 4,
+            codeLength: 4,
+            onMessage: async (msg, fromPeerId) => {
+              if (!msg || msg.t !== "rpc" || !msg.id) return;
+              try {
+                const u = new URL((msg.pathname || "/") + (msg.search || ""), window.location.origin);
+                const resp = await handleVirtualApi(u, {
+                  method: msg.method || "GET",
+                  body: msg.body || undefined
+                });
+                const data = await resp.json();
+                cjHostRoom.send({ t: "rpc_res", id: msg.id, status: resp.status, data }, { to: fromPeerId });
+              } catch (_) {}
+            }
+          });
+          cjHostRoom.host(clean).catch(() => {});
+        }
+
+        function ensureCosmoGuest(code, timeoutMs = 1800) {
+          const clean = String(code || "").toUpperCase();
+          if (!clean || !window.NeoP2PRoom || isEmbed) return Promise.resolve(false);
+          if (cjGuestRoom && cjGuestCode === clean && cjGuestRoom.getConnectedPeerIds().length > 0) {
+            return Promise.resolve(true);
+          }
+          if (!cjGuestRoom || cjGuestCode !== clean) {
+            if (cjGuestRoom) {
+              try { cjGuestRoom.close(); } catch {}
+            }
+            cjGuestCode = clean;
+            cjGuestWaiters = [];
+            cjGuestRoom = new NeoP2PRoom({
+              namespace: "cosmojunk",
+              maxPeers: 1,
+              codeLength: 4,
+              onPeerOpen: () => {
+                const ws = cjGuestWaiters.splice(0, cjGuestWaiters.length);
+                ws.forEach((fn) => fn(true));
+              },
+              onMessage: (msg) => {
+                if (!msg || msg.t !== "rpc_res" || !msg.id) return;
+                const pending = cjPendingRpc.get(msg.id);
+                if (pending) {
+                  cjPendingRpc.delete(msg.id);
+                  clearTimeout(pending.timer);
+                  pending.resolve(jsonResp(msg.status || 200, msg.data || {}));
+                }
+              }
+            });
+            cjGuestRoom.join(clean).catch(() => {});
+          }
+          return new Promise((resolve) => {
+            if (cjGuestRoom && cjGuestRoom.getConnectedPeerIds().length > 0) {
+              resolve(true);
+              return;
+            }
+            const timer = setTimeout(() => resolve(false), timeoutMs);
+            cjGuestWaiters.push(() => {
+              clearTimeout(timer);
+              resolve(true);
+            });
+          });
+        }
+
+        async function callRemoteCosmoRpc(code, urlObj, init) {
+          const connected = await ensureCosmoGuest(code, 1800);
+          if (!connected || !cjGuestRoom || cjGuestRoom.getConnectedPeerIds().length === 0) {
+            return null;
+          }
+          const id = "rpc_" + cjRpcSeq++;
+          const pathname = urlObj.pathname.replace(/^.*\/(?=(api\/))/, "/");
+          const method = ((init && init.method) || "GET").toUpperCase();
+          let bodyStr = null;
+          if (init && init.body) {
+            bodyStr = typeof init.body === "string" ? init.body : JSON.stringify(init.body);
+          }
+          return new Promise((resolve) => {
+            const timer = setTimeout(() => {
+              cjPendingRpc.delete(id);
+              resolve(null);
+            }, 2200);
+            cjPendingRpc.set(id, { resolve, timer });
+            const ok = cjGuestRoom.send({
+              t: "rpc",
+              id,
+              method,
+              pathname,
+              search: urlObj.search || "",
+              body: bodyStr
+            });
+            if (!ok) {
+              cjPendingRpc.delete(id);
+              clearTimeout(timer);
+              resolve(null);
+            }
+          });
+        }
+
+        // Intercept window.fetch for /api/* calls (origin-checked so signaling fetches never hit virtual backend)
         const nativeFetch = window.fetch.bind(window);
         window.fetch = async function (input, init) {
           const rawUrl = typeof input === "string" ? input : (input && input.url) || "";
@@ -728,6 +849,10 @@
           try {
             urlObj = new URL(rawUrl, window.location.origin);
           } catch {
+            return nativeFetch(input, init);
+          }
+
+          if (urlObj.origin !== window.location.origin) {
             return nativeFetch(input, init);
           }
 
@@ -747,6 +872,22 @@
               return await nativeFetch(target, init);
             } catch {
               // Fallback to built-in zero-server engine if LAN server is unreachable
+            }
+          }
+
+          // Cross-device WebRTC RPC proxy for standalone phone controllers when local Ship host isn't present in this browser
+          if (!isEmbed) {
+            const pathname = urlObj.pathname.replace(/^.*\/(?=(api\/))/, "/");
+            const mRoom = pathname.match(/^\/api\/rooms\/([^/]+)(?:\/([^/]+))?$/);
+            const isHostPoll = urlObj.searchParams.get("host") === "1";
+            if (mRoom && !isHostPoll) {
+              const rCode = decodeURIComponent(mRoom[1] || "").toUpperCase();
+              const localRoom = bus.rooms[rCode];
+              const hasActiveLocalHost = localRoom && Date.now() - (localRoom.hostLastSeen || 0) < 3000;
+              if (!hasActiveLocalHost) {
+                const remoteResp = await callRemoteCosmoRpc(rCode, urlObj, init);
+                if (remoteResp) return remoteResp;
+              }
             }
           }
 

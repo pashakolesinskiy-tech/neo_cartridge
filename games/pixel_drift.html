@@ -2619,11 +2619,6 @@
             sound.resume();
             sound.playCountdown(false);
 
-            // Automatically start listening for voice command "масло" when race begins
-            if (!voiceListening) {
-                startMicrophoneStream();
-            }
-
             const trackCfg = TRACKS[state.selectedTrackIdx];
             const modeCfg = GAME_MODES[state.selectedModeIdx];
             trackSystem.build(trackCfg);
@@ -3235,27 +3230,21 @@
         };
     </script>
 
-    <!-- QR Generator & Scanner Libraries loaded safely inside body -->
+    <!-- QR Generator, Scanner & Zero-Server WebRTC P2P -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script src="../js/webrtc-room.js"></script>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'pixel-drift-turbo-gp';
-        let db = null;
-        let auth = null;
-        let currentUser = null;
+    <script>
+        let room = null;
+        let currentUser = { uid: 'p_' + Math.random().toString(36).slice(2, 8) };
         let currentRoomCode = null;
-        let roomUnsubscribe = null;
-        let allRoomsUnsubscribe = null;
         let currentRoomData = null;
         let lastBroadcastTime = 0;
         let lastStartedRaceStamp = 0;
+        let directoryBc = null;
+        const localDiscoveredRooms = new Map();
 
-        // Camera QR Scanner state
         let qrStream = null;
         let qrScanning = false;
 
@@ -3267,6 +3256,11 @@
             if (!mpStatusToast) return;
             mpStatusToast.textContent = msg;
             mpStatusToast.className = `text-center text-xs font-bold mb-2 min-h-[1.25rem] ${isError ? 'text-rose-400' : 'text-cyan-300'}`;
+        }
+
+        function setNetStatusBadge(text) {
+            const el = document.getElementById('mpNetStatus');
+            if (el) el.textContent = text;
         }
 
         function renderQrCodeToCanvas(text) {
@@ -3297,7 +3291,6 @@
                     console.warn('QR render error:', e);
                 }
             }
-            // Fallback visual code block if offline
             qctx.fillStyle = '#090a0f';
             qctx.font = 'bold 16px monospace';
             qctx.textAlign = 'center';
@@ -3307,6 +3300,7 @@
         function getShareUrl(code) {
             try {
                 const url = new URL(window.location.href);
+                url.searchParams.delete('host');
                 url.searchParams.set('room', code);
                 return url.toString();
             } catch (e) {
@@ -3314,303 +3308,303 @@
             }
         }
 
-        async function initMultiplayer() {
-            try {
-                if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-                    const firebaseConfig = JSON.parse(__firebase_config);
-                    const app = initializeApp(firebaseConfig);
-                    auth = getAuth(app);
-                    db = getFirestore(app);
-
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-
-                    currentUser = auth.currentUser;
-                    onAuthStateChanged(auth, (u) => {
-                        currentUser = u;
-                        if (u) {
-                            document.getElementById('mpUserIdDisplay').textContent = u.uid;
-                        }
-                    });
-
-                    if (currentUser) {
-                        document.getElementById('mpUserIdDisplay').textContent = currentUser.uid;
-                        subscribeToPublicRoomsList();
-
-                        // Auto-join room if URL contains ?room=XXXX from scanning QR code
-                        const params = new URLSearchParams(window.location.search);
-                        const urlRoom = params.get('room');
-                        if (urlRoom) {
-                            openMpModal();
-                            await joinRoom(urlRoom.toUpperCase());
-                        }
-                    }
-                } else {
-                    document.getElementById('mpNetStatus').textContent = 'Локальный режим';
-                    document.getElementById('mpUserIdDisplay').textContent = 'local-' + Math.floor(1000 + Math.random() * 9000);
-                }
-            } catch (err) {
-                console.warn('Multiplayer init issue:', err);
-                document.getElementById('mpNetStatus').textContent = 'Оффлайн';
-            }
-        }
-
-        function subscribeToPublicRoomsList() {
-            if (!currentUser || !db) return;
-            const roomsCol = collection(db, 'artifacts', appId, 'public', 'data', 'drift_rooms');
-            if (allRoomsUnsubscribe) allRoomsUnsubscribe();
-
-            allRoomsUnsubscribe = onSnapshot(
-                roomsCol,
-                (snapshot) => {
-                    const listEl = document.getElementById('mpOpenRoomsList');
-                    const rooms = [];
-                    const now = Date.now();
-                    snapshot.forEach((docSnap) => {
-                        const data = docSnap.data();
-                        if (data && data.code && (now - (data.updatedAt || 0) < 600000)) {
-                            rooms.push(data);
-                        }
-                    });
-
-                    rooms.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-                    if (rooms.length === 0) {
-                        listEl.innerHTML = `<div class="text-slate-500 text-[11px] text-center py-2">Нет активных комнат. Создайте свою!</div>`;
-                        return;
-                    }
-
-                    listEl.innerHTML = '';
-                    rooms.slice(0, 6).forEach((rm) => {
-                        const pCount = rm.players ? Object.keys(rm.players).length : 1;
-                        const row = document.createElement('div');
-                        row.className = 'flex items-center justify-between bg-slate-900 px-2.5 py-1.5 rounded border border-slate-800';
-                        row.innerHTML = `
-                            <div>
-                                <span class="font-pixel text-yellow-300 text-[11px]">${rm.code}</span>
-                                <span class="text-[10px] text-slate-400 ml-1">(${pCount}/4 игр.)</span>
-                            </div>
-                            <button class="pixel-btn bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-2 py-0.5 rounded">Войти</button>
-                        `;
-                        row.querySelector('button').onclick = () => joinRoom(rm.code);
-                        listEl.appendChild(row);
-                    });
-                },
-                (err) => {
-                    console.warn('Rooms list snapshot error:', err);
-                }
-            );
-        }
-
-        function generateRoomCode() {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-            let code = '';
-            for (let i = 0; i < 4; i++) {
-                code += chars[Math.floor(Math.random() * chars.length)];
-            }
-            return code;
-        }
-
         function getPlayerNick() {
             const inp = document.getElementById('mpPlayerNameInput');
             return (inp && inp.value.trim()) ? inp.value.trim().toUpperCase() : 'ПИЛОТ';
         }
 
-        async function createRoom() {
-            const code = generateRoomCode();
-            renderQrCodeToCanvas(getShareUrl(code));
-            document.getElementById('mpCurrentRoomCode').textContent = code;
+        function generateRoomCode() {
+            return window.NeoP2PRoom ? NeoP2PRoom.generateCode(4) : Math.random().toString(36).slice(2, 6).toUpperCase();
+        }
 
-            if (!currentUser || !db) {
-                currentRoomCode = code;
-                setMpStatus(`Создан код ${code}. Покажите QR-код другу!`);
+        function renderOpenRoomsList() {
+            const listEl = document.getElementById('mpOpenRoomsList');
+            if (!listEl) return;
+            const now = Date.now();
+            for (const [k, v] of localDiscoveredRooms.entries()) {
+                if (now - v.ts > 12000) localDiscoveredRooms.delete(k);
+            }
+            const items = Array.from(localDiscoveredRooms.values());
+            if (items.length === 0) {
+                listEl.innerHTML = `<div class="text-slate-500 text-[11px] text-center py-2">WebRTC P2P без сервера: создайте комнату или введите 4-значный код друга.</div>`;
                 return;
             }
+            listEl.innerHTML = '';
+            items.forEach((rm) => {
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between bg-slate-900 px-2.5 py-1.5 rounded border border-slate-800';
+                row.innerHTML = `
+                    <div>
+                        <span class="font-pixel text-yellow-300 text-[11px]">${rm.code}</span>
+                        <span class="text-[10px] text-slate-400 ml-1">(${rm.count}/4 игр.)</span>
+                    </div>
+                    <button class="pixel-btn bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[10px] px-2 py-0.5 rounded">Войти</button>
+                `;
+                row.querySelector('button').onclick = () => joinRoom(rm.code);
+                listEl.appendChild(row);
+            });
+        }
 
+        function updateLobbyUI() {
+            if (!currentRoomCode || !currentRoomData) return;
             const g = window.gameApp;
-            const uid = currentUser.uid;
-            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'drift_rooms', code);
+            const playersMap = currentRoomData.players || {};
+            const participants = Object.values(playersMap).sort((a, b) => (a.joinedAt || 0) - (b.joinedAt || 0));
 
-            const initialRoom = {
-                code,
-                hostId: uid,
-                trackIdx: g.state.selectedTrackIdx,
-                modeIdx: g.state.selectedModeIdx,
-                status: 'waiting',
-                raceStamp: 0,
-                updatedAt: Date.now(),
-                players: {
-                    [uid]: {
-                        uid,
-                        name: getPlayerNick(),
-                        carIdx: g.state.selectedCarIdx,
-                        x: 900,
-                        y: 2850,
-                        angle: 0,
-                        vx: 0,
-                        vy: 0,
-                        isDrifting: false,
-                        isNitro: false,
-                        score: 0,
-                        wpPassed: 0,
-                        lap: 1,
-                        oil: null,
-                        joinedAt: Date.now()
-                    }
+            document.getElementById('btnLeaveRoom').classList.remove('hidden');
+            document.getElementById('menuRoomBanner').classList.remove('hidden');
+            document.getElementById('menuRoomBanner').classList.add('flex');
+            document.getElementById('bannerRoomCode').textContent = currentRoomCode;
+            document.getElementById('bannerPlayersCount').textContent = `(Игроков: ${participants.length})`;
+            document.getElementById('topNetBadge').textContent = `${currentRoomCode} (${participants.length})`;
+
+            renderLobbyParticipants(participants, currentRoomData.hostId);
+
+            if (currentRoomData.hostId !== currentUser.uid) {
+                if (typeof currentRoomData.trackIdx === 'number' && currentRoomData.trackIdx !== g.state.selectedTrackIdx) {
+                    g.state.selectedTrackIdx = currentRoomData.trackIdx;
+                    g.trackSystem.build(g.TRACKS[g.state.selectedTrackIdx]);
+                    g.renderMenuSelections();
                 }
-            };
-
-            try {
-                await setDoc(roomRef, initialRoom);
-                await subscribeToRoom(code);
-                setMpStatus(`Комната ${code} создана! Отсканируйте QR-код со второго телефона.`);
-            } catch (e) {
-                setMpStatus('Ошибка создания комнаты', true);
+                if (typeof currentRoomData.modeIdx === 'number' && currentRoomData.modeIdx !== g.state.selectedModeIdx) {
+                    g.state.selectedModeIdx = currentRoomData.modeIdx;
+                    g.renderMenuSelections();
+                }
             }
         }
 
+        function applyTelemetryPacket(netP) {
+            if (!netP || !netP.uid) return;
+            const g = window.gameApp;
+            if (currentRoomData && currentRoomData.players && currentRoomData.players[netP.uid]) {
+                Object.assign(currentRoomData.players[netP.uid], netP);
+            }
+            if (g.state.phase === 'racing' || g.state.phase === 'countdown') {
+                for (const r of g.state.racers) {
+                    if (r.isRemote && r.remotePeerId === netP.uid) {
+                        r.targetX = netP.x ?? r.x;
+                        r.targetY = netP.y ?? r.y;
+                        r.targetAngle = netP.angle ?? r.angle;
+                        r.vx = netP.vx ?? 0;
+                        r.vy = netP.vy ?? 0;
+                        r.isDrifting = !!netP.isDrifting;
+                        r.isNitroActive = !!netP.isNitro;
+                        r.totalDriftScore = netP.score ?? 0;
+                        r.totalWaypointsPassed = netP.wpPassed ?? 0;
+                        r.lap = netP.lap ?? 1;
+
+                        if (netP.oil && netP.oil.id && netP.oil.id !== r.lastRemoteOilId) {
+                            r.lastRemoteOilId = netP.oil.id;
+                            g.state.oilPuddles.push({
+                                id: netP.oil.id,
+                                ownerId: r.remotePeerId,
+                                x: netP.oil.x,
+                                y: netP.oil.y,
+                                radius: 38,
+                                life: 22,
+                                maxLife: 22
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        function hostBroadcastRoomState() {
+            if (!room || room.role !== 'host' || !currentRoomData) return;
+            const g = window.gameApp;
+            currentRoomData.trackIdx = g.state.selectedTrackIdx;
+            currentRoomData.modeIdx = g.state.selectedModeIdx;
+            if (currentRoomData.players[currentUser.uid]) {
+                currentRoomData.players[currentUser.uid].name = getPlayerNick();
+                currentRoomData.players[currentUser.uid].carIdx = g.state.selectedCarIdx;
+            }
+            updateLobbyUI();
+            room.send({ t: 'lobby_sync', room: currentRoomData });
+        }
+
+        function teardownRoomConnection() {
+            if (room) {
+                room.close();
+                room = null;
+            }
+        }
+
+        function makePlayerEntry(uid, joinedAt) {
+            const g = window.gameApp;
+            return {
+                uid,
+                name: getPlayerNick(),
+                carIdx: g.state.selectedCarIdx,
+                x: 900,
+                y: 2850,
+                angle: 0,
+                vx: 0,
+                vy: 0,
+                isDrifting: false,
+                isNitro: false,
+                score: 0,
+                wpPassed: 0,
+                lap: 1,
+                oil: null,
+                joinedAt: joinedAt || Date.now()
+            };
+        }
+
+        async function createRoom(fixedCode) {
+            teardownRoomConnection();
+            const g = window.gameApp;
+            const code = (fixedCode && NeoP2PRoom.normalizeCode(fixedCode)) || generateRoomCode();
+            currentRoomCode = code;
+            renderQrCodeToCanvas(getShareUrl(code));
+            document.getElementById('mpCurrentRoomCode').textContent = code;
+
+            const hostSlot = makePlayerEntry(currentUser.uid, Date.now());
+            currentRoomData = {
+                code,
+                hostId: currentUser.uid,
+                trackIdx: g.state.selectedTrackIdx,
+                modeIdx: g.state.selectedModeIdx,
+                status: 'waiting',
+                players: { [currentUser.uid]: hostSlot }
+            };
+
+            const peerToPlayerUid = new Map();
+
+            room = new NeoP2PRoom({
+                namespace: 'pixeldrift',
+                maxPeers: 3,
+                codeLength: 4,
+                peerMeta: { uid: currentUser.uid, name: getPlayerNick(), carIdx: g.state.selectedCarIdx },
+                onStatus: (st) => {
+                    if (st === 'connected') setNetStatusBadge('WebRTC P2P ГОТОВ (' + room.getConnectionMode().toUpperCase() + ')');
+                    else if (st === 'hosting') setNetStatusBadge('ХОСТ: ОЖИДАНИЕ...');
+                },
+                onPeerOpen: (peerId, meta) => {
+                    const guestUid = (meta && meta.uid) || peerId;
+                    peerToPlayerUid.set(peerId, guestUid);
+                    currentRoomData.players[guestUid] = {
+                        ...makePlayerEntry(guestUid, Date.now()),
+                        name: (meta && meta.name) || 'ИГРОК',
+                        carIdx: (meta && typeof meta.carIdx === 'number') ? meta.carIdx : 0
+                    };
+                    hostBroadcastRoomState();
+                    setMpStatus(`Игрок ${(meta && meta.name) || ''} подключился к комнате ${code}!`);
+                },
+                onPeerClose: (peerId) => {
+                    const guestUid = peerToPlayerUid.get(peerId) || peerId;
+                    peerToPlayerUid.delete(peerId);
+                    if (currentRoomData && currentRoomData.players) {
+                        delete currentRoomData.players[guestUid];
+                        hostBroadcastRoomState();
+                    }
+                    setMpStatus('Один из игроков покинул комнату.', true);
+                },
+                onMessage: (msg, fromPeerId) => {
+                    if (!msg || !msg.t) return;
+                    if (msg.t === 'hello' && msg.player) {
+                        const gid = msg.player.uid || peerToPlayerUid.get(fromPeerId) || fromPeerId;
+                        peerToPlayerUid.set(fromPeerId, gid);
+                        const existing = currentRoomData.players[gid];
+                        currentRoomData.players[gid] = {
+                            ...(existing || makePlayerEntry(gid, Date.now())),
+                            name: msg.player.name || 'ИГРОК',
+                            carIdx: typeof msg.player.carIdx === 'number' ? msg.player.carIdx : 0
+                        };
+                        hostBroadcastRoomState();
+                    } else if (msg.t === 'tel' && msg.data) {
+                        applyTelemetryPacket(msg.data);
+                        room.broadcastExcept(fromPeerId, msg, { fast: true });
+                    }
+                }
+            });
+
+            await room.host(code);
+            updateLobbyUI();
+            setMpStatus(`Комната ${code} создана! Покажите QR-код или отправьте ссылку другу.`);
+        }
+
         async function joinRoom(rawCode) {
-            const code = (rawCode || '').trim().toUpperCase();
+            const code = window.NeoP2PRoom ? NeoP2PRoom.normalizeCode(rawCode) : (rawCode || '').trim().toUpperCase();
             if (!code || code.length < 3) {
                 setMpStatus('Введите корректный код комнаты', true);
                 return;
             }
 
+            teardownRoomConnection();
+            currentRoomCode = code;
             renderQrCodeToCanvas(getShareUrl(code));
             document.getElementById('mpCurrentRoomCode').textContent = code;
             document.getElementById('mpJoinCodeInput').value = code;
-
-            if (!currentUser || !db) {
-                setMpStatus('Ожидание подключения к облаку...', true);
-                return;
-            }
+            setNetStatusBadge('ПОДКЛЮЧЕНИЕ...');
+            setMpStatus(`Подключение к комнате ${code}...`);
 
             const g = window.gameApp;
-            const uid = currentUser.uid;
-            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'drift_rooms', code);
+            const mySlot = makePlayerEntry(currentUser.uid, Date.now());
+            currentRoomData = {
+                code,
+                hostId: 'remote_host',
+                trackIdx: g.state.selectedTrackIdx,
+                modeIdx: g.state.selectedModeIdx,
+                status: 'waiting',
+                players: { [currentUser.uid]: mySlot }
+            };
 
-            try {
-                const snap = await getDoc(roomRef);
-                if (!snap.exists()) {
-                    setMpStatus(`Комната ${code} не найдена`, true);
-                    return;
-                }
-
-                await updateDoc(roomRef, {
-                    updatedAt: Date.now(),
-                    [`players.${uid}`]: {
-                        uid,
-                        name: getPlayerNick(),
-                        carIdx: g.state.selectedCarIdx,
-                        x: 900,
-                        y: 2850,
-                        angle: 0,
-                        vx: 0,
-                        vy: 0,
-                        isDrifting: false,
-                        isNitro: false,
-                        score: 0,
-                        wpPassed: 0,
-                        lap: 1,
-                        oil: null,
-                        joinedAt: Date.now()
-                    }
-                });
-
-                await subscribeToRoom(code);
-                stopQrScanner();
-                setMpStatus(`Вы подключились к комнате ${code}!`);
-            } catch (e) {
-                setMpStatus('Не удалось подключиться к комнате', true);
-            }
-        }
-
-        async function subscribeToRoom(code) {
-            if (!currentUser || !db) return;
-            if (roomUnsubscribe) roomUnsubscribe();
-
-            currentRoomCode = code;
-            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'drift_rooms', code);
-
-            document.getElementById('btnLeaveRoom').classList.remove('hidden');
-            document.getElementById('menuRoomBanner').classList.remove('hidden');
-            document.getElementById('menuRoomBanner').classList.add('flex');
-            document.getElementById('bannerRoomCode').textContent = code;
-
-            roomUnsubscribe = onSnapshot(
-                roomRef,
-                (snap) => {
-                    if (!snap.exists()) return;
-                    const data = snap.data();
-                    currentRoomData = data;
-
-                    const g = window.gameApp;
-                    const playersMap = data.players || {};
-                    const participants = Object.values(playersMap).sort((a, b) => (a.joinedAt || 0) - (b.joinedAt || 0));
-
-                    document.getElementById('bannerPlayersCount').textContent = `(Игроков: ${participants.length})`;
-                    document.getElementById('topNetBadge').textContent = `${code} (${participants.length})`;
-
-                    renderLobbyParticipants(participants, data.hostId);
-
-                    // Sync selected track and mode from Host
-                    if (data.hostId !== currentUser.uid) {
-                        if (typeof data.trackIdx === 'number' && data.trackIdx !== g.state.selectedTrackIdx) {
-                            g.state.selectedTrackIdx = data.trackIdx;
-                            g.trackSystem.build(g.TRACKS[g.state.selectedTrackIdx]);
-                            g.renderMenuSelections();
+            room = new NeoP2PRoom({
+                namespace: 'pixeldrift',
+                maxPeers: 1,
+                codeLength: 4,
+                peerMeta: { uid: currentUser.uid, name: getPlayerNick(), carIdx: g.state.selectedCarIdx },
+                onStatus: (st) => {
+                    if (st === 'connected') setNetStatusBadge('ПОДКЛЮЧЕНО P2P');
+                    else if (st === 'timeout') setMpStatus(`Не удалось найти комнату ${code}. Проверьте код.`, true);
+                },
+                onPeerOpen: () => {
+                    stopQrScanner();
+                    room.send({
+                        t: 'hello',
+                        player: {
+                            uid: currentUser.uid,
+                            name: getPlayerNick(),
+                            carIdx: g.state.selectedCarIdx
                         }
-                        if (typeof data.modeIdx === 'number' && data.modeIdx !== g.state.selectedModeIdx) {
-                            g.state.selectedModeIdx = data.modeIdx;
-                            g.renderMenuSelections();
+                    });
+                    setMpStatus(`Вы подключились к комнате ${code}! Ожидайте старта от Хоста.`);
+                },
+                onPeerClose: () => {
+                    setNetStatusBadge('ХОСТ ОТКЛЮЧИЛСЯ');
+                    setMpStatus('Хост закрыл комнату или потерял связь.', true);
+                },
+                onMessage: (msg) => {
+                    if (!msg || !msg.t) return;
+                    if (msg.t === 'lobby_sync' && msg.room) {
+                        currentRoomData = msg.room;
+                        updateLobbyUI();
+                    } else if (msg.t === 'race_start') {
+                        if (msg.room) {
+                            currentRoomData = msg.room;
+                            updateLobbyUI();
                         }
-                    }
-
-                    // Trigger synchronized race start when host presses Start
-                    if (data.raceStamp && data.raceStamp > lastStartedRaceStamp) {
-                        lastStartedRaceStamp = data.raceStamp;
-                        g.startRace();
-                    }
-
-                    // Apply live telemetry to remote cars during race
-                    if (g.state.phase === 'racing' || g.state.phase === 'countdown') {
-                        for (const r of g.state.racers) {
-                            if (r.isRemote && r.remotePeerId && playersMap[r.remotePeerId]) {
-                                const netP = playersMap[r.remotePeerId];
-                                r.targetX = netP.x ?? r.x;
-                                r.targetY = netP.y ?? r.y;
-                                r.targetAngle = netP.angle ?? r.angle;
-                                r.vx = netP.vx ?? 0;
-                                r.vy = netP.vy ?? 0;
-                                r.isDrifting = !!netP.isDrifting;
-                                r.isNitroActive = !!netP.isNitro;
-                                r.totalDriftScore = netP.score ?? 0;
-                                r.totalWaypointsPassed = netP.wpPassed ?? 0;
-                                r.lap = netP.lap ?? 1;
-
-                                // Spawn opponent's voice-activated oil puddle if new!
-                                if (netP.oil && netP.oil.id && netP.oil.id !== r.lastRemoteOilId) {
-                                    r.lastRemoteOilId = netP.oil.id;
-                                    g.state.oilPuddles.push({
-                                        id: netP.oil.id,
-                                        ownerId: r.remotePeerId,
-                                        x: netP.oil.x,
-                                        y: netP.oil.y,
-                                        radius: 38,
-                                        life: 22,
-                                        maxLife: 22
-                                    });
-                                }
-                            }
+                        if (typeof msg.trackIdx === 'number') g.state.selectedTrackIdx = msg.trackIdx;
+                        if (typeof msg.modeIdx === 'number') g.state.selectedModeIdx = msg.modeIdx;
+                        const fillCheck = document.getElementById('mpFillBotsCheck');
+                        if (fillCheck && typeof msg.fillBots === 'boolean') fillCheck.checked = msg.fillBots;
+                        if (msg.stamp && msg.stamp > lastStartedRaceStamp) {
+                            lastStartedRaceStamp = msg.stamp;
+                            closeMpModal();
+                            g.startRace();
                         }
+                    } else if (msg.t === 'tel' && msg.data) {
+                        applyTelemetryPacket(msg.data);
                     }
                 },
-                (err) => {
-                    console.warn('Room snapshot error:', err);
+                onError: (err) => {
+                    setMpStatus(err && err.message ? err.message : 'Ошибка подключения', true);
                 }
-            );
+            });
+
+            updateLobbyUI();
+            await room.join(code);
         }
 
         function renderLobbyParticipants(participants, hostId) {
@@ -3644,23 +3638,7 @@
         }
 
         async function leaveRoom() {
-            if (roomUnsubscribe) {
-                roomUnsubscribe();
-                roomUnsubscribe = null;
-            }
-            if (currentRoomCode && currentUser && db) {
-                try {
-                    const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'drift_rooms', currentRoomCode);
-                    const snap = await getDoc(roomRef);
-                    if (snap.exists()) {
-                        const data = snap.data();
-                        if (data.players && data.players[currentUser.uid]) {
-                            delete data.players[currentUser.uid];
-                            await setDoc(roomRef, data);
-                        }
-                    }
-                } catch (e) {}
-            }
+            teardownRoomConnection();
             currentRoomCode = null;
             currentRoomData = null;
             document.getElementById('mpCurrentRoomCode').textContent = '----';
@@ -3668,6 +3646,7 @@
             document.getElementById('menuRoomBanner').classList.add('hidden');
             document.getElementById('menuRoomBanner').classList.remove('flex');
             document.getElementById('topNetBadge').textContent = 'QR Сеть';
+            setNetStatusBadge('WebRTC P2P ГОТОВ');
             document.getElementById('mpLobbyPlayersList').innerHTML =
                 `<div class="text-xs text-slate-400 py-2 text-center col-span-2">Вы вышли из комнаты</div>`;
         }
@@ -3740,6 +3719,7 @@
         function openMpModal() {
             mpModal.classList.remove('hidden');
             mpModal.classList.add('flex');
+            renderOpenRoomsList();
             if (!currentRoomCode) {
                 createRoom();
             } else {
@@ -3757,7 +3737,7 @@
         document.getElementById('menuQrNetBtn').onclick = openMpModal;
         document.getElementById('bannerOpenQrBtn').onclick = openMpModal;
         document.getElementById('btnCloseMpModal').onclick = closeMpModal;
-        document.getElementById('btnCreateRoom').onclick = createRoom;
+        document.getElementById('btnCreateRoom').onclick = () => createRoom();
         document.getElementById('btnLeaveRoom').onclick = leaveRoom;
         document.getElementById('btnToggleQrScan').onclick = toggleQrScanner;
 
@@ -3766,78 +3746,132 @@
             joinRoom(code);
         };
 
-        document.getElementById('btnCopyRoomLink').onclick = () => {
+        document.getElementById('btnCopyRoomLink').onclick = async () => {
             const textToCopy = currentRoomCode ? getShareUrl(currentRoomCode) : window.location.href;
-            if (document.body) {
-                const tempInput = document.createElement('textarea');
-                tempInput.value = textToCopy;
-                document.body.appendChild(tempInput);
-                tempInput.select();
-                document.execCommand('copy');
-                document.body.removeChild(tempInput);
-            }
-            setMpStatus(`Ссылка и код (${currentRoomCode || ''}) скопированы в буфер!`);
+            const ok = window.NeoP2PRoom ? await NeoP2PRoom.copyText(textToCopy) : false;
+            setMpStatus(
+                ok
+                    ? `Ссылка и код (${currentRoomCode || ''}) скопированы в буфер!`
+                    : `Код комнаты: ${currentRoomCode || ''}`,
+                !ok
+            );
         };
 
-        document.getElementById('btnStartMpRace').onclick = async () => {
+        document.getElementById('btnStartMpRace').onclick = () => {
             const g = window.gameApp;
-            if (currentRoomCode && currentUser && db) {
-                try {
-                    const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'drift_rooms', currentRoomCode);
-                    const stamp = Date.now();
-                    lastStartedRaceStamp = stamp;
-                    await updateDoc(roomRef, {
-                        trackIdx: g.state.selectedTrackIdx,
-                        modeIdx: g.state.selectedModeIdx,
-                        status: 'racing',
-                        raceStamp: stamp,
-                        updatedAt: stamp
-                    });
-                } catch (e) {}
+            if (room && room.role === 'host') {
+                const stamp = Date.now();
+                lastStartedRaceStamp = stamp;
+                hostBroadcastRoomState();
+                room.send({
+                    t: 'race_start',
+                    room: currentRoomData,
+                    trackIdx: g.state.selectedTrackIdx,
+                    modeIdx: g.state.selectedModeIdx,
+                    fillBots: document.getElementById('mpFillBotsCheck')?.checked ?? true,
+                    stamp
+                });
             }
             closeMpModal();
             g.startRace();
         };
 
-        // Bridge for main game loop telemetry (~7 Hz throttled Firestore updates)
+        const nameInp = document.getElementById('mpPlayerNameInput');
+        if (nameInp) {
+            nameInp.addEventListener('input', () => {
+                if (!room) return;
+                if (room.role === 'host') hostBroadcastRoomState();
+                else if (room.role === 'guest') {
+                    room.send({
+                        t: 'hello',
+                        player: {
+                            uid: currentUser.uid,
+                            name: getPlayerNick(),
+                            carIdx: window.gameApp.state.selectedCarIdx
+                        }
+                    });
+                }
+            });
+        }
+
+        // Local browser room directory announcement (0ms discovery across tabs in same browser)
+        if (typeof BroadcastChannel === 'function') {
+            try {
+                directoryBc = new BroadcastChannel('pixeldrift-room-directory');
+                directoryBc.onmessage = (ev) => {
+                    const m = ev && ev.data;
+                    if (m && m.code && m.hostId !== currentUser.uid) {
+                        localDiscoveredRooms.set(m.code, { code: m.code, count: m.count || 1, hostId: m.hostId, ts: Date.now() });
+                        renderOpenRoomsList();
+                    }
+                };
+                setInterval(() => {
+                    if (room && room.role === 'host' && currentRoomCode && currentRoomData) {
+                        directoryBc.postMessage({
+                            code: currentRoomCode,
+                            hostId: currentUser.uid,
+                            count: Object.keys(currentRoomData.players || {}).length
+                        });
+                    }
+                }, 2500);
+            } catch (_) {}
+        }
+
+        // Bridge for main game loop telemetry (~16 Hz over WebRTC DataChannels)
         window.mpBridge = {
             get userId() {
-                return currentUser ? currentUser.uid : 'local';
+                return currentUser.uid;
             },
             getRoomParticipants() {
                 if (!currentRoomCode || !currentRoomData || !currentRoomData.players) return [];
                 return Object.values(currentRoomData.players).sort((a, b) => (a.joinedAt || 0) - (b.joinedAt || 0));
             },
             broadcastTelemetry(player, lastOil) {
-                if (!currentRoomCode || !currentUser || !db || !player) return;
+                if (!room || !currentRoomCode || !player || room.getConnectedPeerIds().length === 0) return;
                 const now = performance.now();
-                if (now - lastBroadcastTime < 140) return;
+                const hasNewOil = !!(lastOil && lastOil.id && lastOil.id !== player._lastSentOilId);
+                if (!hasNewOil && now - lastBroadcastTime < 60) return;
                 lastBroadcastTime = now;
+                if (hasNewOil) player._lastSentOilId = lastOil.id;
 
-                const uid = currentUser.uid;
-                const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'drift_rooms', currentRoomCode);
                 const liveScore = Math.round(player.totalDriftScore + player.currentDriftScore * player.driftMultiplier);
-
-                updateDoc(roomRef, {
-                    updatedAt: Date.now(),
-                    [`players.${uid}.name`]: getPlayerNick(),
-                    [`players.${uid}.carIdx`]: window.gameApp.state.selectedCarIdx,
-                    [`players.${uid}.x`]: Math.round(player.x),
-                    [`players.${uid}.y`]: Math.round(player.y),
-                    [`players.${uid}.angle`]: Number(player.angle.toFixed(2)),
-                    [`players.${uid}.vx`]: Math.round(player.vx),
-                    [`players.${uid}.vy`]: Math.round(player.vy),
-                    [`players.${uid}.isDrifting`]: player.isDrifting,
-                    [`players.${uid}.isNitro`]: player.isNitroActive,
-                    [`players.${uid}.score`]: liveScore,
-                    [`players.${uid}.wpPassed`]: player.totalWaypointsPassed,
-                    [`players.${uid}.lap`]: player.lap,
-                    [`players.${uid}.oil`]: lastOil || null
-                }).catch(() => {});
+                const payload = {
+                    uid: currentUser.uid,
+                    carIdx: window.gameApp.state.selectedCarIdx,
+                    x: Math.round(player.x),
+                    y: Math.round(player.y),
+                    angle: Number(player.angle.toFixed(2)),
+                    vx: Math.round(player.vx),
+                    vy: Math.round(player.vy),
+                    isDrifting: player.isDrifting,
+                    isNitro: player.isNitroActive,
+                    score: liveScore,
+                    wpPassed: player.totalWaypointsPassed,
+                    lap: player.lap,
+                    oil: lastOil || null
+                };
+                room.send({ t: 'tel', data: payload }, { fast: !hasNewOil });
             }
         };
 
-        initMultiplayer();
+        (function initMultiplayer() {
+            document.getElementById('mpUserIdDisplay').textContent = currentUser.uid;
+            setNetStatusBadge('WebRTC P2P ГОТОВ');
+            renderOpenRoomsList();
+
+            const params = new URLSearchParams(window.location.search);
+            const hostCode = params.get('host');
+            const urlRoom = params.get('room');
+            if (hostCode) {
+                mpModal.classList.remove('hidden');
+                mpModal.classList.add('flex');
+                createRoom(hostCode);
+            } else if (urlRoom) {
+                mpModal.classList.remove('hidden');
+                mpModal.classList.add('flex');
+                joinRoom(urlRoom);
+            }
+        })();
     </script>
 </body>
 </html>

@@ -5,7 +5,7 @@
  */
 
 const PWA = {
-  CACHE_NAME: 'neo-cartridge-pwa-v3',
+  CACHE_NAME: 'neo-cartridge-pwa-v4',
   DISMISS_KEY: 'neo_pwa_banner_dismissed',
   OFFLINE_READY_KEY: 'neo_pwa_offline_ready',
   deferredPrompt: null,
@@ -316,6 +316,7 @@ const PWA = {
       './js/app.js',
       './js/audio.js',
       './js/editor.js',
+      './js/webrtc-room.js',
       './js/p2p.js',
       './js/previews.js',
       './js/storage.js',
