@@ -45,9 +45,9 @@
       stageMode: 'topdown',
       cards: [
         { id: 0, name: 'AE-86 TRUENO', role: 'Баланс и угол заноса', tag: 'КЛАССИКА', color: '#22d3ee', spriteCol: 0, spriteRow: 0 },
-        { id: 1, name: 'RX-7 ROTARY', role: 'Маневренность в шпильках', tag: 'РОТОРНЫЙ', color: '#ec4899', spriteCol: 2, spriteRow: 0 },
+        { id: 1, name: 'RX-7 ROTARY', role: 'Маневры в шпильках', tag: 'РОТОРНЫЙ', color: '#ec4899', spriteCol: 5, spriteRow: 0 },
         { id: 2, name: 'SKYLINE GT-R34', role: 'Ровный тяговый дрифт', tag: 'ТУРБО 4WD', color: '#38bdf8', spriteCol: 4, spriteRow: 0 },
-        { id: 3, name: 'CYBER-V8 NEON', role: 'Максимальный форсаж нитро', tag: 'ПРОТОТИП', color: '#f59e0b', spriteCol: 5, spriteRow: 0 }
+        { id: 3, name: 'CYBER-V8 NEON', role: 'Максимум нитро', tag: 'ПРОТОТИП', color: '#f59e0b', spriteCol: 2, spriteRow: 0 }
       ]
     },
     chrono_blade: {
@@ -1137,6 +1137,7 @@
     },
     hide: hideHero
   };
+  window.NeoHeroScreen = window.NeoHeroLanding;
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', buildHeroDOM);

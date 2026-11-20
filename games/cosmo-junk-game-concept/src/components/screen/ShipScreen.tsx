@@ -326,7 +326,7 @@ export default function ShipScreen({ code }: { code: string }) {
   }
 
   return (
-    <div className="relative min-h-dvh overflow-hidden">
+    <div className="relative min-h-[calc(100dvh-var(--cj-bar-h,0px))] overflow-hidden">
       {ui === "lobby" && (
         <>
           <div
@@ -385,8 +385,8 @@ export default function ShipScreen({ code }: { code: string }) {
         ))}
 
       {ui !== "lobby" && (
-        <div className="relative flex h-dvh items-center justify-center overflow-hidden px-2 pb-1.5 pt-9 sm:p-2 sm:pt-11">
-          <div className="relative aspect-video h-auto max-h-[calc(100dvh-48px)] w-full max-w-[min(1600px,calc((100dvh-48px)*16/9))] overflow-hidden border-2 border-[#14202e] bg-black shadow-[0_0_80px_rgba(34,211,238,0.08)]">
+        <div className="relative flex h-[calc(100dvh-var(--cj-bar-h,0px))] items-center justify-center overflow-hidden px-1.5 pb-1 pt-8 sm:p-2 sm:pt-10">
+          <div className="relative @container aspect-video h-auto max-h-[calc(100dvh-var(--cj-bar-h,0px)-38px)] w-full max-w-[min(1600px,calc((100dvh-var(--cj-bar-h,0px)-38px)*16/9))] overflow-hidden border-2 border-[#14202e] bg-black shadow-[0_0_80px_rgba(34,211,238,0.08)]">
             <GameCanvas
               simRef={simRef}
               botsRef={botsRef}

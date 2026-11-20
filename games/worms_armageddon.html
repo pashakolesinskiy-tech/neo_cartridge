@@ -1172,11 +1172,12 @@ body {
 }
 
 @media (pointer: coarse), (max-width: 600px), (max-height: 410px) {
-  body.in-battle.my-turn .touch-controls {
+  body.in-battle.my-turn:not(.modal-open) .touch-controls {
     display: flex !important;
   }
 }
 
+body.in-battle.modal-open .touch-controls,
 body.modal-open .touch-controls {
   display: none !important;
 }
@@ -1676,8 +1677,8 @@ body.modal-open .touch-controls {
 }
 
 </style>
-  <script src="../js/landscape-guard.js?v=12"></script>
-  <script src="../js/game-hero-screen.js?v=12"></script>
+  <script src="../js/landscape-guard.js?v=13"></script>
+  <script src="../js/game-hero-screen.js?v=13"></script>
 </head>
 <body>
   <div id="app">
@@ -1723,7 +1724,7 @@ body.modal-open .touch-controls {
         <div class="hud-divider"></div>
         <div class="wind-block">
           <div class="wind-header">
-            <span>WIND</span>
+            <span>ВЕТЕР</span>
             <span id="hud-wind-val">0</span>
           </div>
           <div class="wind-bar-track">
@@ -1737,8 +1738,9 @@ body.modal-open .touch-controls {
 
       <div class="hud-right">
         <div class="mobile-hud-toggles">
-          <button id="btn-minimap-toggle" type="button" class="hud-btn mobile-icon-btn" title="Toggle Minimap">Map</button>
-          <button id="btn-mobile-menu" type="button" class="hud-btn mobile-icon-btn" title="Tools &amp; Menu">☰</button>
+          <button id="btn-minimap-toggle" type="button" class="hud-btn mobile-icon-btn" title="Мини-карта">Map</button>
+          <button id="btn-mobile-pause" type="button" class="hud-btn mobile-icon-btn" title="Пауза">⏸</button>
+          <button id="btn-mobile-menu" type="button" class="hud-btn mobile-icon-btn" title="Меню и настройки">☰</button>
         </div>
         <div class="minimap-frame panel-bevel">
           <canvas id="minimap-canvas" width="200" height="100"></canvas>
@@ -8746,7 +8748,7 @@ class GameEngine {
     this.camera.clearManualHold();
     this.camera.focus(chosen.x, chosen.y - 20, immediateCamera);
 
-    this.showBanner(`${team.name} — ${chosen.name}'s Turn`, team.palette.color, 2.2);
+    this.showBanner(`${team.name} — ход: ${chosen.name}`, team.palette.color, 2.2);
 
     if (team.isAI) {
       this.ai.reset(team.aiDifficulty);
@@ -9054,7 +9056,7 @@ class GameEngine {
           target.applyDamage(0, worm.facing * weapon.knockback, -140);
         }
       }
-      this.showBanner(`WIND SHIFTED ${worm.facing >= 0 ? '85 →' : '← 85'}!`, '#48dbfb', 2.0);
+      this.showBanner(`ВЕТЕР: ${worm.facing >= 0 ? '85 →' : '← 85'}!`, '#48dbfb', 2.0);
       this.phase = PHASES.RETREAT;
       this.retreatTimer = weapon.retreatTime;
       this.onHudUpdate?.(this);
@@ -11909,6 +11911,12 @@ window.addEventListener('message', (e) => {
 });
 
 btnPause?.addEventListener('click', () => {
+  closeMobileOverlays();
+  const isOpen = pauseModal && !pauseModal.classList.contains('hidden');
+  setPaused(!isOpen);
+});
+document.getElementById('btn-mobile-pause')?.addEventListener('click', (e) => {
+  e.stopPropagation();
   closeMobileOverlays();
   const isOpen = pauseModal && !pauseModal.classList.contains('hidden');
   setPaused(!isOpen);

@@ -557,16 +557,53 @@
                 height: 52px !important;
             }
             #touchNitro {
-                width: 82px !important;
-                height: 82px !important;
+                width: 88px !important;
+                height: 88px !important;
+                padding: 4px 3px !important;
+                gap: 1px;
+            }
+            #touchNitro > span:first-child {
+                font-size: 1.15rem !important;
+                line-height: 1 !important;
+            }
+            #touchNitro > span:nth-child(2) {
+                font-size: 8.5px !important;
+                margin-top: 1px !important;
+                line-height: 1.05 !important;
+            }
+            #touchNitro > span:nth-child(3) {
+                font-size: 7.5px !important;
+                line-height: 1 !important;
+            }
+            #touchNitro .h-2 {
+                height: 5px !important;
+                margin-top: 2px !important;
+            }
+            #nitroPct {
+                font-size: 8px !important;
+                margin-top: 1px !important;
+                line-height: 1 !important;
             }
             #btnOilManual {
-                width: 52px !important;
-                height: 52px !important;
+                width: 56px !important;
+                height: 56px !important;
+                padding: 3px !important;
+            }
+            #oilCooldownText {
+                font-size: 7.5px !important;
+                margin-top: 2px !important;
+                line-height: 1 !important;
             }
             #menuModal > div {
                 padding: 10px 14px !important;
                 max-height: 96dvh !important;
+            }
+            #menuModal .border-b-2 {
+                padding-bottom: 6px !important;
+                margin-bottom: 8px !important;
+            }
+            #menuModal h1 {
+                font-size: 1rem !important;
             }
             #menuModal .grid.grid-cols-1.lg\:grid-cols-12 {
                 display: grid !important;
@@ -591,8 +628,8 @@
             }
         }
     </style>
-    <script src="../js/landscape-guard.js?v=12"></script>
-    <script src="../js/game-hero-screen.js?v=12"></script>
+    <script src="../js/landscape-guard.js?v=13"></script>
+    <script src="../js/game-hero-screen.js?v=13"></script>
 </head>
 <body class="relative w-full h-full flex flex-col justify-between overflow-hidden select-none">
 
@@ -715,7 +752,7 @@
         </div>
     </div>
 
-    <div id="menuModal" class="fixed inset-0 z-30 flex items-center justify-center p-2 sm:p-4 bg-black/80">
+    <div id="menuModal" class="fixed inset-0 z-30 flex items-center justify-center p-2 sm:p-4 bg-black/80" style="z-index: 55;">
         <div class="pixel-box w-full max-w-4xl max-h-[94vh] overflow-y-auto custom-scroll p-3 sm:p-6 text-white">
             <!-- Title Header -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-slate-700/80 pb-3 mb-4">
@@ -836,20 +873,20 @@
         </div>
     </div>
 
-    <div id="pauseModal" class="fixed inset-0 z-35 hidden items-center justify-center p-4 bg-black/80">
+    <div id="pauseModal" class="fixed inset-0 hidden items-center justify-center p-4 bg-black/80" style="z-index: 60;">
         <div class="pixel-box w-full max-w-sm p-5 text-white text-center border-cyan-400">
             <div class="text-[10px] font-pixel text-cyan-400 uppercase tracking-widest mb-1">ПАУЗА</div>
             <h2 class="font-pixel text-lg text-yellow-300 mb-4">ИГРА НА ПАУЗЕ</h2>
             <div class="flex flex-col gap-2.5">
-                <button id="btnResumeRace" class="pixel-btn bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-pixel text-xs py-2.5 px-4 rounded-xl">▶ ПРОДОЛЖИТЬ</button>
-                <button id="btnPauseRestart" class="pixel-btn bg-amber-500 hover:bg-amber-400 text-slate-950 font-pixel text-xs py-2.5 px-4 rounded-xl">🔄 ЗАНОВО</button>
-                <button id="btnPauseGarage" class="pixel-btn bg-slate-700 hover:bg-slate-600 text-white font-pixel text-xs py-2.5 px-4 rounded-xl">🏠 В ГАРАЖ</button>
-                <button id="btnPauseHero" class="pixel-btn bg-slate-800 hover:bg-slate-700 text-cyan-300 font-pixel text-[10px] py-2 px-4 rounded-xl">★ НА ГЛАВНУЮ</button>
+                <button id="btnResumeRace" class="pixel-btn font-pixel text-xs py-2.5 px-4 rounded-xl" style="background:#10b981; color:#020617;">▶ ПРОДОЛЖИТЬ</button>
+                <button id="btnPauseRestart" class="pixel-btn font-pixel text-xs py-2.5 px-4 rounded-xl" style="background:#f59e0b; color:#020617;">🔄 ЗАНОВО</button>
+                <button id="btnPauseGarage" class="pixel-btn font-pixel text-xs py-2.5 px-4 rounded-xl" style="background:#334155; color:#f8fafc;">🏠 В ГАРАЖ</button>
+                <button id="btnPauseHero" class="pixel-btn font-pixel text-[10px] py-2 px-4 rounded-xl" style="background:#1e293b; color:#67e8f9;">★ НА ГЛАВНУЮ</button>
             </div>
         </div>
     </div>
 
-    <div id="resultsModal" class="fixed inset-0 z-30 hidden items-center justify-center p-2 sm:p-4 bg-black/85">
+    <div id="resultsModal" class="fixed inset-0 z-30 hidden items-center justify-center p-2 sm:p-4 bg-black/85" style="z-index: 55;">
         <div class="pixel-box w-full max-w-lg max-h-[94vh] overflow-y-auto custom-scroll p-3 sm:p-5 text-white text-center">
             <div id="resBadge" class="inline-block bg-yellow-400 text-black font-pixel text-[9px] sm:text-[10px] px-2.5 py-0.5 rounded mb-1">ФИНИШ!</div>
             <h2 id="resTitle" class="font-pixel text-sm sm:text-xl text-yellow-300 mb-0.5">ПОБЕДА В ЗАЕЗДЕ!</h2>
@@ -887,7 +924,7 @@
         </div>
     </div>
 
-    <div id="mpModal" class="fixed inset-0 z-40 hidden items-center justify-center p-2 sm:p-4 bg-black/85">
+    <div id="mpModal" class="fixed inset-0 z-40 hidden items-center justify-center p-2 sm:p-4 bg-black/85" style="z-index: 58;">
         <div class="pixel-box w-full max-w-2xl max-h-[94vh] overflow-y-auto custom-scroll p-4 sm:p-5 text-white border-fuchsia-400">
             <div class="flex items-center justify-between border-b border-slate-700 pb-3 mb-3">
                 <div>
@@ -2922,7 +2959,10 @@
             document.getElementById('resultsModal').classList.remove('flex');
             document.getElementById('hudLeft').classList.remove('hidden');
             document.getElementById('hudLeft').classList.add('flex');
-            document.getElementById('gameplayFooter').classList.remove('hidden');
+            const gf = document.getElementById('gameplayFooter');
+            gf.classList.remove('hidden');
+            gf.style.visibility = '';
+            document.getElementById('centerBanner').style.visibility = '';
             document.getElementById('btnPause').classList.remove('hidden');
             updateTouchVisibility();
         }
@@ -2931,14 +2971,20 @@
             if (state.phase !== 'racing' && state.phase !== 'countdown') return;
             state.paused = Boolean(paused);
             const pm = document.getElementById('pauseModal');
+            const gf = document.getElementById('gameplayFooter');
+            const cb = document.getElementById('centerBanner');
             if (state.paused) {
                 sound.silenceContinuous();
                 clearAllInputs();
+                gf.style.visibility = 'hidden';
+                cb.style.visibility = 'hidden';
                 pm.classList.remove('hidden');
                 pm.classList.add('flex');
             } else {
                 pm.classList.add('hidden');
                 pm.classList.remove('flex');
+                gf.style.visibility = '';
+                cb.style.visibility = '';
                 lastTime = performance.now();
             }
         }
@@ -2958,9 +3004,13 @@
             document.getElementById('resultsModal').classList.add('hidden');
             document.getElementById('resultsModal').classList.remove('flex');
             document.getElementById('hudLeft').classList.add('hidden');
-            document.getElementById('gameplayFooter').classList.add('hidden');
+            const gf = document.getElementById('gameplayFooter');
+            gf.classList.add('hidden');
+            gf.style.visibility = '';
             document.getElementById('btnPause').classList.add('hidden');
-            document.getElementById('centerBanner').classList.add('hidden');
+            const cb = document.getElementById('centerBanner');
+            cb.classList.add('hidden');
+            cb.style.visibility = '';
             document.getElementById('driftComboBox').classList.add('hidden');
         }
 
@@ -2973,7 +3023,7 @@
         document.getElementById('btnPauseGarage').onclick = returnToGarage;
         document.getElementById('btnPauseHero').onclick = () => {
             returnToGarage();
-            if (window.NeoHeroScreen && window.NeoHeroScreen.show) window.NeoHeroScreen.show();
+            if (window.NeoHeroLanding && window.NeoHeroLanding.show) window.NeoHeroLanding.show();
         };
 
         // Car-to-Car Elastic Arcade Collisions (scaled for smaller cars)
@@ -3537,7 +3587,7 @@
     <!-- QR Generator, Scanner & Zero-Server WebRTC P2P -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-    <script src="../js/webrtc-room.js?v=12"></script>
+    <script src="../js/webrtc-room.js?v=13"></script>
 
     <script>
         let room = null;

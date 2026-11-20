@@ -21,18 +21,18 @@ function PixBar({
   value: number; max: number; colorFrom: string; colorTo: string; danger?: boolean;
 }) {
   const pct = Math.max(0, Math.min(1, value / max));
-  const cells = 18;
+  const cells = 12;
   const filled = Math.round(pct * cells);
   const colorOf = (i: number) => {
     const t = i / cells;
     return mix(colorFrom, colorTo, t);
   };
   return (
-    <div className={`flex gap-[1.5px] sm:gap-[2px] md:gap-[3px] ${danger ? "blink-fast" : ""}`}>
+    <div className={`flex w-[58px] @xl:w-[96px] @4xl:w-[168px] gap-[1.5px] @4xl:gap-[2.5px] ${danger ? "blink-fast" : ""}`}>
       {Array.from({ length: cells }, (_, i) => (
         <span
           key={i}
-          className="h-2 w-[4px] sm:h-3 sm:w-[6px] md:h-3.5 md:w-[8px]"
+          className="h-1.5 min-w-[2.5px] flex-1 @xl:h-2.5 @4xl:h-3.5"
           style={{ background: i < filled ? colorOf(i) : "#14202e" }}
         />
       ))}
@@ -61,54 +61,54 @@ export default function Hud({
   const breakersArr = [snap.breakers.A1, snap.breakers.A2, snap.breakers.B1, snap.breakers.B2];
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-30 flex flex-col justify-between p-1.5 sm:p-3 md:p-4">
+    <div className="pointer-events-none absolute inset-0 z-30 flex flex-col justify-between p-1.5 @xl:p-3 @4xl:p-4">
       {/* верхняя панель */}
-      <div className="flex items-start justify-between gap-1.5 sm:gap-3">
-        <div className="pxl-panel shrink-0 px-2 py-1 sm:px-3.5 sm:py-2">
-          <div className="max-w-[110px] truncate font-pixel text-[8px] text-cyan-300 sm:max-w-none sm:text-[10px]">
+      <div className="grid grid-cols-[minmax(0,auto)_1fr_auto] items-start gap-1 @xl:gap-2.5 @4xl:gap-4">
+        <div className="pxl-panel min-w-0 px-1.5 py-0.5 @xl:px-3 @xl:py-1.5 @4xl:px-4 @4xl:py-2">
+          <div className="max-w-[82px] truncate font-pixel text-[6.5px] text-cyan-300 @xl:max-w-[150px] @xl:text-[8.5px] @4xl:max-w-none @4xl:text-[10px]">
             {shipName}
           </div>
-          <div className="mt-0.5 font-term text-[8px] tracking-[0.16em] text-slate-500 sm:mt-1 sm:text-[10px] sm:tracking-[0.28em]">
-            КОМНАТА <span className="text-amber-300">{code}</span>
+          <div className="mt-0.5 whitespace-nowrap font-term text-[6.5px] tracking-[0.08em] text-slate-500 @xl:mt-1 @xl:text-[9px] @4xl:text-[10px] @4xl:tracking-[0.28em]">
+            <span className="hidden @xl:inline">КОМНАТА </span><span className="text-amber-300">{code}</span>
           </div>
         </div>
 
         {/* прогресс */}
-        <div className="pxl-panel min-w-0 flex-1 px-2 py-1 sm:px-4 sm:py-2.5">
-          <div className="flex items-center justify-between gap-1 whitespace-nowrap font-pixel text-[7px] text-slate-400 sm:text-[9px]">
-            <span>СЕКТОР 7</span>
+        <div className="pxl-panel min-w-0 px-1.5 py-1 @xl:px-3 @xl:py-2 @4xl:px-4 @4xl:py-2.5">
+          <div className="flex items-center justify-between gap-1 whitespace-nowrap font-pixel text-[6px] text-slate-400 @xl:text-[8px] @4xl:text-[9px]">
+            <span><span className="hidden @xl:inline">СЕКТОР 7</span><span className="@xl:hidden">С7</span></span>
             <span className="text-cyan-300">{Math.round(snap.progress * 100)}%</span>
-            <span>СТАНЦИЯ</span>
+            <span><span className="hidden @xl:inline">СТАНЦИЯ</span><span className="@xl:hidden">БАЗА</span></span>
           </div>
-          <div className="relative mt-1.5 h-2 bg-[#14202e] sm:mt-2 sm:h-2.5">
+          <div className="relative mt-1 h-1.5 bg-[#14202e] @xl:mt-2 @xl:h-2.5">
             <div
               className="h-full bg-gradient-to-r from-teal-500 via-cyan-400 to-emerald-300"
               style={{ width: `${snap.progress * 100}%` }}
             />
             <div
-              className="absolute -top-[5px] h-4 w-[8px] bg-amber-300 sm:-top-[7px] sm:h-6 sm:w-[10px]"
-              style={{ left: `calc(${snap.progress * 100}% - 4px)` }}
+              className="absolute -top-[4px] h-3.5 w-[6px] bg-amber-300 @xl:-top-[7px] @xl:h-6 @xl:w-[10px]"
+              style={{ left: `calc(${snap.progress * 100}% - 3px)` }}
             />
           </div>
         </div>
 
         {/* корпус + жар */}
-        <div className="pxl-panel flex shrink-0 items-center gap-2.5 px-2 py-1 sm:gap-4 sm:px-4 sm:py-2.5">
+        <div className="pxl-panel flex shrink-0 items-center gap-1.5 px-1.5 py-0.5 @xl:gap-3 @xl:px-3 @xl:py-1.5 @4xl:gap-5 @4xl:px-4 @4xl:py-2.5">
           <div>
-            <div className="flex items-center gap-1 whitespace-nowrap font-pixel text-[7px] text-slate-400 sm:gap-2 sm:text-[9px]">
-              <Flame className="h-3 w-3 text-rose-400 sm:h-3.5 sm:w-3.5" /> КОРПУС
+            <div className="flex items-center gap-1 whitespace-nowrap font-pixel text-[6px] text-slate-400 @xl:gap-1.5 @xl:text-[8px] @4xl:gap-2 @4xl:text-[9px]">
+              <Flame className="h-2.5 w-2.5 text-rose-400 @xl:h-3 @xl:w-3 @4xl:h-3.5 @4xl:w-3.5" /> КОРПУС
               <span className={hullDanger ? "text-rose-400" : "text-emerald-300"}>{snap.hull}%</span>
             </div>
-            <div className="mt-1 sm:mt-1.5">
+            <div className="mt-1 @xl:mt-1.5">
               <PixBar value={snap.hull} max={100} colorFrom="#ff3b5b" colorTo="#3bff8f" danger={hullDanger} />
             </div>
           </div>
           <div>
-            <div className="flex items-center gap-1 whitespace-nowrap font-pixel text-[7px] text-slate-400 sm:gap-2 sm:text-[9px]">
-              <Thermometer className="h-3 w-3 text-amber-400 sm:h-3.5 sm:w-3.5" /> ЖАР
+            <div className="flex items-center gap-1 whitespace-nowrap font-pixel text-[6px] text-slate-400 @xl:gap-1.5 @xl:text-[8px] @4xl:gap-2 @4xl:text-[9px]">
+              <Thermometer className="h-2.5 w-2.5 text-amber-400 @xl:h-3 @xl:w-3 @4xl:h-3.5 @4xl:w-3.5" /> ЖАР
               <span className={heatDanger ? "text-rose-400" : "text-slate-300"}>{snap.heat}°</span>
             </div>
-            <div className="mt-1 sm:mt-1.5">
+            <div className="mt-1 @xl:mt-1.5">
               <PixBar value={snap.heat} max={100} colorFrom="#2dd4ee" colorTo="#ff3b5b" danger={heatDanger} />
             </div>
           </div>
@@ -116,7 +116,7 @@ export default function Hud({
       </div>
 
       {/* аварии по центру */}
-      <div className="absolute left-1/2 top-14 flex w-full max-w-sm -translate-x-1/2 flex-col items-center gap-2 px-3 sm:top-20 sm:max-w-lg sm:gap-3 md:top-24">
+      <div className="absolute left-1/2 top-11 flex w-full max-w-xs -translate-x-1/2 flex-col items-center gap-1.5 px-2 @xl:top-16 @xl:max-w-lg @xl:gap-2.5 @xl:px-4 @4xl:top-24">
         {snap.errors.map((e) => (
           <div
             key={e.code}
@@ -160,19 +160,19 @@ export default function Hud({
       </div>
 
       {/* нижняя панель */}
-      <div className="flex items-end justify-between gap-2 sm:gap-4">
-        <div className="flex flex-wrap gap-1 sm:gap-2">
+      <div className="flex items-end justify-between gap-1.5 @xl:gap-3 @4xl:gap-4">
+        <div className="flex max-w-[64%] flex-wrap gap-1 @xl:gap-1.5 @4xl:gap-2">
           {players.map((p) => {
             const Icon = ROLE_ICONS[p.role];
             const meta = ROLE_META[p.role];
             return (
-              <div key={p.id} className="pxl-panel flex items-center gap-1.5 px-2 py-1 sm:gap-2 sm:px-3 sm:py-2">
+              <div key={p.id} className="pxl-panel flex items-center gap-1 px-1.5 py-0.5 @xl:gap-1.5 @xl:px-2.5 @xl:py-1.5 @4xl:px-3 @4xl:py-2">
                 <span
-                  className="inline-block h-2 w-2 rounded-full"
+                  className="inline-block h-1.5 w-1.5 shrink-0 rounded-full @xl:h-2 @xl:w-2"
                   style={{ background: p.connected ? "#3bff8f" : "#ff3b5b" }}
                 />
-                <Icon className="h-3 w-3 sm:h-4 sm:w-4" style={{ color: meta.color }} />
-                <span className="font-pixel text-[7px] sm:text-[9px]" style={{ color: meta.color }}>
+                <Icon className="h-2.5 w-2.5 shrink-0 @xl:h-3.5 @xl:w-3.5 @4xl:h-4 @4xl:w-4" style={{ color: meta.color }} />
+                <span className="max-w-[60px] truncate font-pixel text-[6.5px] @xl:max-w-none @xl:text-[8px] @4xl:text-[9px]" style={{ color: meta.color }}>
                   {p.name}
                 </span>
               </div>
@@ -183,38 +183,38 @@ export default function Hud({
             return (
               <div
                 key={`bot-${b.role}`}
-                className="pxl-panel flex items-center gap-1 border-emerald-500/40 px-2 py-1 sm:gap-2 sm:px-3 sm:py-2"
+                className="pxl-panel flex items-center gap-1 border-emerald-500/40 px-1.5 py-0.5 @xl:gap-1.5 @xl:px-2.5 @xl:py-1.5 @4xl:px-3 @4xl:py-2"
               >
-                <Bot className="h-3 w-3 text-emerald-300 sm:h-4 sm:w-4" />
-                <span className="font-pixel text-[7px] text-emerald-300 sm:text-[9px]">{b.name}</span>
-                <span className="hidden font-pixel text-[8px] sm:inline" style={{ color: meta.color }}>
+                <Bot className="h-2.5 w-2.5 shrink-0 text-emerald-300 @xl:h-3.5 @xl:w-3.5 @4xl:h-4 @4xl:w-4" />
+                <span className="max-w-[60px] truncate font-pixel text-[6.5px] text-emerald-300 @xl:max-w-none @xl:text-[8px] @4xl:text-[9px]">{b.name}</span>
+                <span className="hidden font-pixel text-[8px] @4xl:inline" style={{ color: meta.color }}>
                   {meta.label}
                 </span>
               </div>
             );
           })}
           {players.length === 0 && botSlots.length === 0 && (
-            <div className="pxl-panel px-2 py-1 font-pixel text-[8px] text-slate-500 sm:px-3 sm:py-2 sm:text-[9px]">
+            <div className="pxl-panel px-2 py-1 font-pixel text-[7px] text-slate-500 @xl:px-3 @xl:py-2 @xl:text-[9px]">
               ЭКИПАЖ НЕ НАЙДЕН
             </div>
           )}
         </div>
 
-        <div className="pxl-panel max-w-[200px] shrink-0 px-2 py-1 text-right sm:max-w-sm sm:px-3 sm:py-2">
+        <div className="pxl-panel max-w-[35%] shrink-0 px-1.5 py-0.5 text-right @xl:max-w-xs @xl:px-2.5 @xl:py-1.5 @4xl:max-w-sm @4xl:px-3 @4xl:py-2">
           {snap.hazards.length > 0 && (
-            <div className="mb-1 flex justify-end gap-1 sm:mb-1.5 sm:gap-2">
+            <div className="mb-0.5 flex flex-wrap justify-end gap-1 @xl:mb-1.5 @xl:gap-2">
               {snap.hazards.map((h) => (
                 <span
                   key={h}
-                  className="border border-fuchsia-500/60 bg-fuchsia-950/60 px-1.5 py-0.5 font-pixel text-[7px] text-fuchsia-300 sm:px-2 sm:text-[8px]"
+                  className="border border-fuchsia-500/60 bg-fuchsia-950/60 px-1 py-0.5 font-pixel text-[6px] text-fuchsia-300 @xl:px-2 @xl:text-[8px]"
                 >
                   {h === "storm" ? "СОЛНЕЧНАЯ БУРЯ" : h === "gravity" ? "ГРАВИКОЛОДЕЦ" : "ПИРАТЫ"}
                 </span>
               ))}
             </div>
           )}
-          <div className="font-term text-[8px] leading-snug text-slate-500 sm:text-[10px] sm:leading-relaxed">
-            {snap.log.slice(-3).map((l, i, arr) => (
+          <div className="font-term text-[7px] leading-tight text-slate-500 @xl:text-[9px] @4xl:text-[10px] @4xl:leading-relaxed">
+            {snap.log.slice(-2).map((l, i, arr) => (
               <div key={l + i} className={`truncate ${i === arr.length - 1 ? "text-slate-300" : ""}`}>
                 {l}
               </div>

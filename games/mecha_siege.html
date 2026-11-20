@@ -1102,23 +1102,37 @@
 
     @media (max-height: 520px) {
       .hud-layer {
-        top: 6px;
-        left: 8px;
-        right: 8px;
-        gap: 6px;
+        top: 4px;
+        left: 6px;
+        right: 6px;
+        gap: 4px;
       }
       .hud-box {
-        padding: 4px 8px;
-        gap: 8px;
-        font-size: 0.65rem;
+        padding: 3px 6px;
+        gap: 6px;
+        font-size: 0.6rem;
       }
       .core-hp-bar {
-        width: 70px;
-        height: 8px;
+        width: 54px;
+        height: 7px;
+      }
+      .super-weapons-bar {
+        gap: 4px;
+        flex-wrap: nowrap;
+        align-items: center;
       }
       .btn-super {
-        padding: 4px 7px;
-        font-size: 0.58rem;
+        padding: 3px 6px;
+        font-size: 0.54rem;
+        height: 28px;
+        display: inline-flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+      }
+      #btn-mode-badge {
+        display: none;
       }
       .dock-status-bar {
         display: flex !important;
@@ -1173,9 +1187,9 @@
       cursor: not-allowed;
     }
   </style>
-  <script src="../js/webrtc-room.js?v=12"></script>
-  <script src="../js/landscape-guard.js?v=12"></script>
-  <script src="../js/game-hero-screen.js?v=12"></script>
+  <script src="../js/webrtc-room.js?v=13"></script>
+  <script src="../js/landscape-guard.js?v=13"></script>
+  <script src="../js/game-hero-screen.js?v=13"></script>
 </head>
 <body>
 
@@ -2540,8 +2554,8 @@
         this.canvas.width = Math.round(w * this.dpr);
         this.canvas.height = Math.round(h * this.dpr);
         // Reserve thin header/dock bands so 4:3 tactical field stays unclipped and undistorted
-        const padTop = h <= 520 ? 34 : 52;
-        const padBot = h <= 520 ? 58 : 88;
+        const padTop = h <= 520 ? 38 : 54;
+        const padBot = h <= 520 ? 64 : 90;
         const availH = Math.max(200, h - padTop - padBot);
         const scale = Math.min(w / this.width, availH / this.height);
         this.viewScale = scale;
@@ -3288,7 +3302,7 @@
         this.isPaused = true;
         AudioEngine.stopBGM();
         this.closeModals();
-        if (window.NeoHeroScreen && window.NeoHeroScreen.show) window.NeoHeroScreen.show();
+        if (window.NeoHeroLanding && window.NeoHeroLanding.show) window.NeoHeroLanding.show();
       },
 
       closeModals() {

@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Worms Armageddon — Artillery Web Edition</title>
   <link rel="stylesheet" href="styles.css" />
-  <script src="../js/landscape-guard.js?v=12"></script>
-  <script src="../js/game-hero-screen.js?v=12"></script>
+  <script src="../js/landscape-guard.js?v=13"></script>
+  <script src="../js/game-hero-screen.js?v=13"></script>
 </head>
 <body>
   <div id="app">
@@ -52,7 +52,7 @@
         <div class="hud-divider"></div>
         <div class="wind-block">
           <div class="wind-header">
-            <span>WIND</span>
+            <span>ВЕТЕР</span>
             <span id="hud-wind-val">0</span>
           </div>
           <div class="wind-bar-track">
@@ -66,8 +66,9 @@
 
       <div class="hud-right">
         <div class="mobile-hud-toggles">
-          <button id="btn-minimap-toggle" type="button" class="hud-btn mobile-icon-btn" title="Toggle Minimap">Map</button>
-          <button id="btn-mobile-menu" type="button" class="hud-btn mobile-icon-btn" title="Tools &amp; Menu">☰</button>
+          <button id="btn-minimap-toggle" type="button" class="hud-btn mobile-icon-btn" title="Мини-карта">Map</button>
+          <button id="btn-mobile-pause" type="button" class="hud-btn mobile-icon-btn" title="Пауза">⏸</button>
+          <button id="btn-mobile-menu" type="button" class="hud-btn mobile-icon-btn" title="Меню и настройки">☰</button>
         </div>
         <div class="minimap-frame panel-bevel">
           <canvas id="minimap-canvas" width="200" height="100"></canvas>

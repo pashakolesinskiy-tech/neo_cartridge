@@ -8,6 +8,43 @@ const P2P = {
   roomCode: '',
   selectedGame: 'stick_fighting',
   _copyResetTimer: null,
+  _roomRegistryKey: 'neo_p2p_room_games',
+  _bc: null,
+
+  _readRegistry() {
+    const now = Date.now();
+    try {
+      const raw = JSON.parse(localStorage.getItem(this._roomRegistryKey) || '{}');
+      const cleaned = {};
+      for (const [code, rec] of Object.entries(raw || {})) {
+        if (rec && typeof rec.gameId === 'string' && (!rec.ts || now - rec.ts < 86400000)) {
+          cleaned[code] = rec;
+        }
+      }
+      return cleaned;
+    } catch {
+      return {};
+    }
+  },
+
+  _registerRoomGame(code, gameId) {
+    if (!code || !gameId || !this.GAME_ROUTES[gameId]) return;
+    const clean = window.NeoP2PRoom ? NeoP2PRoom.normalizeCode(code) : String(code).toUpperCase();
+    const reg = this._readRegistry();
+    reg[clean] = { gameId, ts: Date.now() };
+    try {
+      localStorage.setItem(this._roomRegistryKey, JSON.stringify(reg));
+    } catch {}
+    try {
+      this._bc?.postMessage({ type: 'room_created', code: clean, gameId });
+    } catch {}
+  },
+
+  _lookupRoomGame(code) {
+    const clean = window.NeoP2PRoom ? NeoP2PRoom.normalizeCode(code) : String(code || '').toUpperCase();
+    const rec = this._readRegistry()[clean];
+    return rec && this.GAME_ROUTES[rec.gameId] ? rec.gameId : null;
+  },
 
   GAME_ROUTES: {
     stick_fighting: {
@@ -49,6 +86,19 @@ const P2P = {
   },
 
   init() {
+    if (typeof BroadcastChannel !== 'undefined' && !this._bc) {
+      try {
+        this._bc = new BroadcastChannel('neo_p2p_room_registry');
+        this._bc.onmessage = (ev) => {
+          const d = ev?.data;
+          if (d && d.type === 'room_created' && d.code && d.gameId) {
+            const reg = this._readRegistry();
+            reg[d.code] = { gameId: d.gameId, ts: Date.now() };
+            try { localStorage.setItem(this._roomRegistryKey, JSON.stringify(reg)); } catch {}
+          }
+        };
+      } catch {}
+    }
     this.setupUI();
     this.updateStatusUI('ready');
   },
@@ -104,6 +154,7 @@ const P2P = {
   async createOffer() {
     const gameId = this.getActiveGameId();
     this.roomCode = this.generateRoomCode(gameId);
+    this._registerRoomGame(this.roomCode, gameId);
     const inviteUrl = this.buildGuestUrl(gameId, this.roomCode);
 
     const codeBadge = document.getElementById('p2p-room-code-badge');
@@ -184,6 +235,7 @@ const P2P = {
     }
 
     let clean = raw;
+    let urlMatchedGame = false;
     try {
       if (raw.includes('http://') || raw.includes('https://') || raw.includes('?') || raw.includes('#/')) {
         const parsed = new URL(raw, window.location.origin);
@@ -191,6 +243,7 @@ const P2P = {
         for (const id of Object.keys(this.GAME_ROUTES)) {
           if (lowPath.includes(id)) {
             gameId = id;
+            urlMatchedGame = true;
             const sel = document.getElementById('p2p-game-select');
             if (sel) sel.value = id;
             this.selectedGame = id;
@@ -211,6 +264,15 @@ const P2P = {
     if (clean.length < 3) {
       this.setStatusText('Код должен содержать минимум 3 символа.', 'err');
       return;
+    }
+    if (!urlMatchedGame) {
+      const regGame = this._lookupRoomGame(clean);
+      if (regGame) {
+        gameId = regGame;
+        this.selectedGame = regGame;
+        const sel = document.getElementById('p2p-game-select');
+        if (sel) sel.value = regGame;
+      }
     }
     const guestUrl = this.buildGuestUrl(gameId, clean);
     this.setStatusText(`Подключение к комнате ${clean}...`, 'ok');

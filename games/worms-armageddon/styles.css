@@ -1165,11 +1165,12 @@ body {
 }
 
 @media (pointer: coarse), (max-width: 600px), (max-height: 410px) {
-  body.in-battle.my-turn .touch-controls {
+  body.in-battle.my-turn:not(.modal-open) .touch-controls {
     display: flex !important;
   }
 }
 
+body.in-battle.modal-open .touch-controls,
 body.modal-open .touch-controls {
   display: none !important;
 }

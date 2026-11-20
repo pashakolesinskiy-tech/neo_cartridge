@@ -297,7 +297,7 @@ export class GameEngine {
     this.camera.clearManualHold();
     this.camera.focus(chosen.x, chosen.y - 20, immediateCamera);
 
-    this.showBanner(`${team.name} — ${chosen.name}'s Turn`, team.palette.color, 2.2);
+    this.showBanner(`${team.name} — ход: ${chosen.name}`, team.palette.color, 2.2);
 
     if (team.isAI) {
       this.ai.reset(team.aiDifficulty);
@@ -605,7 +605,7 @@ export class GameEngine {
           target.applyDamage(0, worm.facing * weapon.knockback, -140);
         }
       }
-      this.showBanner(`WIND SHIFTED ${worm.facing >= 0 ? '85 →' : '← 85'}!`, '#48dbfb', 2.0);
+      this.showBanner(`ВЕТЕР: ${worm.facing >= 0 ? '85 →' : '← 85'}!`, '#48dbfb', 2.0);
       this.phase = PHASES.RETREAT;
       this.retreatTimer = weapon.retreatTime;
       this.onHudUpdate?.(this);

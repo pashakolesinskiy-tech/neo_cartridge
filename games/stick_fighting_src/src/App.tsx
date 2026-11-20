@@ -24,9 +24,20 @@ function isTouchOrMobileViewport(): boolean {
   );
 }
 
+function readSavedTouchManual(): boolean | null {
+  try {
+    const saved = JSON.parse(localStorage.getItem('stickfighting-settings-v1') ?? 'null');
+    if (saved && typeof saved === 'object' && typeof saved.touchManual === 'boolean') {
+      return saved.touchManual;
+    }
+  } catch { /* Ignore */ }
+  return null;
+}
+
 function readSettings(): Settings {
   const autoTouch = isTouchOrMobileViewport();
-  const defaults: Settings = { volume: 0.65, muted: false, shake: true, touch: autoTouch };
+  const touchManual = readSavedTouchManual();
+  const defaults: Settings = { volume: 0.65, muted: false, shake: true, touch: touchManual ?? autoTouch };
   try {
     const saved = JSON.parse(localStorage.getItem('stickfighting-settings-v1') ?? 'null');
     if (!saved || typeof saved !== 'object') return defaults;
@@ -34,7 +45,7 @@ function readSettings(): Settings {
       volume: typeof saved.volume === 'number' && Number.isFinite(saved.volume) ? Math.max(0, Math.min(1, saved.volume)) : defaults.volume,
       muted: typeof saved.muted === 'boolean' ? saved.muted : defaults.muted,
       shake: typeof saved.shake === 'boolean' ? saved.shake : defaults.shake,
-      touch: typeof saved.touch === 'boolean' ? saved.touch : defaults.touch,
+      touch: touchManual !== null ? touchManual : autoTouch,
     };
   } catch { return defaults; }
 }
@@ -65,6 +76,7 @@ export default function App() {
   const onlineRef = useRef<OnlineGame | null>(null);
   const qrHandledRef = useRef(false);
   const reportedMatchRef = useRef(false);
+  const touchManualRef = useRef<boolean | null>(readSavedTouchManual());
   const configRef = useRef(config);
   const screenRef = useRef(screen);
   const settingsRef = useRef(settings);
@@ -101,7 +113,17 @@ export default function App() {
 
   useEffect(() => {
     engineRef.current?.setSettings(settings);
-    try { localStorage.setItem('stickfighting-settings-v1', JSON.stringify(settings)); } catch { /* Storage is optional. */ }
+    try {
+      localStorage.setItem(
+        'stickfighting-settings-v1',
+        JSON.stringify({
+          volume: settings.volume,
+          muted: settings.muted,
+          shake: settings.shake,
+          touchManual: touchManualRef.current,
+        })
+      );
+    } catch { /* Storage is optional. */ }
   }, [settings]);
 
   useEffect(() => {
@@ -277,9 +299,9 @@ export default function App() {
 
   useEffect(() => {
     const syncTouchOnResize = () => {
-      if (isTouchOrMobileViewport()) {
-        setSettings(prev => (prev.touch ? prev : { ...prev, touch: true }));
-      }
+      if (touchManualRef.current !== null) return;
+      const want = isTouchOrMobileViewport();
+      setSettings(prev => (prev.touch === want ? prev : { ...prev, touch: want }));
     };
     window.addEventListener('resize', syncTouchOnResize);
     return () => window.removeEventListener('resize', syncTouchOnResize);
@@ -391,7 +413,10 @@ export default function App() {
 
     {screen !== 'battle' && <footer className="site-footer"><span>Без загрузок. Без регистрации. Только бой.</span><span>ПИКСЕЛИ. УДАРЫ. ХАРАКТЕР.</span></footer>}
     {modal === 'help' && <HelpModal onClose={closeModal} />}
-    {modal === 'settings' && <SettingsModal settings={settings} onChange={setSettings} onClose={closeModal} />}
+    {modal === 'settings' && <SettingsModal settings={settings} onChange={next => {
+      if (next.touch !== settings.touch) touchManualRef.current = next.touch;
+      setSettings(next);
+    }} onClose={closeModal} />}
     {toast && <div className="toast" role="status">{toast}</div>}
   </div>;
 }

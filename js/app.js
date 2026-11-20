@@ -516,6 +516,15 @@ const App = {
     const controlsEl = document.getElementById('slot-game-controls');
     const recordEl = document.getElementById('slot-game-record');
     const romPillEl = document.getElementById('hero-rom-pill');
+    const artChipEl = document.getElementById('hero-art-chip');
+    const artTags = {
+      stick_fighting: '🥊 FIGHTER ART',
+      pixel_drift: '🏎️ DRIFT ART',
+      chrono_blade: '⚔️ CYBER ART',
+      mecha_siege: '🤖 MECHA ART',
+      worms_armageddon: '🐛 WORMS ART',
+      cosmo_junk: '🚀 SPACE ART',
+    };
 
     if (titleEl) titleEl.textContent = cart.name;
     if (genreEl) genreEl.textContent = cart.genre;
@@ -523,6 +532,7 @@ const App = {
     if (controlsEl) controlsEl.textContent = cart.controls;
     if (recordEl) recordEl.textContent = Storage.getHighscore(this.currentCartridge);
     if (romPillEl) romPillEl.textContent = `ROM #0${this.deckIndex + 1}`;
+    if (artChipEl) artChipEl.textContent = artTags[this.currentCartridge] || '🎮 ARCADE ART';
   },
 
   initPreloader() {

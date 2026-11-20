@@ -977,6 +977,12 @@ btnPause?.addEventListener('click', () => {
   const isOpen = pauseModal && !pauseModal.classList.contains('hidden');
   setPaused(!isOpen);
 });
+document.getElementById('btn-mobile-pause')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  closeMobileOverlays();
+  const isOpen = pauseModal && !pauseModal.classList.contains('hidden');
+  setPaused(!isOpen);
+});
 document.getElementById('btn-pause-resume')?.addEventListener('click', () => setPaused(false));
 document.getElementById('btn-pause-restart')?.addEventListener('click', () => {
   if (game.netRole === 'guest') return;

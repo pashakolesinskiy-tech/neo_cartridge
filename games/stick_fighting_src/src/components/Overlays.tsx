@@ -8,25 +8,29 @@ export function opponentFor(id: FighterId): FighterId { return id === 'vortex' ?
 export function SetupScreen({ config, onChange, onBack, onStart }: { config: MatchConfig; onChange: (config: MatchConfig) => void; onBack: () => void; onStart: () => void }) {
   return <div className="setup-screen screen-enter">
     <div className="setup-top"><div><div className="eyebrow">ТВОЙ БОЙ НАЧИНАЕТСЯ ЗДЕСЬ</div><h1>Выбери свой стиль.</h1></div><button type="button" className="text-button setup-back" onClick={onBack}><ArrowLeft size={17} /> Назад</button></div>
-    <div className="setup-field-heading"><span className="step-number">01</span><span>БОЕЦ</span><span className="selected-move">{FIGHTERS[config.player].special}</span></div>
-    <div className="setup-fighters">
-      {(Object.keys(FIGHTERS) as FighterId[]).map(id => <button key={id} type="button" className={`setup-fighter ${config.player === id ? 'selected' : ''}`} aria-pressed={config.player === id} onClick={() => onChange({ ...config, player: id, enemy: opponentFor(id) })} style={{ '--fighter-color': FIGHTERS[id].color } as CSSProperties}>
-        <FighterPortrait id={id} />
-        <span className="setup-fighter-info"><strong>{FIGHTERS[id].name}</strong><span>{FIGHTERS[id].role}</span><span className="fighter-traits"><i>Скорость <b>{id === 'spark' ? '5' : id === 'vortex' ? '3' : '2'}/5</b></i><i>Сила <b>{id === 'titan' ? '5' : id === 'vortex' ? '3' : '2'}/5</b></i></span></span>
-        {config.player === id && <Check size={17} className="selection-check" />}
-      </button>)}
+    <div className="setup-col-left">
+      <div className="setup-field-heading"><span className="step-number">01</span><span>БОЕЦ</span><span className="selected-move">{FIGHTERS[config.player].special}</span></div>
+      <div className="setup-fighters">
+        {(Object.keys(FIGHTERS) as FighterId[]).map(id => <button key={id} type="button" className={`setup-fighter ${config.player === id ? 'selected' : ''}`} aria-pressed={config.player === id} onClick={() => onChange({ ...config, player: id, enemy: opponentFor(id) })} style={{ '--fighter-color': FIGHTERS[id].color } as CSSProperties}>
+          <FighterPortrait id={id} />
+          <span className="setup-fighter-info"><strong>{FIGHTERS[id].name}</strong><span>{FIGHTERS[id].role}</span><span className="fighter-traits"><i>Скорость <b>{id === 'spark' ? '5' : id === 'vortex' ? '3' : '2'}/5</b></i><i>Сила <b>{id === 'titan' ? '5' : id === 'vortex' ? '3' : '2'}/5</b></i></span></span>
+          {config.player === id && <Check size={17} className="selection-check" />}
+        </button>)}
+      </div>
     </div>
-    <div className="setup-field-heading"><span className="step-number">02</span><span>АРЕНА</span></div>
-    <div className="setup-arenas">
-      {(Object.keys(ARENAS) as ArenaId[]).map(id => <button key={id} type="button" className={`arena-option ${config.arena === id ? 'selected' : ''}`} aria-pressed={config.arena === id} onClick={() => onChange({ ...config, arena: id })}>
-        <ArenaThumbnail id={id} /><span className="arena-option-caption"><strong>{ARENAS[id].name}</strong><span>{ARENAS[id].description}</span>{config.arena === id && <Check size={16} />}</span>
-      </button>)}
+    <div className="setup-col-right">
+      <div className="setup-field-heading"><span className="step-number">02</span><span>АРЕНА</span></div>
+      <div className="setup-arenas">
+        {(Object.keys(ARENAS) as ArenaId[]).map(id => <button key={id} type="button" className={`arena-option ${config.arena === id ? 'selected' : ''}`} aria-pressed={config.arena === id} onClick={() => onChange({ ...config, arena: id })}>
+          <ArenaThumbnail id={id} /><span className="arena-option-caption"><strong>{ARENAS[id].name}</strong><span>{ARENAS[id].description}</span>{config.arena === id && <Check size={16} />}</span>
+        </button>)}
+      </div>
+      <div className="difficulty-row">
+        <div><div className="setup-field-heading"><span className="step-number">03</span><span>СЛОЖНОСТЬ ИИ</span></div><p>{DIFFICULTIES[config.difficulty].description}</p></div>
+        <div className="difficulty-options" aria-label="Сложность ИИ">{(Object.keys(DIFFICULTIES) as Difficulty[]).map(id => <button key={id} type="button" aria-pressed={config.difficulty === id} className={config.difficulty === id ? 'selected' : ''} onClick={() => onChange({ ...config, difficulty: id })}>{DIFFICULTIES[id].name}</button>)}</div>
+      </div>
+      <div className="setup-bottom"><span className="opponent-note"><Swords size={18} /><span>Твой соперник: <strong>{FIGHTERS[config.enemy].name}</strong></span></span><button type="button" className="primary-button" onClick={onStart}>В БОЙ <ChevronRight size={22} /></button></div>
     </div>
-    <div className="difficulty-row">
-      <div><div className="setup-field-heading"><span className="step-number">03</span><span>СЛОЖНОСТЬ ИИ</span></div><p>{DIFFICULTIES[config.difficulty].description}</p></div>
-      <div className="difficulty-options" aria-label="Сложность ИИ">{(Object.keys(DIFFICULTIES) as Difficulty[]).map(id => <button key={id} type="button" aria-pressed={config.difficulty === id} className={config.difficulty === id ? 'selected' : ''} onClick={() => onChange({ ...config, difficulty: id })}>{DIFFICULTIES[id].name}</button>)}</div>
-    </div>
-    <div className="setup-bottom"><span className="opponent-note"><Swords size={18} /><span>Твой соперник: <strong>{FIGHTERS[config.enemy].name}</strong></span></span><button type="button" className="primary-button" onClick={onStart}>В БОЙ <ChevronRight size={22} /></button></div>
   </div>;
 }
 
