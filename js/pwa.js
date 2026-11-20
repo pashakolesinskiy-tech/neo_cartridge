@@ -5,7 +5,7 @@
  */
 
 const PWA = {
-  CACHE_NAME: 'neo-cartridge-pwa-v2',
+  CACHE_NAME: 'neo-cartridge-pwa-v3',
   DISMISS_KEY: 'neo_pwa_banner_dismissed',
   OFFLINE_READY_KEY: 'neo_pwa_offline_ready',
   deferredPrompt: null,
@@ -385,8 +385,12 @@ const PWA = {
 
   applyUpdate() {
     this.userRequestedReload = true;
-    if (this.waitingWorker) {
-      this.waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+    const toast = document.getElementById('pwa-update-toast');
+    if (toast) toast.classList.remove('open');
+    const target = this.waitingWorker || (this.registration && this.registration.waiting);
+    if (target && target.state !== 'activated') {
+      target.postMessage({ type: 'SKIP_WAITING' });
+      setTimeout(() => window.location.reload(), 600);
     } else {
       window.location.reload();
     }

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'neo-cartridge-pwa-v2';
+const CACHE_NAME = 'neo-cartridge-pwa-v3';
 
 const CORE_ASSETS = [
   './',
@@ -40,7 +40,9 @@ self.addEventListener('install', (event) => {
       await Promise.allSettled(
         CORE_ASSETS.map((asset) => cache.add(asset))
       );
-      await self.skipWaiting();
+      if (!self.registration.active) {
+        await self.skipWaiting();
+      }
     })
   );
 });
@@ -58,6 +60,11 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+function isShellDocumentOrCode(request, url) {
+  if (request.mode === 'navigate') return true;
+  return /\.(?:html|css|js|webmanifest)$/i.test(url.pathname);
+}
+
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
@@ -72,7 +79,7 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
   if (url.pathname.includes('/api/')) return;
 
-  if (request.mode === 'navigate') {
+  if (isShellDocumentOrCode(request, url)) {
     event.respondWith(
       (async () => {
         const cache = await caches.open(CACHE_NAME);
@@ -86,8 +93,10 @@ self.addEventListener('fetch', (event) => {
           return (
             (await cache.match(request)) ||
             (await cache.match(request, { ignoreSearch: true })) ||
-            (await cache.match('./index.html')) ||
-            (await cache.match('./'))
+            (request.mode === 'navigate'
+              ? (await cache.match('./index.html')) || (await cache.match('./'))
+              : null) ||
+            new Response('', { status: 504, statusText: 'Offline' })
           );
         }
       })()
@@ -95,10 +104,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Binary images / sprites / icons: Stale-While-Revalidate
   event.respondWith(
     (async () => {
       const cache = await caches.open(CACHE_NAME);
-      const cached = await cache.match(request);
+      const cached =
+        (await cache.match(request)) ||
+        (await cache.match(request, { ignoreSearch: true }));
       const networkFetch = fetch(request)
         .then((res) => {
           if (res && res.ok && res.type === 'basic') {
