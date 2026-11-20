@@ -20,6 +20,14 @@ const ROLE_ICONS: Record<Role, typeof Gamepad2> = {
   spectator: Eye,
 };
 
+const ROLE_SPRITE_COL: Record<Role, number> = {
+  pilot: 0,
+  engineer: 1,
+  gunner: 2,
+  navigator: 3,
+  spectator: 5,
+};
+
 export default function LobbyView({
   room, onStart, starting, botSlots, difficulty, onDifficulty, disabledRoles, onToggleBot,
 }: {
@@ -154,17 +162,22 @@ export default function LobbyView({
                 style={{ opacity: filled ? 1 : 0.5 }}
               >
                 <div
-                  className="flex h-12 w-12 items-center justify-center border-2"
+                  className="flex h-12 w-12 items-center justify-center overflow-hidden border-2"
                   style={{
                     borderColor: player ? meta.color : bot ? "#3bff8f" : "#1b2b3a",
                     background: player ? `${meta.color}22` : bot ? "#3bff8f18" : "transparent",
                   }}
                 >
-                  {bot && !player ? (
-                    <Bot className="h-6 w-6 text-emerald-300" />
-                  ) : (
-                    <Icon className="h-6 w-6" style={{ color: meta.color }} />
-                  )}
+                  <div
+                    title={bot && !player ? "БОТ" : meta.label}
+                    className="h-11 w-11 shrink-0"
+                    style={{
+                      backgroundImage: "url('sprites/cosmo_junk_sheet.png')",
+                      backgroundSize: "600% 400%",
+                      backgroundRepeat: "no-repeat",
+                      backgroundPosition: `${((bot && !player) ? 4 : ROLE_SPRITE_COL[role]) * 20}% 66.6667%`,
+                    }}
+                  />
                 </div>
                 <div className="flex-1">
                   <div

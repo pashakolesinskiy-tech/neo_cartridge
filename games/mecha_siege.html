@@ -1954,6 +1954,26 @@
     };
 
     /**
+     * WORMS-STYLE SPRITE SHEET LOADER FOR MECHA SIEGE
+     */
+    const mechaSheet = new Image();
+    let mechaSheetReady = false;
+    mechaSheet.onload = () => { mechaSheetReady = true; };
+    mechaSheet.src = 'sprites/mecha_siege_sheet.png';
+
+    function drawMechaSprite(ctx, col, row, x, y, w, h, rot = 0, alpha = 1) {
+      if (!mechaSheetReady || !mechaSheet.naturalWidth) return false;
+      ctx.save();
+      ctx.translate(x, y);
+      if (rot) ctx.rotate(rot);
+      if (alpha !== 1) ctx.globalAlpha *= alpha;
+      ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(mechaSheet, col * 192, row * 192, 192, 192, -w * 0.5, -h * 0.5, w, h);
+      ctx.restore();
+      return true;
+    }
+
+    /**
      * TOWER DEFENSE DEFINITIONS
      */
     const TOWER_TYPES = {
@@ -4725,6 +4745,10 @@
 
         // Draw Active Landmines
         for (const m of this.mines) {
+          if (mechaSheetReady) {
+            drawMechaSprite(ctx, 5, 1, m.x, m.y, 22, 22, 0, 1);
+            continue;
+          }
           ctx.beginPath();
           ctx.arc(m.x, m.y, 6, 0, Math.PI * 2);
           ctx.fillStyle = '#ff5500';
@@ -4922,43 +4946,47 @@
             ctx.restore();
 
             // 2. High-Altitude Airborne 120mm Heavy Shell
-            ctx.save();
-            ctx.translate(airX, airY);
-            ctx.rotate(pitch);
+            if (mechaSheetReady) {
+              drawMechaSprite(ctx, 3, 2, airX, airY, 28, 28, pitch, 1);
+            } else {
+              ctx.save();
+              ctx.translate(airX, airY);
+              ctx.rotate(pitch);
 
-            // Rocket / Tracer Tail Flame Flare
-            const flameLen = 8 + Math.random() * 6;
-            ctx.fillStyle = '#ffb800';
-            ctx.shadowColor = '#ff3300';
-            ctx.shadowBlur = 12;
-            ctx.beginPath();
-            ctx.moveTo(-7, -2.5);
-            ctx.lineTo(-7 - flameLen, 0);
-            ctx.lineTo(-7, 2.5);
-            ctx.closePath();
-            ctx.fill();
+              // Rocket / Tracer Tail Flame Flare
+              const flameLen = 8 + Math.random() * 6;
+              ctx.fillStyle = '#ffb800';
+              ctx.shadowColor = '#ff3300';
+              ctx.shadowBlur = 12;
+              ctx.beginPath();
+              ctx.moveTo(-7, -2.5);
+              ctx.lineTo(-7 - flameLen, 0);
+              ctx.lineTo(-7, 2.5);
+              ctx.closePath();
+              ctx.fill();
 
-            // Shell Body (Heavy Steel Aerodynamic Mortar Cartridge)
-            ctx.fillStyle = '#1e293b';
-            ctx.fillRect(-7, -3.5, 9, 7);
-            ctx.strokeStyle = '#475569';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(-7, -3.5, 9, 7);
+              // Shell Body (Heavy Steel Aerodynamic Mortar Cartridge)
+              ctx.fillStyle = '#1e293b';
+              ctx.fillRect(-7, -3.5, 9, 7);
+              ctx.strokeStyle = '#475569';
+              ctx.lineWidth = 1;
+              ctx.strokeRect(-7, -3.5, 9, 7);
 
-            // Shell Conical Warhead (Crimson High-Explosive Tip)
-            ctx.fillStyle = '#ff0055';
-            ctx.beginPath();
-            ctx.moveTo(2, -3.5);
-            ctx.lineTo(8, 0);
-            ctx.lineTo(2, 3.5);
-            ctx.closePath();
-            ctx.fill();
+              // Shell Conical Warhead (Crimson High-Explosive Tip)
+              ctx.fillStyle = '#ff0055';
+              ctx.beginPath();
+              ctx.moveTo(2, -3.5);
+              ctx.lineTo(8, 0);
+              ctx.lineTo(2, 3.5);
+              ctx.closePath();
+              ctx.fill();
 
-            // Brass driving band
-            ctx.fillStyle = '#f59e0b';
-            ctx.fillRect(-4, -4, 2.5, 8);
+              // Brass driving band
+              ctx.fillStyle = '#f59e0b';
+              ctx.fillRect(-4, -4, 2.5, 8);
 
-            ctx.restore();
+              ctx.restore();
+            }
           } else if (p.type === 'blizzard_projectile') {
             ctx.save();
             ctx.translate(p.x, p.y);
@@ -4994,25 +5022,34 @@
             ctx.restore();
 
             // Airborne bomblet canister
-            ctx.save();
-            ctx.translate(p.x, p.y - arcOffset);
-            ctx.rotate(p.timer * 15);
-            ctx.fillStyle = '#ff5500';
-            ctx.fillRect(-3.5, -3.5, 7, 7);
-            ctx.strokeStyle = '#ffb800';
-            ctx.lineWidth = 1.2;
-            ctx.strokeRect(-3.5, -3.5, 7, 7);
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(0, 0, 1.5, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
+            if (mechaSheetReady) {
+              drawMechaSprite(ctx, 5, 2, p.x, p.y - arcOffset, 20, 20, p.timer * 15, 1);
+            } else {
+              ctx.save();
+              ctx.translate(p.x, p.y - arcOffset);
+              ctx.rotate(p.timer * 15);
+              ctx.fillStyle = '#ff5500';
+              ctx.fillRect(-3.5, -3.5, 7, 7);
+              ctx.strokeStyle = '#ffb800';
+              ctx.lineWidth = 1.2;
+              ctx.strokeRect(-3.5, -3.5, 7, 7);
+              ctx.fillStyle = '#ffffff';
+              ctx.beginPath();
+              ctx.arc(0, 0, 1.5, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.restore();
+            }
           }
         }
 
         // Draw Ball Lightnings (Plasma Orb Entities)
         for (const bl of this.ballLightnings) {
           const alpha = Math.min(1, bl.life / 0.5);
+          if (mechaSheetReady) {
+            const sz = (bl.radius || 12) * 3.1;
+            drawMechaSprite(ctx, 4, 2, bl.x, bl.y, sz, sz, bl.rotAngle || 0, alpha);
+            continue;
+          }
           ctx.save();
           ctx.translate(bl.x, bl.y);
 
@@ -5195,6 +5232,11 @@
             ctx.restore();
           } else if (p.type === 'fireball') {
             const alpha = Math.max(0, p.life / p.maxLife);
+            if (mechaSheetReady) {
+              const sz = (p.radius || 16) * 2.25;
+              drawMechaSprite(ctx, 0, 3, p.x, p.y, sz, sz, (p.x + p.y) * 0.05, alpha * 0.92);
+              continue;
+            }
             ctx.save();
             ctx.globalAlpha = alpha * 0.85;
             const grad = ctx.createRadialGradient(p.x, p.y, p.radius * 0.1, p.x, p.y, p.radius);
@@ -5357,7 +5399,19 @@
         const cy = this.corePos.y;
         const t = performance.now() * 0.003;
 
-        // Outer Hex Shield
+        if (mechaSheetReady) {
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.fillStyle = 'rgba(0, 243, 255, 0.16)';
+          ctx.beginPath();
+          ctx.arc(0, 0, 46 + Math.sin(t * 4) * 3, 0, Math.PI * 2);
+          ctx.fill();
+          drawMechaSprite(ctx, 5, 0, 0, 0, 84, 84, t * 0.5, 1);
+          ctx.restore();
+          return;
+        }
+
+        // Outer Hex Shield (Fallback)
         ctx.save();
         ctx.translate(cx, cy);
         ctx.beginPath();
@@ -5413,6 +5467,27 @@
           ctx.beginPath();
           ctx.arc(Math.cos(a) * 13, Math.sin(a) * 13, 1.2, 0, Math.PI * 2);
           ctx.fill();
+        }
+
+        if (mechaSheetReady) {
+          const rRec = t.barrelRecoil || 0;
+          const colMap = { gatling: 0, howitzer: 1, cryo: 2, tesla: 3, mines: 4 };
+          const col = colMap[t.type] !== undefined ? colMap[t.type] : 0;
+          const recShift = (t.type === 'tesla' || t.type === 'mines') ? 0 : -rRec * 0.85;
+          drawMechaSprite(ctx, col, 0, recShift + (t.type === 'gatling' || t.type === 'howitzer' || t.type === 'cryo' ? 4 : 0), 0, 44, 44, 0, 1);
+          if (rRec > 1.5 && (t.type === 'gatling' || t.type === 'howitzer')) {
+            drawMechaSprite(ctx, 4, 3, 27, 0, 24, 24, 0, 0.95);
+          }
+          ctx.restore();
+          // Tier Chevrons on Base
+          ctx.fillStyle = '#ffb800';
+          ctx.shadowColor = '#ffb800';
+          ctx.shadowBlur = 6;
+          ctx.font = "bold 8px 'JetBrains Mono', monospace";
+          ctx.textAlign = 'center';
+          ctx.fillText('★'.repeat(t.tier), 0, 17);
+          ctx.shadowBlur = 0;
+          return;
         }
 
         if (t.type === 'gatling') {
@@ -5734,7 +5809,31 @@
         ctx.save();
         ctx.rotate(e.angle || 0);
 
-        if (e.type === 'drone' || e.type === 'scout') {
+        if (mechaSheetReady) {
+          const wob = Math.sin((e.walkTime || 0) * 2) * 0.04;
+          if (e.isBoss) {
+            if (e.type === 'boss_goliath') {
+              drawMechaSprite(ctx, 2, 2, 0, 0, 96, 96, wob, 1);
+            } else {
+              const bCol = Math.sin((e.walkTime || 0) * 1.5) > 0 ? 1 : 0;
+              drawMechaSprite(ctx, bCol, 2, 0, 0, 88, 88, wob, 1);
+            }
+          } else if (e.type === 'drone' || e.type === 'scout') {
+            drawMechaSprite(ctx, 0, 1, 0, 0, 42, 42, wob * 1.6, 1);
+          } else if (e.type === 'walker') {
+            drawMechaSprite(ctx, 1, 1, 0, 0, 48, 48, wob, 1);
+          } else if (e.type === 'panzer') {
+            drawMechaSprite(ctx, 2, 1, 0, 0, 54, 54, 0, 1);
+          } else if (e.type === 'shield' || e.type === 'hover') {
+            const bob = Math.sin((e.walkTime || 0) * 2.5) * 2;
+            drawMechaSprite(ctx, 3, 1, 0, bob, 48, 48, 0, 1);
+          } else {
+            // jammer / stealth mech
+            const shimmer = 0.5 + Math.sin((e.walkTime || 0) * 3) * 0.35;
+            drawMechaSprite(ctx, 4, 1, 0, 0, 46, 46, 0, shimmer);
+          }
+          ctx.restore(); // Restore angle rotation
+        } else if (e.type === 'drone' || e.type === 'scout') {
           // 🤖 ШАГОХОД-РАЗВЕДЧИК (SCOUT WALKER)
           const stride = Math.sin(e.walkTime) * 8;
 
@@ -6069,9 +6168,10 @@
           ctx.arc(rad * 0.55, eyeSweep, 3.5, 0, Math.PI * 2);
           ctx.fill();
           ctx.shadowBlur = 0;
+          ctx.restore(); // Restore angle rotation
+        } else {
+          ctx.restore();
         }
-
-        ctx.restore(); // Restore angle rotation
 
         // 3. Force Field Bubble (if active)
         if (e.shieldRadius > 0 || (e.type === 'shield' && e.hp > 0)) {
@@ -6101,10 +6201,14 @@
 
         // 5. Encased in Ice Block when Frozen (stunTimer > 0)
         if (e.stunTimer > 0) {
-          ctx.save();
-          const ir = e.radius + 6;
-          // Ice cube shell
-          ctx.fillStyle = 'rgba(165, 243, 252, 0.55)';
+          if (mechaSheetReady) {
+            const ir = (e.radius + 8) * 2.25;
+            drawMechaSprite(ctx, 1, 3, 0, 0, ir, ir, 0, 0.85);
+          } else {
+            ctx.save();
+            const ir = e.radius + 6;
+            // Ice cube shell
+            ctx.fillStyle = 'rgba(165, 243, 252, 0.55)';
           ctx.strokeStyle = '#38bdf8';
           ctx.lineWidth = 2.5;
           ctx.beginPath();
@@ -6138,6 +6242,7 @@
           ctx.textBaseline = 'middle';
           ctx.fillText('❄', 0, -ir - 10);
           ctx.restore();
+          }
         }
 
         // 6. Animated Burning Fire Effect (burnTimer > 0)

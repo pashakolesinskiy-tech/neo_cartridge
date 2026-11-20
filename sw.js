@@ -1,4 +1,4 @@
-const CACHE_NAME = 'neo-cartridge-pwa-v6';
+const CACHE_NAME = 'neo-cartridge-pwa-v7';
 
 const CORE_ASSETS = [
   './',
@@ -35,6 +35,10 @@ const OFFLINE_GAME_ASSETS = [
   './games/cosmo-junk-game-concept/standalone/assets/app.js',
   './games/cosmo-junk-game-concept/standalone/assets/app.css',
   './games/cosmo-junk-game-concept/standalone/assets/icon.svg',
+  './games/sprites/pixel_drift_sheet.png',
+  './games/sprites/chrono_blade_sheet.png',
+  './games/sprites/mecha_siege_sheet.png',
+  './games/sprites/cosmo_junk_sheet.png',
 ];
 
 self.addEventListener('install', (event) => {

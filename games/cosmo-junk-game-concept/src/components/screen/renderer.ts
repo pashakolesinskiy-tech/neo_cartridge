@@ -40,6 +40,8 @@ export class Renderer {
   private shieldFlash = 0;
   private nebula: HTMLImageElement | null = null;
   private nebulaOk = false;
+  private sheet: HTMLImageElement | null = null;
+  private sheetOk = false;
   // конец игры
   private loseT = -1;
   private shipGone = false;
@@ -61,13 +63,35 @@ export class Renderer {
       });
     }
     if (typeof window !== "undefined") {
-      const img = new Image();
-      img.onload = () => {
-        this.nebulaOk = true;
+      const sp = new Image();
+      sp.onload = () => {
+        this.sheetOk = true;
       };
-      img.src = "/images/nebula.jpg";
-      this.nebula = img;
+      sp.src = "sprites/cosmo_junk_sheet.png";
+      this.sheet = sp;
     }
+  }
+
+  private drawSprite(
+    ctx: CanvasRenderingContext2D,
+    col: number,
+    row: number,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    rot = 0,
+    alpha = 1
+  ) {
+    if (!this.sheetOk || !this.sheet) return false;
+    ctx.save();
+    ctx.translate(x, y);
+    if (rot) ctx.rotate(rot);
+    if (alpha !== 1) ctx.globalAlpha *= alpha;
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(this.sheet, col * 192, row * 192, 192, 192, -w * 0.5, -h * 0.5, w, h);
+    ctx.restore();
+    return true;
   }
 
   reset() {
@@ -349,6 +373,18 @@ export class Renderer {
   // ---------- спрайты ----------
 
   private drawStation(ctx: CanvasRenderingContext2D, x: number, y: number, now: number) {
+    if (this.sheetOk) {
+      const blink = Math.sin(now * 0.006) > 0 ? "#3bff8f" : "#ff3b5b";
+      this.drawSprite(ctx, 4, 0, x, y, 188, 188, 0, 1);
+      ctx.save();
+      ctx.fillStyle = blink;
+      ctx.beginPath();
+      ctx.arc(x, y - 82, 4, 0, Math.PI * 2);
+      ctx.arc(x, y + 82, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      return;
+    }
     ctx.save();
     ctx.translate(x, y);
     const blink = Math.sin(now * 0.006) > 0 ? "#3bff8f" : "#ff3b5b";
@@ -382,6 +418,34 @@ export class Renderer {
   }
 
   private drawEnt(ctx: CanvasRenderingContext2D, e: GameSim["ents"][number], now: number) {
+    if (this.sheetOk) {
+      switch (e.kind) {
+        case "rock": {
+          const col = Math.abs(Math.floor(e.seed)) % 3;
+          this.drawSprite(ctx, col, 1, e.x, e.y, e.r * 2.35, e.r * 2.35, e.rot, 1);
+          return;
+        }
+        case "comet": {
+          this.drawSprite(ctx, 3, 1, e.x + 14, e.y, 68, 68, 0, 1);
+          return;
+        }
+        case "flareT":
+        case "flareB": {
+          const pulse = 0.72 + 0.28 * Math.sin(now * 0.03 + e.seed);
+          this.drawSprite(ctx, 4, 1, e.x, e.y, 40, 40, now * 0.004, pulse);
+          return;
+        }
+        case "pirate": {
+          const col = e.life <= 0 ? 3 : 2;
+          this.drawSprite(ctx, col, 0, e.x, e.y, 58, 58, 0, 1);
+          return;
+        }
+        case "bolt": {
+          this.drawSprite(ctx, 5, 0, e.x, e.y, 30, 30, 0, 1);
+          return;
+        }
+      }
+    }
     switch (e.kind) {
       case "rock": {
         ctx.save();
@@ -514,6 +578,39 @@ export class Renderer {
     }
 
     // выхлоп
+    if (this.sheetOk) {
+      const col = thrusting ? 1 : 0;
+      const sy = y + Math.sin(now * 0.006) * 1.5;
+      this.drawSprite(ctx, col, 0, x - 6, sy, 114, 114, 0, 1);
+      if (sim.fires > 0) {
+        const pulse = 0.9 + Math.sin(now * 0.025) * 0.15;
+        this.drawSprite(ctx, 1, 3, x + 6, sy - 14, 28 * pulse, 28 * pulse, 0, 0.92);
+      }
+      if (sim.invuln > 0 && Math.sin(now * 0.05) > 0) {
+        ctx.strokeStyle = "rgba(255,255,255,0.7)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(Math.round(x - 14 * u), Math.round(y - 6.4 * u), Math.round(24.5 * u), Math.round(12.4 * u));
+      }
+      if (sim.fires > 0) {
+        this.smokeT -= 0.016;
+        if (this.smokeT <= 0) {
+          this.smokeT = 0.06 / sim.fires;
+          for (let i = 0; i < sim.fires; i++) {
+            const fx0 = x - 30 + Math.random() * 80;
+            const fy0 = y - 12 + Math.random() * 24;
+            this.particles.push({
+              x: fx0, y: fy0,
+              vx: -30 - Math.random() * 40, vy: -20 - Math.random() * 30,
+              life: 0, max: 0.5 + Math.random() * 0.4,
+              size: 2 + Math.random() * 2,
+              color: Math.random() < 0.45 ? "#ff8c42" : Math.random() < 0.7 ? "#ffd24a" : "#4a4f57",
+            });
+          }
+        }
+      }
+      return;
+    }
+
     if (sim.breakers.A1) {
       const fl = (thrusting ? 2.6 : 1.1) + Math.sin(now * 0.02) * 0.5 + Math.random() * 0.5;
       px(-13.5, -1.2, -fl * 1.4, 2.4, `rgba(45,212,238,${0.3 + heatGlow * 0.2})`);
@@ -593,6 +690,10 @@ export class Renderer {
   }
 
   private drawHeart(ctx: CanvasRenderingContext2D, x: number, y: number, alpha: number) {
+    if (this.sheetOk) {
+      this.drawSprite(ctx, 0, 3, x + 12, y + 9, 26, 26, 0, Math.max(0, Math.min(1, alpha)));
+      return;
+    }
     const M = ["01100110", "11111111", "11111111", "01111110", "00111100", "00011000"];
     ctx.save();
     ctx.globalAlpha = Math.max(0, Math.min(1, alpha));

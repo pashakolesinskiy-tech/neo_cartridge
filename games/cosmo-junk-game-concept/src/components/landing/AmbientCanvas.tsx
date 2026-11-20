@@ -53,7 +53,25 @@ export default function AmbientCanvas({ className }: { className?: string }) {
     let shipY = 0.5;
     let last = performance.now();
 
+    let sheetOk = false;
+    const sheet = new Image();
+    sheet.onload = () => {
+      sheetOk = true;
+    };
+    sheet.src = "sprites/cosmo_junk_sheet.png";
+
     const drawRock = (x: number, y: number, r: number, rot: number, seed: number) => {
+      if (sheetOk) {
+        const col = Math.abs(Math.floor(seed)) % 3;
+        const sz = r * 2.35;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(rot);
+        ctx.imageSmoothingEnabled = true;
+        ctx.drawImage(sheet, col * 192, 192, 192, 192, -sz * 0.5, -sz * 0.5, sz, sz);
+        ctx.restore();
+        return;
+      }
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(rot);
@@ -76,6 +94,14 @@ export default function AmbientCanvas({ className }: { className?: string }) {
     };
 
     const drawShip = (x: number, y: number, t: number) => {
+      if (sheetOk) {
+        ctx.save();
+        ctx.translate(x, y + Math.sin(t * 2) * 3);
+        ctx.imageSmoothingEnabled = true;
+        ctx.drawImage(sheet, 192, 0, 192, 192, -48, -48, 96, 96);
+        ctx.restore();
+        return;
+      }
       const u = 3;
       const px = (dx: number, dy: number, wd: number, ht: number, c: string) => {
         ctx.fillStyle = c;

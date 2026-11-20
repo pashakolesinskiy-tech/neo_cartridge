@@ -5,7 +5,7 @@
  */
 
 const PWA = {
-  CACHE_NAME: 'neo-cartridge-pwa-v6',
+  CACHE_NAME: 'neo-cartridge-pwa-v7',
   DISMISS_KEY: 'neo_pwa_banner_dismissed',
   OFFLINE_READY_KEY: 'neo_pwa_offline_ready',
   deferredPrompt: null,
@@ -335,6 +335,10 @@ const PWA = {
       './games/cosmo-junk-game-concept/standalone/assets/app.js',
       './games/cosmo-junk-game-concept/standalone/assets/app.css',
       './games/cosmo-junk-game-concept/standalone/assets/icon.svg',
+      './games/sprites/pixel_drift_sheet.png',
+      './games/sprites/chrono_blade_sheet.png',
+      './games/sprites/mecha_siege_sheet.png',
+      './games/sprites/cosmo_junk_sheet.png',
     ];
 
     try {

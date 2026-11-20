@@ -1995,8 +1995,14 @@
           ctx.restore();
         }
 
-        // Draw Bullets (Glowing Neon with White Core for 100% visibility)
+        // Draw Bullets (Worms Plasma Fireball / Glowing Core)
         for (const b of this.bullets) {
+          if (chronoSheetReady && b.team === 'enemy') {
+            const ang = Math.atan2(b.vy, b.vx);
+            const sz = (b.radius || 5) * 4.4;
+            drawChronoSprite(ctx, chronoSheet, 2, 3, b.x, b.y, sz, sz, ang, 1, 1);
+            continue;
+          }
           ctx.beginPath();
           ctx.arc(b.x, b.y, b.radius + 1, 0, Math.PI * 2);
           ctx.fillStyle = b.color;
@@ -2138,15 +2144,24 @@
         ctx.save();
         ctx.translate(this.boss.x, this.boss.y);
 
-        if (this.boss.type === 'spider') {
-          // Goliath SP-9 Multi-Legged Stick Spider Mech
-          const t = performance.now() * 0.003;
+        const facing = (Game.player1 && Game.player1.x >= this.boss.x) ? 1 : -1;
+        const t = performance.now() * 0.003;
 
-          // Shadow
+        if (this.boss.type === 'spider') {
+          // Ground shadow
           ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
           ctx.beginPath();
-          ctx.ellipse(0, 20, 65, 26, 0, 0, Math.PI * 2);
+          ctx.ellipse(0, 32, 62, 22, 0, 0, Math.PI * 2);
           ctx.fill();
+
+          if (chronoSheetReady) {
+            const col = Math.sin(t * 7) > 0.2 ? 1 : 0;
+            drawChronoSprite(ctx, chronoSheet, col, 2, 0, -4, 134, 134, 0, facing, 1);
+            ctx.restore();
+            return;
+          }
+
+          // Goliath SP-9 Multi-Legged Stick Spider Mech (Fallback)
 
           // 6 Hydraulic Stick-Legs (3 joints each)
           ctx.lineWidth = 5;
@@ -2221,24 +2236,32 @@
           ctx.fill();
           ctx.shadowBlur = 0;
         } else {
-          // Phantom Shinobi 0X (Shadow Stickman Master)
-          const t = performance.now() * 0.003;
-          drawStickman(ctx, {
-            x: 0,
-            y: 0,
-            color: '#d946ef',
-            bodyColor: '#ffffff',
-            bandanaColor: '#e879f9',
-            weaponColor: '#d946ef',
-            facing: (Game.player1 && Game.player1.x >= this.boss.x) ? 1 : -1,
-            aimAngle: Math.atan2(Game.player1 ? Game.player1.y - this.boss.y : 0, Game.player1 ? Game.player1.x - this.boss.x : 1),
-            walkTime: t,
-            isMoving: true,
-            isDashing: false,
-            slashTimer: 0,
-            scale: 1.4,
-            isBoss: true
-          });
+          // Phantom Shinobi 0X (Worms Cyber-Shinobi Boss / Fallback)
+          if (chronoSheetReady) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+            ctx.beginPath();
+            ctx.ellipse(0, 12, 34, 12, 0, 0, Math.PI * 2);
+            ctx.fill();
+            const col = Math.sin(t * 5) > 0.35 ? 3 : 2;
+            drawChronoSprite(ctx, chronoSheet, col, 2, 0, -34, 96, 96, 0, facing, 1);
+          } else {
+            drawStickman(ctx, {
+              x: 0,
+              y: 0,
+              color: '#d946ef',
+              bodyColor: '#ffffff',
+              bandanaColor: '#e879f9',
+              weaponColor: '#d946ef',
+              facing,
+              aimAngle: Math.atan2(Game.player1 ? Game.player1.y - this.boss.y : 0, Game.player1 ? Game.player1.x - this.boss.x : 1),
+              walkTime: t,
+              isMoving: true,
+              isDashing: false,
+              slashTimer: 0,
+              scale: 1.4,
+              isBoss: true
+            });
+          }
         }
 
         ctx.restore();
@@ -2246,8 +2269,57 @@
     };
 
     /**
-     * STICKMAN RENDERER (High-Contrast Xiao Xiao / Stick Fight Aesthetic)
+     * WORMS-STYLE SPRITE SHEET LOADER + STICKMAN FALLBACK RENDERER
      */
+    const chronoSheet = new Image();
+    let chronoSheetReady = false;
+    let chronoSheetP2 = null;
+
+    chronoSheet.onload = () => {
+      chronoSheetReady = true;
+      try {
+        const off = document.createElement('canvas');
+        off.width = chronoSheet.naturalWidth;
+        off.height = chronoSheet.naturalHeight;
+        const octx = off.getContext('2d');
+        octx.drawImage(chronoSheet, 0, 0);
+        // Selective cyan->pink costume recolor on Row 0 (Hero ninja) for Player 2
+        const imgData = octx.getImageData(0, 0, off.width, 192);
+        const px = imgData.data;
+        for (let i = 0; i < px.length; i += 4) {
+          if (px[i + 3] < 20) continue;
+          const r = px[i], g = px[i + 1], b = px[i + 2];
+          if (b > r + 15 && g > r + 10) {
+            px[i] = Math.min(255, b);
+            px[i + 1] = Math.round(r * 0.65);
+            px[i + 2] = Math.min(255, Math.round(b * 0.72 + g * 0.14));
+          }
+        }
+        octx.putImageData(imgData, 0, 0);
+        chronoSheetP2 = off;
+      } catch (e) {
+        chronoSheetP2 = chronoSheet;
+      }
+    };
+    chronoSheet.src = 'sprites/chrono_blade_sheet.png';
+
+    function drawChronoSprite(ctx, img, col, row, x, y, w, h, rot = 0, facing = 1, alpha = 1) {
+      // Overload convenience: allow (col, row, x, y, w, h, rot, facing, alpha) using chronoSheet
+      if (typeof img === 'number') {
+        alpha = facing; facing = rot; rot = h; h = w; w = y; y = x; x = row; row = col; col = img; img = chronoSheet;
+      }
+      if (!chronoSheetReady || !img) return false;
+      ctx.save();
+      ctx.translate(x, y);
+      if (rot) ctx.rotate(rot);
+      if (facing < 0) ctx.scale(-1, 1);
+      if (alpha !== 1) ctx.globalAlpha *= alpha;
+      ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(img, col * 192, row * 192, 192, 192, -w * 0.5, -h * 0.5, w, h);
+      ctx.restore();
+      return true;
+    }
+
     function drawStickman(ctx, opts) {
       const {
         x, y,
@@ -2264,27 +2336,52 @@
         maxSlashTimer = 0.22,
         isDead = false,
         scale = 1.0,
-        weaponType = 'katana'
+        weaponType = 'katana',
+        alpha = 1.0
       } = opts;
 
       ctx.save();
       ctx.translate(x, y);
       ctx.scale(scale, scale);
 
-      // 1. Ambient Neon Foot Glow (Illuminates floor around stickman)
+      // 1. Ambient Neon Foot Glow (Illuminates floor around character)
       ctx.save();
       ctx.fillStyle = color;
-      ctx.globalAlpha = 0.25;
+      ctx.globalAlpha = 0.25 * alpha;
       ctx.beginPath();
       ctx.ellipse(0, 4, 24, 10, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
 
       // 2. Strong Crisp Floor Shadow
+      ctx.save();
+      ctx.globalAlpha = alpha;
       ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
       ctx.beginPath();
-      ctx.ellipse(0, 4, 15, 5, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, 4, 16, 6, 0, 0, Math.PI * 2);
       ctx.fill();
+      ctx.restore();
+
+      if (chronoSheetReady) {
+        if (weaponType === 'daggers') {
+          // Crimson Enforcer Ninja (Row 1 Cols 2,3,4)
+          const col = isDashing ? 4 : (Math.floor(walkTime * 2.8) % 2 === 0 ? 2 : 3);
+          drawChronoSprite(ctx, chronoSheet, col, 1, 0, -24, 58, 58, 0, facing, alpha);
+        } else {
+          // Player Cyber-Ninja (Row 0: P1 cyan / P2 pink)
+          const isP2 = (color && (color.toLowerCase().includes('ff00') || color.toLowerCase().includes('f43'))) && chronoSheetP2;
+          const img = isP2 ? chronoSheetP2 : chronoSheet;
+          let col = 0;
+          let cy = -24;
+          if (isDead) { col = 5; cy = -12; }
+          else if (slashTimer > 0) col = 3;
+          else if (isDashing) col = 4;
+          else if (isMoving) col = (Math.floor(walkTime * 3.0) % 2 === 0) ? 1 : 2;
+          drawChronoSprite(ctx, img, col, 0, 0, cy, 62, 62, 0, facing, alpha);
+        }
+        ctx.restore();
+        return;
+      }
 
       if (isDead) {
         // Collapsed Stickman on floor (clearly visible silver/grey bone silhouette)
@@ -2934,7 +3031,7 @@
       }
 
       render(ctx) {
-        // Render Dash Afterimage Stickman Ghosts
+        // Render Dash Afterimage Ghosts
         for (const ghost of this.dashTrail) {
           drawStickman(ctx, {
             x: ghost.x,
@@ -2946,11 +3043,12 @@
             weaponColor: `rgba(255, 255, 255, ${ghost.alpha})`,
             isDashing: true,
             walkTime: ghost.walkTime,
-            scale: 1.0
+            scale: 1.0,
+            alpha: ghost.alpha * 0.55
           });
         }
 
-        // Render Active Stickman (High-Contrast Pure White with Glowing Aura)
+        // Render Active Cyber-Ninja
         drawStickman(ctx, {
           x: this.x,
           y: this.y,
@@ -2972,11 +3070,20 @@
         // Dynamic Crescent Energy Slash Wave
         if (this.slashTimer > 0) {
           const progress = 1 - this.slashTimer / 0.22;
+          const slashRad = this.chips.includes('PLASMA_BLADE') ? 85 : 65;
+          if (chronoSheetReady) {
+            const col = this.chips.includes('PLASMA_BLADE') ? 1 : 0;
+            const alpha = Math.min(1, Math.sin(progress * Math.PI) * 1.15);
+            ctx.save();
+            ctx.translate(this.x, this.y - 16);
+            ctx.rotate(this.slashAngle);
+            drawChronoSprite(ctx, chronoSheet, col, 3, slashRad * 0.42, 0, slashRad * 1.65, slashRad * 1.65, 0, 1, alpha);
+            ctx.restore();
+            return;
+          }
           ctx.save();
           ctx.translate(this.x, this.y);
           ctx.rotate(this.slashAngle);
-
-          const slashRad = this.chips.includes('PLASMA_BLADE') ? 85 : 65;
 
           ctx.beginPath();
           ctx.arc(0, 0, slashRad, -Math.PI / 2.2, Math.PI / 2.2);
@@ -3151,17 +3258,24 @@
             weaponType: 'daggers'
           });
         } else {
-          // Hover Stick-Drone (Bright Silver/White Shell with Crimson Sensor)
+          // Hover Security Drone (Worms Sprite / Fallback)
           ctx.save();
           ctx.translate(this.x, this.y);
-          ctx.scale(this.facing, 1);
 
           ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
           ctx.beginPath();
-          ctx.ellipse(0, 18, 14, 5, 0, 0, Math.PI * 2);
+          ctx.ellipse(0, 20, 14, 5, 0, 0, Math.PI * 2);
           ctx.fill();
 
           const hBounce = Math.sin(this.walkTime * 6) * 3;
+          if (chronoSheetReady) {
+            const col = this.shootTimer > 0.88 ? 1 : 0;
+            drawChronoSprite(ctx, chronoSheet, col, 1, 0, hBounce, 48, 48, 0, this.facing, 1);
+            ctx.restore();
+            return;
+          }
+
+          ctx.scale(this.facing, 1);
           ctx.translate(0, hBounce);
 
           // Drone Core (Luminous White Sphere)
