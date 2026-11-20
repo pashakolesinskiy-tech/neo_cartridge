@@ -19,8 +19,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/console.css?v=10">
-  <link rel="stylesheet" href="css/components.css?v=10">
+  <link rel="stylesheet" href="css/console.css?v=11">
+  <link rel="stylesheet" href="css/components.css?v=11">
 </head>
 <body data-active-game="stick_fighting">
 
@@ -648,11 +648,6 @@
             <span class="tool-name">P2P ДУЭЛЬ</span>
             <span class="tool-sub">WebRTC игра без сервера</span>
           </button>
-          <button class="btn-tactile tool-card-btn" onclick="App.closeModal('settings-modal'); App.openModal('studio-modal');">
-            <span class="tool-icon">🎨</span>
-            <span class="tool-name">СТУДИЯ КАРТ</span>
-            <span class="tool-sub">Пиксельный редактор арены</span>
-          </button>
           <button class="btn-tactile tool-card-btn" onclick="App.closeModal('settings-modal'); App.openModal('save-modal');">
             <span class="tool-icon">💾</span>
             <span class="tool-name">МЕНЕДЖЕР СЕЙВОВ</span>
@@ -685,30 +680,6 @@
             <span>📥 СКАЧАТЬ ВСЕ 6 ИГР</span>
           </button>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Studio Level Editor Modal -->
-  <div id="studio-modal" class="console-modal" role="dialog" aria-modal="true" aria-labelledby="studio-title">
-    <div class="modal-title-row">
-      <span id="studio-title">// CARTRIDGE STUDIO: ПИКСЕЛЬ-АРТ РЕДАКТОР</span>
-      <button class="modal-close-btn" onclick="App.closeModal('studio-modal')" aria-label="Закрыть">✕</button>
-    </div>
-    <div class="studio-layout">
-      <div class="studio-canvas-housing">
-        <canvas id="studio-canvas" width="256" height="256" role="img" aria-label="Сетка редактора"></canvas>
-      </div>
-      <div id="studio-palette" class="studio-palette-row"></div>
-      
-      <div style="width:100%; display:flex; gap:8px;">
-        <input type="text" id="studio-map-name" placeholder="Название карты (напр. CYBER_BASE_01)" style="flex:1; background:#0e1015; border:1px solid var(--console-border); color:#fff; padding:8px 12px; font-family:var(--font-retro); font-size:0.75rem; border-radius:4px;">
-        <button class="btn-tactile" onclick="Editor.clear()">Очистить</button>
-      </div>
-
-      <div style="width:100%; display:flex; gap:8px;">
-        <button class="btn-tactile btn-primary-action" style="flex:1;" onclick="Editor.saveCustomMap()">Сохранить во флеш-чип</button>
-        <button class="btn-tactile" onclick="Editor.exportAsPNG()">Скачать PNG</button>
       </div>
     </div>
   </div>
@@ -838,14 +809,13 @@
   </div>
 
   <!-- Core Scripts -->
-  <script src="js/landscape-guard.js?v=10"></script>
-  <script src="js/audio.js?v=10"></script>
-  <script src="js/storage.js?v=10"></script>
-  <script src="js/editor.js?v=10"></script>
-  <script src="js/webrtc-room.js?v=10"></script>
-  <script src="js/p2p.js?v=10"></script>
-  <script src="js/previews.js?v=10"></script>
-  <script src="js/pwa.js?v=10"></script>
-  <script src="js/app.js?v=10"></script>
+  <script src="js/landscape-guard.js?v=11"></script>
+  <script src="js/audio.js?v=11"></script>
+  <script src="js/storage.js?v=11"></script>
+  <script src="js/webrtc-room.js?v=11"></script>
+  <script src="js/p2p.js?v=11"></script>
+  <script src="js/previews.js?v=11"></script>
+  <script src="js/pwa.js?v=11"></script>
+  <script src="js/app.js?v=11"></script>
 </body>
 </html>

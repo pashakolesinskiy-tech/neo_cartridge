@@ -1,83 +1,6 @@
 /* ==========================================================================
-   NEO-CARTRIDGE // Компоненты (Картриджи, Модалки, Студия, Ачивки)
+   NEO-CARTRIDGE // Компоненты (Модалки, Ачивки, Настройки, PWA)
    ========================================================================== */
-
-/* Cartridge Rack Section */
-.cartridge-rack-section {
-  margin-top: 24px;
-}
-
-.rack-title {
-  font-family: var(--font-retro);
-  font-size: 0.8125rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.cartridge-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
-}
-
-.cartridge-item {
-  background: var(--console-surface);
-  border: 2px solid var(--console-border);
-  border-radius: var(--radius-screen);
-  padding: 14px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.cartridge-item:hover {
-  border-color: #4c556b;
-  transform: translateY(-2px);
-}
-
-.cartridge-item.active {
-  border-color: var(--crt-phosphor);
-  box-shadow: 0 0 16px rgba(0, 255, 136, 0.2);
-  background: #151a21;
-}
-
-.cartridge-notch {
-  width: 32px;
-  height: 8px;
-  background: #0a0b0e;
-  border-radius: 0 0 4px 4px;
-  margin: -14px auto 10px;
-  border: 1px solid var(--console-border);
-  border-top: none;
-}
-
-.cart-item-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-family: var(--font-retro);
-  font-size: 0.6875rem;
-  color: var(--text-dim);
-  margin-bottom: 6px;
-}
-
-.cart-item-title {
-  font-size: 1rem;
-  font-weight: 800;
-  margin-bottom: 4px;
-}
-
-.cart-item-badge {
-  font-family: var(--font-retro);
-  font-size: 0.6875rem;
-  color: var(--crt-phosphor);
-}
 
 /* Modal Windows & Backdrop */
 .console-backdrop {
@@ -147,51 +70,6 @@
 .modal-close-btn:hover {
   color: #fff;
   border-color: #fff;
-}
-
-/* Studio Editor UI */
-.studio-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  align-items: center;
-}
-
-.studio-canvas-housing {
-  background: #000;
-  border: 2px solid var(--console-border);
-  border-radius: 6px;
-  padding: 8px;
-  display: inline-block;
-}
-
-#studio-canvas {
-  image-rendering: pixelated;
-  cursor: crosshair;
-  background: #07090c;
-  display: block;
-}
-
-.studio-palette-row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.palette-swatch {
-  width: 32px;
-  height: 32px;
-  border-radius: 4px;
-  border: 2px solid var(--console-border);
-  cursor: pointer;
-  transition: transform 0.1s ease;
-}
-
-.palette-swatch.active {
-  transform: scale(1.15);
-  border-color: #ffffff;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
 /* Achievements Grid */
@@ -402,10 +280,10 @@
   box-shadow: 0 0 8px var(--crt-phosphor);
 }
 
-/* Tools 2x2 Grid inside Settings */
+/* Tools 3-Card Grid inside Settings */
 .settings-tools-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
 }
 
@@ -484,12 +362,6 @@
     width: 36px;
     height: 36px;
     font-size: 0.875rem;
-  }
-
-  #studio-canvas {
-    max-width: 100%;
-    height: auto;
-    touch-action: none;
   }
 
   .achievement-toast-container {

@@ -373,9 +373,6 @@ const Previews = {
       const p2Row = p2Pose === 'punch' ? 2 : (p2Pose === 'flinch' || p2Pose === 'fall') ? 3 : 0;
       this.drawCell(ctx, 'stick', p1Col, p1Row, p1X, 72, 46, 46, 0, false, 1);
       this.drawCell(ctx, 'stick', p2Col, p2Row, p2X, 72, 46, 46, 0, true, 1);
-    } else {
-      this.drawStickman(ctx, p1X, 92, p1Pose, '#00f3ff', 1);
-      this.drawStickman(ctx, p2X, 92, p2Pose, '#ff3366', -1);
     }
 
     // Render Sparks
@@ -387,197 +384,6 @@ const Previews = {
       ctx.font = '8px monospace';
       ctx.fillText(`${s.combo}x COMBO!`, 65, 35);
     }
-  },
-
-  drawStickman(ctx, x, groundY, pose, color, dir) {
-    ctx.save();
-    ctx.translate(x, groundY);
-    ctx.scale(dir, 1);
-    ctx.strokeStyle = color;
-    ctx.fillStyle = color;
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-
-    const headRadius = 4.5;
-    let headX = 0, headY = -28;
-    let bodyBottomY = -12;
-
-    if (pose === 'idle') {
-      // Head
-      ctx.beginPath();
-      ctx.arc(headX, headY, headRadius, 0, Math.PI * 2);
-      ctx.fill();
-      // Torso
-      ctx.beginPath();
-      ctx.moveTo(0, headY + headRadius);
-      ctx.lineTo(0, bodyBottomY);
-      ctx.stroke();
-      // Legs
-      ctx.beginPath();
-      ctx.moveTo(0, bodyBottomY);
-      ctx.lineTo(-4, -6);
-      ctx.lineTo(-6, 0);
-      ctx.moveTo(0, bodyBottomY);
-      ctx.lineTo(4, -6);
-      ctx.lineTo(6, 0);
-      ctx.stroke();
-      // Arms (Guard stance)
-      ctx.beginPath();
-      ctx.moveTo(0, -22);
-      ctx.lineTo(6, -18);
-      ctx.lineTo(8, -24);
-      ctx.moveTo(0, -22);
-      ctx.lineTo(3, -16);
-      ctx.lineTo(6, -20);
-      ctx.stroke();
-    } else if (pose === 'punch') {
-      headX = 3; headY = -27;
-      ctx.beginPath();
-      ctx.arc(headX, headY, headRadius, 0, Math.PI * 2);
-      ctx.fill();
-      // Torso forward lean
-      ctx.beginPath();
-      ctx.moveTo(headX, headY + headRadius);
-      ctx.lineTo(0, bodyBottomY);
-      ctx.stroke();
-      // Extended punch arm
-      ctx.beginPath();
-      ctx.moveTo(headX, -22);
-      ctx.lineTo(18, -22);
-      ctx.stroke();
-      // Rear arm
-      ctx.beginPath();
-      ctx.moveTo(headX, -22);
-      ctx.lineTo(-4, -18);
-      ctx.stroke();
-      // Legs (lunge)
-      ctx.beginPath();
-      ctx.moveTo(0, bodyBottomY);
-      ctx.lineTo(8, -6);
-      ctx.lineTo(10, 0);
-      ctx.moveTo(0, bodyBottomY);
-      ctx.lineTo(-8, -4);
-      ctx.lineTo(-12, 0);
-      ctx.stroke();
-    } else if (pose === 'kick') {
-      headX = -4; headY = -34;
-      ctx.beginPath();
-      ctx.arc(headX, headY, headRadius, 0, Math.PI * 2);
-      ctx.fill();
-      // Jump kick torso
-      ctx.beginPath();
-      ctx.moveTo(headX, headY + headRadius);
-      ctx.lineTo(-2, -18);
-      ctx.stroke();
-      // Extended flying kick leg
-      ctx.beginPath();
-      ctx.moveTo(-2, -18);
-      ctx.lineTo(14, -18);
-      ctx.lineTo(24, -20);
-      ctx.stroke();
-      // Tucked leg
-      ctx.beginPath();
-      ctx.moveTo(-2, -18);
-      ctx.lineTo(-6, -10);
-      ctx.stroke();
-      // Arms
-      ctx.beginPath();
-      ctx.moveTo(headX, -28);
-      ctx.lineTo(-10, -22);
-      ctx.stroke();
-    } else if (pose === 'flinch') {
-      headX = -5; headY = -25;
-      ctx.beginPath();
-      ctx.arc(headX, headY, headRadius, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(headX, headY + headRadius);
-      ctx.lineTo(-3, bodyBottomY);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(-3, bodyBottomY);
-      ctx.lineTo(-8, 0);
-      ctx.moveTo(-3, bodyBottomY);
-      ctx.lineTo(4, 0);
-      ctx.stroke();
-      // Arms back
-      ctx.beginPath();
-      ctx.moveTo(headX, -20);
-      ctx.lineTo(-10, -22);
-      ctx.stroke();
-    } else if (pose === 'block') {
-      headX = -2; headY = -27;
-      ctx.beginPath();
-      ctx.arc(headX, headY, headRadius, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(headX, headY + headRadius);
-      ctx.lineTo(0, bodyBottomY);
-      ctx.stroke();
-      // Crossing arms
-      ctx.beginPath();
-      ctx.moveTo(0, -22);
-      ctx.lineTo(6, -24);
-      ctx.moveTo(0, -22);
-      ctx.lineTo(6, -18);
-      ctx.stroke();
-      // Energy shield arc
-      ctx.strokeStyle = 'rgba(0, 243, 255, 0.7)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(8, -20, 10, -Math.PI / 3, Math.PI / 3);
-      ctx.stroke();
-      // Legs
-      ctx.beginPath();
-      ctx.moveTo(0, bodyBottomY);
-      ctx.lineTo(-5, 0);
-      ctx.moveTo(0, bodyBottomY);
-      ctx.lineTo(5, 0);
-      ctx.stroke();
-    } else if (pose === 'sweep') {
-      headY = -12;
-      ctx.beginPath();
-      ctx.arc(0, headY, headRadius, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(0, headY + headRadius);
-      ctx.lineTo(0, -2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(0, -2);
-      ctx.lineTo(18, 0);
-      ctx.stroke();
-    } else if (pose === 'fall') {
-      headX = 14; headY = -8;
-      ctx.beginPath();
-      ctx.arc(headX, headY, headRadius, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(headX, headY);
-      ctx.lineTo(0, -4);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(0, -4);
-      ctx.lineTo(-8, -10);
-      ctx.stroke();
-    } else {
-      // walk pose
-      ctx.beginPath();
-      ctx.arc(0, -28, headRadius, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(0, -24);
-      ctx.lineTo(0, -12);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(0, -12);
-      ctx.lineTo(pose === 'walk1' ? 6 : -6, 0);
-      ctx.moveTo(0, -12);
-      ctx.lineTo(pose === 'walk1' ? -6 : 6, 0);
-      ctx.stroke();
-    }
-    ctx.restore();
   },
 
   // =========================================================================
@@ -669,7 +475,7 @@ const Previews = {
       ctx.fill();
     }
 
-    // Draw Drift Car (Worms-style sprite if ready)
+    // Draw Drift Car (Worms-style sprite)
     if (this.isSheetReady('drift')) {
       this.drawCell(ctx, 'drift', 2, 0, roadX, roadY, 34, 34, driftAngle, false, 1);
       const t2 = t - 1.35;
@@ -677,32 +483,6 @@ const Previews = {
       const r2Y = 65 + Math.sin(t2) * 36;
       const tan2 = Math.atan2(Math.cos(t2) * 36, -Math.sin(t2) * 52) + Math.PI + 0.4;
       this.drawCell(ctx, 'drift', 4, 0, r2X, r2Y, 32, 32, tan2, false, 1);
-    } else {
-      ctx.save();
-      ctx.translate(roadX, roadY);
-      ctx.rotate(driftAngle);
-
-      // Car Body (Sports Coupe)
-      ctx.fillStyle = '#06b6d4'; // Cyan primary
-      ctx.fillRect(-7, -4, 14, 8);
-      // Roof / Windshield
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(-3, -3, 6, 6);
-      // Rear spoiler
-      ctx.fillStyle = '#0284c7';
-      ctx.fillRect(-8, -4, 2, 8);
-      // Wheels
-      ctx.fillStyle = '#000';
-      ctx.fillRect(-5, -5, 3, 2);
-      ctx.fillRect(3, -5, 3, 2);
-      ctx.fillRect(-5, 3, 3, 2);
-      ctx.fillRect(3, 3, 3, 2);
-      // Headlights
-      ctx.fillStyle = '#fef08a';
-      ctx.fillRect(6, -3.5, 1.5, 2);
-      ctx.fillRect(6, 1.5, 1.5, 2);
-
-      ctx.restore();
     }
 
     // HUD: Drift Score
@@ -792,120 +572,6 @@ const Previews = {
         ctx.font = '8px monospace';
         ctx.fillText('BULLET-TIME', 8, 18);
       }
-      return;
-    }
-
-    if (droneAlive) {
-      // Floating Drone
-      ctx.fillStyle = '#4c1d95';
-      ctx.beginPath();
-      ctx.arc(droneX, droneY, 7, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#f43f5e';
-      ctx.beginPath();
-      ctx.arc(droneX - 2, droneY, 3, 0, Math.PI * 2);
-      ctx.fill();
-      // Drone glow
-      ctx.strokeStyle = '#a855f7';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      // Bullet firing
-      if (cycle >= 30 && cycle < 85) {
-        const bulletProgress = (cycle - 30) / 55;
-        const bx = droneX - bulletProgress * 70;
-        const by = droneY + (90 - droneY) * bulletProgress * 0.5;
-
-        ctx.fillStyle = '#fb7185';
-        ctx.beginPath();
-        ctx.arc(bx, by, 2.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    } else {
-      // Exploded drone halves falling
-      const tExplode = (cycle - 105);
-      ctx.fillStyle = '#4c1d95';
-      ctx.fillRect(droneX - tExplode * 0.5, droneY - tExplode * 0.8, 6, 6);
-      ctx.fillRect(droneX + tExplode * 0.5, droneY + tExplode * 0.8, 6, 6);
-    }
-
-    // Draw Cyber Ninja
-    ctx.save();
-    ctx.translate(ninjaX, 92);
-    ctx.fillStyle = '#c084fc';
-    ctx.strokeStyle = '#a855f7';
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = 'round';
-
-    if (pose === 'slash') {
-      // Ninja Dash Slash
-      ctx.beginPath();
-      ctx.arc(4, -20, 4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(4, -16);
-      ctx.lineTo(-4, -6);
-      ctx.stroke();
-      // Extended glowing Katana slash arc
-      ctx.strokeStyle = '#38bdf8';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.arc(10, -18, 16, -Math.PI / 2, Math.PI / 4);
-      ctx.stroke();
-    } else if (pose === 'sheath') {
-      // Sheathing katana
-      ctx.beginPath();
-      ctx.arc(0, -26, 4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(0, -22);
-      ctx.lineTo(0, -10);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(0, -10);
-      ctx.lineTo(-4, 0);
-      ctx.moveTo(0, -10);
-      ctx.lineTo(4, 0);
-      ctx.stroke();
-      // Katana on hip
-      ctx.strokeStyle = '#c084fc';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(-6, -18);
-      ctx.lineTo(4, -8);
-      ctx.stroke();
-    } else {
-      // Running Ninja
-      const legCycle = (Math.floor(s.tick * 0.6) % 2 === 0);
-      ctx.beginPath();
-      ctx.arc(4, -24, 4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(4, -20);
-      ctx.lineTo(0, -10);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(0, -10);
-      ctx.lineTo(legCycle ? 8 : -8, 0);
-      ctx.moveTo(0, -10);
-      ctx.lineTo(legCycle ? -8 : 8, 0);
-      ctx.stroke();
-      // Katana held behind
-      ctx.strokeStyle = '#38bdf8';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(0, -18);
-      ctx.lineTo(-12, -26);
-      ctx.stroke();
-    }
-    ctx.restore();
-
-    this.renderSparks(ctx, s.sparks);
-
-    if (s.bulletTime) {
-      ctx.fillStyle = '#a855f7';
-      ctx.font = '8px monospace';
-      ctx.fillText('BULLET-TIME', 8, 18);
     }
   },
 
@@ -995,121 +661,7 @@ const Previews = {
       ctx.fillStyle = '#f59e0b';
       ctx.font = '8px monospace';
       ctx.fillText('WAVE 04 // 60FPS', 10, 18);
-      return;
     }
-
-    if (walkerAlive) {
-      const walkerY = 72;
-      const legStep = Math.sin(s.tick * 0.4) * 5;
-
-      // Draw Walker Legs
-      ctx.strokeStyle = '#94a3b8';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      // Leg 1
-      ctx.moveTo(walkerX - 3, walkerY + 6);
-      ctx.lineTo(walkerX - 3 + legStep, walkerY + 16);
-      ctx.lineTo(walkerX - 1 + legStep, walkerY + 18);
-      // Leg 2
-      ctx.moveTo(walkerX + 3, walkerY + 6);
-      ctx.lineTo(walkerX + 3 - legStep, walkerY + 16);
-      ctx.lineTo(walkerX + 5 - legStep, walkerY + 18);
-      ctx.stroke();
-
-      // Draw Walker Head / Chassis (Matching user screenshot robot head!)
-      // Body chassis: white/grey rounded box
-      ctx.fillStyle = '#e2e8f0';
-      ctx.strokeStyle = '#f43f5e';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.roundRect(walkerX - 8, walkerY - 8, 16, 14, 4);
-      ctx.fill();
-      ctx.stroke();
-
-      // Top yellow sensor bar
-      ctx.fillStyle = '#f59e0b';
-      ctx.fillRect(walkerX - 4, walkerY - 11, 8, 3);
-
-      // Antenna nubs
-      ctx.fillStyle = '#f43f5e';
-      ctx.beginPath();
-      ctx.arc(walkerX - 8, walkerY - 5, 2, 0, Math.PI * 2);
-      ctx.arc(walkerX + 8, walkerY - 5, 2, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Visor / Blue Eyes (matching image!)
-      ctx.fillStyle = '#06b6d4';
-      ctx.fillRect(walkerX - 5, walkerY - 4, 3, 3);
-      ctx.fillRect(walkerX + 2, walkerY - 4, 3, 3);
-
-      // Mini Health Bar above walker
-      const hpPercent = Math.max(0, 1 - (cycle / 100));
-      ctx.fillStyle = 'rgba(0,0,0,0.6)';
-      ctx.fillRect(walkerX - 8, walkerY - 16, 16, 3);
-      ctx.fillStyle = hpPercent > 0.4 ? '#00f3ff' : '#ef4444';
-      ctx.fillRect(walkerX - 8, walkerY - 16, 16 * hpPercent, 3);
-
-      // Gatling Gun fires orange tracers
-      const angleToWalker = Math.atan2(walkerY - gatlingY, walkerX - gatlingX);
-      ctx.save();
-      ctx.translate(gatlingX, gatlingY);
-      ctx.rotate(angleToWalker);
-      ctx.fillStyle = '#64748b';
-      ctx.fillRect(0, -2, 10, 4);
-      // Muzzle Flash
-      if (Math.floor(s.tick) % 3 === 0) {
-        ctx.fillStyle = '#f59e0b';
-        ctx.beginPath();
-        ctx.arc(12, 0, 3, 0, Math.PI * 2);
-        ctx.fill();
-        // Tracer bullet
-        s.bullets.push({ x: gatlingX + 12, y: gatlingY, tx: walkerX, ty: walkerY, prog: 0 });
-      }
-      ctx.restore();
-
-      // Tesla Lightning Zap (every 40 ticks)
-      if (cycle > 45 && cycle < 75) {
-        ctx.strokeStyle = '#00f3ff';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(teslaX, teslaY);
-        const midX = (teslaX + walkerX) * 0.5 + (Math.random() - 0.5) * 12;
-        const midY = (teslaY + walkerY) * 0.5 + (Math.random() - 0.5) * 12;
-        ctx.lineTo(midX, midY);
-        ctx.lineTo(walkerX, walkerY);
-        ctx.stroke();
-
-        this.addSparks(s.particles, walkerX, walkerY, '#00f3ff');
-      }
-    } else {
-      // Walker exploded into fireball!
-      if (cycle === 110) {
-        this.addSparks(s.particles, walkerX, 72, '#f59e0b', 12);
-        this.addSparks(s.particles, walkerX, 72, '#ef4444', 8);
-      }
-    }
-
-    // Update & Render bullets
-    for (let i = s.bullets.length - 1; i >= 0; i--) {
-      const b = s.bullets[i];
-      b.prog += 0.18;
-      const bx = b.x + (b.tx - b.x) * b.prog;
-      const by = b.y + (b.ty - b.y) * b.prog;
-      ctx.fillStyle = '#f59e0b';
-      ctx.fillRect(bx - 1.5, by - 1, 3, 2);
-      if (b.prog >= 1) {
-        this.addSparks(s.particles, b.tx, b.ty, '#fbbf24', 2);
-        s.bullets.splice(i, 1);
-      }
-    }
-
-    // Render particles
-    this.renderSparks(ctx, s.particles);
-
-    // HUD
-    ctx.fillStyle = '#f59e0b';
-    ctx.font = '8px monospace';
-    ctx.fillText('WAVE 04 // 60FPS', 10, 18);
   },
 
   // =========================================================================
@@ -1587,7 +1139,7 @@ const Previews = {
       ctx.restore();
     });
 
-    // 4.5. If Cosmo Junk Worms-style sprite sheet is ready, render ship, pirate & asteroids
+    // 4.5. Render Cosmo Junk Worms-style sprite sheet ship, pirate & asteroids
     if (this.isSheetReady('cosmo')) {
       s.debris.forEach((d, idx) => {
         this.drawCell(ctx, 'cosmo', idx % 3, 1, d.x, d.y, d.r * 3.2, d.r * 3.2, d.spin, false, 1);
@@ -1600,112 +1152,9 @@ const Previews = {
       this.drawCell(ctx, 'cosmo', 2, 0, pirX, pirY, 42, 42, 0, false, 1);
       const bx = ((t * 45) % 70);
       this.drawCell(ctx, 'cosmo', 5, 0, pirX - bx, pirY, 18, 18, 0, false, 0.95);
-      return;
     }
 
-    // 5. Player ship
-    const shipX = s.shipX + Math.sin(t * 0.6) * 10;
-    const shipY = 104 + Math.sin(t * 1.2) * 3;
-
-    const flame = 8 + Math.sin(t * 9) * 3;
-    const flameGrad = ctx.createLinearGradient(0, shipY + 4, 0, shipY + 4 + flame);
-    flameGrad.addColorStop(0, 'rgba(125, 211, 252, 0.95)');
-    flameGrad.addColorStop(1, 'rgba(59, 130, 246, 0)');
-    ctx.fillStyle = flameGrad;
-    ctx.beginPath();
-    ctx.moveTo(shipX - 4, shipY + 5);
-    ctx.lineTo(shipX, shipY + 5 + flame);
-    ctx.lineTo(shipX + 4, shipY + 5);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = '#cfe9ff';
-    ctx.beginPath();
-    ctx.moveTo(shipX, shipY - 11);
-    ctx.lineTo(shipX + 9, shipY + 7);
-    ctx.lineTo(shipX, shipY + 3);
-    ctx.lineTo(shipX - 9, shipY + 7);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = '#3b82f6';
-    ctx.beginPath();
-    ctx.moveTo(shipX, shipY - 4);
-    ctx.lineTo(shipX + 4, shipY + 5);
-    ctx.lineTo(shipX - 4, shipY + 5);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = '#7dd3fc';
-    ctx.fillRect(shipX - 1, shipY - 2, 2, 4);
-
-    // 6. Auto-fire
-    s.shotTimer += dt;
-    if (s.shotTimer > 520) {
-      s.shotTimer = 0;
-      s.bullets.push({ x: shipX, y: shipY - 12 });
-    }
-
-    s.bullets.forEach((b) => { b.y -= 2.1 * k; });
-    s.bullets = s.bullets.filter((b) => b.y > -6 && !b.dead);
-
-    ctx.fillStyle = '#a5f3fc';
-    ctx.shadowColor = '#38bdf8';
-    ctx.shadowBlur = 5;
-    s.bullets.forEach((b) => {
-      ctx.fillRect(b.x - 0.5, b.y, 1.5, 5);
-    });
-    ctx.shadowBlur = 0;
-
-    // 7. Bullet / junk collisions
-    s.bullets.forEach((b) => {
-      s.debris.forEach((d) => {
-        if (b.dead || d.dead) return;
-        const dist = Math.sqrt((b.x - d.x) * (b.x - d.x) + (b.y - d.y) * (b.y - d.y));
-        if (dist < d.r + 2) {
-          b.dead = true;
-          d.dead = true;
-          for (let i = 0; i < 6; i++) {
-            const a = (Math.PI * 2 * i) / 6;
-            s.particles.push({
-              x: d.x,
-              y: d.y,
-              vx: Math.cos(a) * (1 + Math.random()),
-              vy: Math.sin(a) * (1 + Math.random()),
-              life: 1
-            });
-          }
-        }
-      });
-    });
-
-    s.debris = s.debris.map((d) => {
-      if (!d.dead) return d;
-      return {
-        x: 12 + Math.random() * (w - 24),
-        y: -8,
-        r: 4 + Math.random() * 4,
-        spin: Math.random() * 3,
-        vy: 0.12 + Math.random() * 0.18
-      };
-    });
-    s.bullets = s.bullets.filter((b) => !b.dead);
-
-    // 8. Impact sparks
-    s.particles.forEach((p) => {
-      p.x += p.vx * k;
-      p.y += p.vy * k;
-      p.vx *= 0.96;
-      p.vy *= 0.96;
-      p.life -= 0.045 * k;
-      ctx.globalAlpha = Math.max(0, p.life);
-      ctx.fillStyle = '#fbbf24';
-      ctx.fillRect(p.x - 1, p.y - 1, 2, 2);
-    });
-    ctx.globalAlpha = 1;
-    s.particles = s.particles.filter((p) => p.life > 0);
-
-    // 9. HUD
+    // HUD
     const blink = Math.sin(t * 3) > -0.2;
     ctx.fillStyle = 'rgba(6, 14, 28, 0.72)';
     ctx.beginPath();

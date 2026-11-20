@@ -6,9 +6,6 @@
 const App = {
   currentCartridge: 'stick_fighting',
   deckIndex: 0,
-  get carouselIndex() { return this.deckIndex; },
-  set carouselIndex(v) { this.deckIndex = v; },
-  carouselAngle: 0,
   cartridgeOrder: ['stick_fighting', 'pixel_drift', 'chrono_blade', 'mecha_siege', 'worms_armageddon', 'cosmo_junk'],
   isPoweredOn: false,
   isBooting: false,
@@ -21,8 +18,6 @@ const App = {
   dragStartY: 0,
   dragDeltaY: 0,
   dragStartTime: 0,
-  touchStartX: 0,
-  touchStartY: 0,
 
   cartridges: {
     stick_fighting: {
@@ -96,13 +91,10 @@ const App = {
   init() {
     Storage.init();
     Sound.init();
-
-    Editor.init();
     P2P.init();
 
     this.setupDeckEvents();
     this.setupKeyboardShortcuts();
-    this.setupCartridgeSlot();
 
     const backdrop = document.getElementById('console-backdrop');
     if (backdrop) {
@@ -303,10 +295,6 @@ const App = {
     }, { passive: true });
   },
 
-  setupCarouselEvents() {
-    this.setupDeckEvents();
-  },
-
   setupKeyboardShortcuts() {
     document.addEventListener('keydown', (e) => {
       // Закрытие модалок по Escape
@@ -361,14 +349,6 @@ const App = {
     this.updateDashboardInfo();
   },
 
-  slideDeck(direction) {
-    this.rotateDeck(direction);
-  },
-
-  rotateCarousel(direction) {
-    this.rotateDeck(direction);
-  },
-
   setDeckIndex(index) {
     if (this.isPoweredOn || this.isBooting) return;
     const total = this.cartridgeOrder.length;
@@ -383,10 +363,6 @@ const App = {
     this.updateDeckDisplay();
     this.updateDashboardInfo();
     this.warmupActiveIframe();
-  },
-
-  setCarouselIndex(index) {
-    this.setDeckIndex(index);
   },
 
   onCardClick(index) {
@@ -487,14 +463,10 @@ const App = {
       }
     });
 
-    // Подсветка картриджей на нижней полке и в док-панели
-    document.querySelectorAll('.cartridge-item, .dock-card').forEach(item => {
+    // Подсветка картриджей в док-панели
+    document.querySelectorAll('.dock-card').forEach(item => {
       item.classList.toggle('active', item.dataset.game === this.cartridgeOrder[roundedIndex]);
     });
-  },
-
-  updateCarouselDisplay() {
-    this.updateDeckDisplay();
   },
 
   updateDashboardInfo() {
@@ -913,22 +885,6 @@ const App = {
     const labelMute = document.getElementById('label-setting-mute');
     if (btnMute) btnMute.classList.toggle('active', !isMuted);
     if (labelMute) labelMute.textContent = !isMuted ? 'ВКЛ' : 'ВЫКЛ';
-  },
-
-  setupCartridgeSlot() {
-    // Интерактивная полка картриджей (если присутствует)
-    document.querySelectorAll('.cartridge-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const gameId = item.dataset.game;
-        this.selectCartridge(gameId);
-      });
-      item.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          this.selectCartridge(item.dataset.game);
-        }
-      });
-    });
   },
 
   openModal(modalId) {

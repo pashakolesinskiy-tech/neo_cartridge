@@ -145,8 +145,8 @@ const P2P = {
         iframeEl.focus();
         return;
       }
-      if (!App.isPoweredOn && !App.isBooting && App.powerOnConsole) {
-        App.powerOnConsole();
+      if (!App.isPoweredOn && !App.isBooting && App.powerOnCartridge) {
+        App.powerOnCartridge(gameId);
         setTimeout(() => {
           const f = document.getElementById('game-iframe');
           if (f) {
@@ -216,10 +216,6 @@ const P2P = {
     const guestUrl = this.buildGuestUrl(gameId, clean);
     this.setStatusText(`Подключение к комнате ${clean}...`, 'ok');
     this.launchCartridgeUrl(gameId, guestUrl);
-  },
-
-  sendInput() {
-    return false;
   },
 
   updateStatusUI(state) {

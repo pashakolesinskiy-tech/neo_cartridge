@@ -1,4 +1,4 @@
-const CACHE_NAME = 'neo-cartridge-pwa-v10';
+const CACHE_NAME = 'neo-cartridge-pwa-v11';
 
 const CORE_ASSETS = [
   './',
@@ -10,7 +10,6 @@ const CORE_ASSETS = [
   './js/game-hero-screen.js',
   './js/app.js',
   './js/audio.js',
-  './js/editor.js',
   './js/webrtc-room.js',
   './js/p2p.js',
   './js/previews.js',

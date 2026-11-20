@@ -10,11 +10,11 @@ const Storage = {
       pixel_drift: 0,
       chrono_blade: 0,
       mecha_siege: 0,
-      worms_armageddon: 0
+      worms_armageddon: 0,
+      cosmo_junk: 0
     },
     gamesPlayed: 0,
     achievements: {},
-    customLevels: [],
     settings: {
       crtFilter: true,
       soundEnabled: true
@@ -31,7 +31,6 @@ const Storage = {
     { id: "COSMO_JUNKER", title: "Космический мусорщик", desc: "Вставить картридж COSMO JUNK", icon: "🛸" },
     { id: "CHIPTUNE_FAN", title: "8-битный эстет", desc: "Включить процедурный BGM синтезатор", icon: "🎵" },
     { id: "CRT_PURIST", title: "Фосфорное свечение", desc: "Активировать CRT-сканлайны и виньетку", icon: "📺" },
-    { id: "LEVEL_AUTHOR", title: "Архитектор матрицы", desc: "Нарисовать и сохранить свой уровень в студии", icon: "🎨" },
     { id: "P2P_WARRIOR", title: "P2P Рукопожатие", desc: "Создать WebRTC комнату для дуэли", icon: "🔗" }
   ],
 
@@ -129,7 +128,13 @@ const Storage = {
       try {
         const parsed = JSON.parse(e.target.result);
         if (parsed && parsed.highscores) {
-          this.data = parsed;
+          this.data = {
+            ...this.data,
+            ...parsed,
+            highscores: { ...this.data.highscores, ...parsed.highscores },
+            achievements: { ...this.data.achievements, ...(parsed.achievements || {}) },
+            settings: { ...this.data.settings, ...(parsed.settings || {}) }
+          };
           this.save();
           if (callback) callback(true);
         } else {
