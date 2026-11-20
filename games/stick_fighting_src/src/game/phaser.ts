@@ -1,57 +1,79 @@
-import Phaser from 'phaser';
-import { FightEngine } from './engine';
 import { WORLD_HEIGHT, WORLD_WIDTH, type Settings, type Snapshot } from './types';
+import { FightEngine } from './engine';
+import { onSpritesReady } from './sprites';
 
-class ArenaScene extends Phaser.Scene {
-  private engine: FightEngine;
-  private texture: Phaser.Textures.CanvasTexture | null = null;
-  private accumulator = 0;
-
-  constructor(engine: FightEngine) { super('Arena'); this.engine = engine; }
-
-  create() {
-    this.texture = this.textures.createCanvas('pixel-world', WORLD_WIDTH, WORLD_HEIGHT);
-    if (!this.texture) return;
-    this.texture.context.imageSmoothingEnabled = true;
-    this.add.image(0, 0, 'pixel-world').setOrigin(0).setDisplaySize(WORLD_WIDTH, WORLD_HEIGHT);
-    this.engine.draw(this.texture.context);
-    this.engine.emit();
-  }
-
-  update(_time: number, delta: number) {
-    // Fixed simulation ticks preserve the attack's frame data on fast and slow displays.
-    this.accumulator += Math.min(delta / 1000, 0.067);
-    while (this.accumulator >= 1 / 60) {
-      this.engine.step(1 / 60);
-      this.accumulator -= 1 / 60;
-    }
-    if (this.texture) {
-      this.engine.draw(this.texture.context);
-      this.texture.refresh();
-    }
-  }
+export interface ArenaInstance {
+  engine: FightEngine;
+  destroy: () => void;
 }
 
-export function createGame(parent: HTMLElement, settings: Settings, onSnapshot: (snapshot: Snapshot) => void) {
+/**
+ * Mounts the 1920x1080 (2x 960x540 world) fighting arena onto a native 2D canvas
+ * driven by a fixed 60 Hz requestAnimationFrame loop (zero Phaser bundle overhead).
+ */
+export function createGame(
+  container: HTMLElement,
+  settings: Settings,
+  onSnapshot: (snapshot: Snapshot) => void,
+): ArenaInstance {
+  container.replaceChildren();
+
+  const canvas = document.createElement('canvas');
+  canvas.width = WORLD_WIDTH * 2;
+  canvas.height = WORLD_HEIGHT * 2;
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+  canvas.style.display = 'block';
+  canvas.setAttribute('aria-label', 'Stick Fighting Arena');
+  container.appendChild(canvas);
+
+  const ctx = canvas.getContext('2d');
   const engine = new FightEngine(settings, onSnapshot);
-  const game = new Phaser.Game({
-    type: Phaser.CANVAS,
-    parent,
-    width: WORLD_WIDTH,
-    height: WORLD_HEIGHT,
-    backgroundColor: '#171b24',
-    pixelArt: false,
-    roundPixels: true,
-    antialias: true,
-    audio: { noAudio: true },
-    input: { keyboard: false, mouse: false, touch: false },
-    fps: { target: 60, smoothStep: false },
-    scale: { mode: Phaser.Scale.NONE },
-    scene: [new ArenaScene(engine)],
-    banner: false,
+
+  let destroyed = false;
+  let rafId = 0;
+  let lastTime = performance.now();
+  let accumulator = 0;
+  const FIXED_STEP_SEC = 1 / 60;
+
+  const unsubscribeSprites = onSpritesReady(() => {
+    if (!destroyed && ctx) engine.draw(ctx);
   });
+
+  const tick = (now: number) => {
+    if (destroyed) return;
+    const elapsedSec = Math.min(0.05, Math.max(0, (now - lastTime) / 1000));
+    lastTime = now;
+    accumulator += elapsedSec;
+
+    let steps = 0;
+    while (accumulator >= FIXED_STEP_SEC && steps < 3) {
+      engine.step(FIXED_STEP_SEC);
+      accumulator -= FIXED_STEP_SEC;
+      steps += 1;
+    }
+
+    if (ctx) {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      engine.draw(ctx);
+      ctx.restore();
+    }
+
+    rafId = requestAnimationFrame(tick);
+  };
+
+  if (ctx) engine.draw(ctx);
+  rafId = requestAnimationFrame(tick);
+
   return {
     engine,
-    destroy: () => { engine.destroy(); game.destroy(true); },
+    destroy: () => {
+      if (destroyed) return;
+      destroyed = true;
+      cancelAnimationFrame(rafId);
+      unsubscribeSprites();
+      canvas.remove();
+    },
   };
 }

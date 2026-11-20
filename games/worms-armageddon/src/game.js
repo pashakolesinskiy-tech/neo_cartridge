@@ -102,6 +102,7 @@ export class GameEngine {
     this.onNetEvent = options.onNetEvent || null;
     this.netRole = 'local'; // 'local' | 'host' | 'guest'
     this.localTeamIndex = -1;
+    this.paused = false;
     this._hudAccum = 0;
     this._accumulator = 0;
   }
@@ -1102,6 +1103,7 @@ export class GameEngine {
         this.particles.addPopup(w.x, w.y - 24, `-${applied}`, '#ff5252', 15, 1.0);
         this._emitFx({ kind: 'popup', x: w.x, y: w.y - 24, text: `-${applied}`, color: '#ff5252', size: 15, duration: 1.0 });
         this.sound.playHurt();
+        this._emitSound('hurt');
       }
     }
 
@@ -1279,6 +1281,7 @@ export class GameEngine {
   }
 
   update(frameDt) {
+    if (this.paused) return;
     if (this.phase === PHASES.SETUP || this.phase === PHASES.GAME_OVER) {
       this.camera.update(frameDt);
       this.particles.update(frameDt, this.wind);

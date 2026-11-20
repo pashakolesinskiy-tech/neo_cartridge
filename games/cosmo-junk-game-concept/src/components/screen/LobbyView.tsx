@@ -64,31 +64,31 @@ export default function LobbyView({
   const humans = room.players.filter((p) => p.role !== "spectator").length;
 
   return (
-    <div className="relative z-30 mx-auto flex min-h-dvh w-full max-w-6xl flex-col items-center px-4 py-8">
-      <div className="flex items-center gap-3 font-pixel text-[10px] text-cyan-300/70">
-        <QrCode className="h-4 w-4" /> ЗАГРУЗКА ЭКИПАЖА
+    <div className="relative z-30 mx-auto flex min-h-dvh w-full max-w-6xl flex-col items-center justify-center px-3 pb-4 pt-10 sm:px-4 sm:py-6 md:py-8">
+      <div className="flex items-center gap-2 font-pixel text-[9px] text-cyan-300/70 sm:gap-3 sm:text-[10px]">
+        <QrCode className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> ЗАГРУЗКА ЭКИПАЖА
       </div>
-      <h2 className="glitchy mt-4 text-center font-pixel text-2xl text-cyan-200 sm:text-4xl">
+      <h2 className="glitchy mt-2 text-center font-pixel text-lg text-cyan-200 sm:mt-3 sm:text-2xl lg:text-4xl">
         {room.shipName}
       </h2>
-      <p className="mt-3 text-center font-term text-xs text-slate-400">
+      <p className="mt-1.5 hidden text-center font-term text-xs text-slate-400 sm:block">
         Пустые кресла займут бортовые автопилоты. Играть можно хоть вдвоём, хоть одному.
       </p>
 
-      <div className="mt-8 grid w-full grid-cols-1 gap-6 lg:grid-cols-[auto_1fr]">
+      <div className="mt-3 grid w-full grid-cols-1 gap-3 md:mt-5 md:grid-cols-[240px_1fr] md:gap-4 lg:grid-cols-[auto_1fr] lg:gap-6">
         {/* QR + код */}
-        <div className="pxl-panel mx-auto flex flex-col items-center p-6">
+        <div className="pxl-panel mx-auto flex w-full max-w-xs flex-col items-center p-3 sm:p-4 lg:w-auto lg:p-6">
           {qr ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={qr} alt="QR для подключения" className="pixelated h-56 w-56" />
+            <img src={qr} alt="QR для подключения" className="pixelated h-32 w-32 sm:h-40 sm:w-40 lg:h-56 lg:w-56" />
           ) : (
-            <div className="h-56 w-56 animate-pulse bg-[#101a28]" />
+            <div className="h-32 w-32 animate-pulse bg-[#101a28] sm:h-40 sm:w-40 lg:h-56 lg:w-56" />
           )}
-          <div className="mt-5 flex gap-2">
+          <div className="mt-3 flex gap-1.5 lg:mt-5 lg:gap-2">
             {room.code.split("").map((ch, i) => (
               <span
                 key={i}
-                className="border-2 border-amber-400/60 bg-amber-400/10 px-3 py-2 font-pixel text-xl text-amber-300"
+                className="border-2 border-amber-400/60 bg-amber-400/10 px-2 py-1 font-pixel text-base text-amber-300 lg:px-3 lg:py-2 lg:text-xl"
               >
                 {ch}
               </span>
@@ -112,9 +112,9 @@ export default function LobbyView({
         </div>
 
         {/* слоты экипажа */}
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2 font-pixel text-[10px] text-slate-400">
+        <div className="flex flex-col gap-2 lg:gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 lg:gap-3">
+            <div className="flex items-center gap-2 font-pixel text-[9px] text-slate-400 lg:text-[10px]">
               <Users className="h-4 w-4 text-cyan-300" /> ЛЮДИ: {humans}/4
               {botSlots.length > 0 && (
                 <span className="inline-flex items-center gap-1.5 text-emerald-300">
@@ -134,7 +134,7 @@ export default function LobbyView({
                     key={d}
                     onClick={() => onDifficulty(d)}
                     title={m.desc}
-                    className="border-2 px-2.5 py-1.5 font-pixel text-[8px] transition-colors"
+                    className="border-2 px-2 py-1 font-pixel text-[8px] transition-colors lg:px-2.5 lg:py-1.5"
                     style={{
                       borderColor: on ? m.color : "#1b2b3a",
                       color: on ? "#04060e" : m.color,
@@ -148,71 +148,73 @@ export default function LobbyView({
             </div>
           </div>
 
-          {ROLE_ORDER.map((role) => {
-            const meta = ROLE_META[role];
-            const Icon = ROLE_ICONS[role];
-            const player = crewByRole(role);
-            const bot = botByRole(role);
-            const botOff = disabledRoles.includes(role) && !player;
-            const filled = !!player || !!bot;
-            return (
-              <div
-                key={role}
-                className="pxl-panel flex items-center gap-4 px-5 py-4"
-                style={{ opacity: filled ? 1 : 0.5 }}
-              >
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1 lg:gap-3">
+            {ROLE_ORDER.map((role) => {
+              const meta = ROLE_META[role];
+              const Icon = ROLE_ICONS[role];
+              const player = crewByRole(role);
+              const bot = botByRole(role);
+              const botOff = disabledRoles.includes(role) && !player;
+              const filled = !!player || !!bot;
+              return (
                 <div
-                  className="flex h-12 w-12 items-center justify-center overflow-hidden border-2"
-                  style={{
-                    borderColor: player ? meta.color : bot ? "#3bff8f" : "#1b2b3a",
-                    background: player ? `${meta.color}22` : bot ? "#3bff8f18" : "transparent",
-                  }}
+                  key={role}
+                  className="pxl-panel flex items-center gap-2.5 px-3 py-2 lg:gap-4 lg:px-5 lg:py-4"
+                  style={{ opacity: filled ? 1 : 0.5 }}
                 >
                   <div
-                    title={bot && !player ? "БОТ" : meta.label}
-                    className="h-11 w-11 shrink-0"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden border-2 lg:h-12 lg:w-12"
                     style={{
-                      backgroundImage: "url('sprites/cosmo_junk_sheet.png')",
-                      backgroundSize: "600% 400%",
-                      backgroundRepeat: "no-repeat",
-                      backgroundPosition: `${((bot && !player) ? 4 : ROLE_SPRITE_COL[role]) * 20}% 66.6667%`,
+                      borderColor: player ? meta.color : bot ? "#3bff8f" : "#1b2b3a",
+                      background: player ? `${meta.color}22` : bot ? "#3bff8f18" : "transparent",
                     }}
-                  />
-                </div>
-                <div className="flex-1">
-                  <div
-                    className="font-pixel text-[11px]"
-                    style={{ color: player ? meta.color : bot ? "#3bff8f" : "#64748b" }}
                   >
-                    {player ? player.name : bot ? bot.name : meta.label}
+                    <div
+                      title={bot && !player ? "БОТ" : meta.label}
+                      className="h-8 w-8 shrink-0 lg:h-11 lg:w-11"
+                      style={{
+                        backgroundImage: "url('sprites/cosmo_junk_sheet.png')",
+                        backgroundSize: "600% 400%",
+                        backgroundRepeat: "no-repeat",
+                        backgroundPosition: `${((bot && !player) ? 4 : ROLE_SPRITE_COL[role]) * 20}% 66.6667%`,
+                      }}
+                    />
                   </div>
-                  <div className="mt-1 font-term text-[10px] text-slate-500">
-                    {player
-                      ? `${meta.label} · НА СВЯЗИ`
-                      : bot
-                        ? `${meta.label} · АВТОПИЛОТ ГОТОВ`
-                        : `${meta.label} · КРЕСЛО ПУСТОЕ`}
+                  <div className="min-w-0 flex-1">
+                    <div
+                      className="truncate font-pixel text-[9px] lg:text-[11px]"
+                      style={{ color: player ? meta.color : bot ? "#3bff8f" : "#64748b" }}
+                    >
+                      {player ? player.name : bot ? bot.name : meta.label}
+                    </div>
+                    <div className="mt-0.5 truncate font-term text-[9px] text-slate-500 lg:mt-1 lg:text-[10px]">
+                      {player
+                        ? `${meta.label} · НА СВЯЗИ`
+                        : bot
+                          ? `${meta.label} · АВТОПИЛОТ`
+                          : `${meta.label} · ПУСТО`}
+                    </div>
                   </div>
-                </div>
 
-                {player ? (
-                  <span className="font-pixel text-[8px] text-emerald-300">■ ЖИВОЙ</span>
-                ) : (
-                  <button
-                    onClick={() => onToggleBot(role)}
-                    className="inline-flex items-center gap-1.5 border-2 px-2.5 py-2 font-pixel text-[8px]"
-                    style={{
-                      borderColor: botOff ? "#1b2b3a" : "#3bff8f",
-                      color: botOff ? "#64748b" : "#3bff8f",
-                    }}
-                  >
-                    {botOff ? <UserPlus className="h-3.5 w-3.5" /> : <Bot className="h-3.5 w-3.5" />}
-                    {botOff ? "БОТ ВЫКЛ" : "БОТ ВКЛ"}
-                  </button>
-                )}
-              </div>
-            );
-          })}
+                  {player ? (
+                    <span className="shrink-0 font-pixel text-[7px] text-emerald-300 lg:text-[8px]">■ ЖИВОЙ</span>
+                  ) : (
+                    <button
+                      onClick={() => onToggleBot(role)}
+                      className="inline-flex shrink-0 items-center gap-1 border-2 px-2 py-1 font-pixel text-[7px] lg:gap-1.5 lg:px-2.5 lg:py-2 lg:text-[8px]"
+                      style={{
+                        borderColor: botOff ? "#1b2b3a" : "#3bff8f",
+                        color: botOff ? "#64748b" : "#3bff8f",
+                      }}
+                    >
+                      {botOff ? <UserPlus className="h-3 w-3 lg:h-3.5 lg:w-3.5" /> : <Bot className="h-3 w-3 lg:h-3.5 lg:w-3.5" />}
+                      {botOff ? "ВЫКЛ" : "БОТ"}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
 
           {room.players.filter((p) => p.role === "spectator").length > 0 && (
             <div className="font-term text-[11px] text-slate-500">
@@ -223,9 +225,9 @@ export default function LobbyView({
           <button
             onClick={onStart}
             disabled={starting}
-            className="pxl-btn mt-3 inline-flex items-center justify-center gap-3 bg-emerald-400 px-8 py-5 font-pixel text-sm text-black"
+            className="pxl-btn mt-1 inline-flex items-center justify-center gap-3 bg-emerald-400 px-6 py-3 font-pixel text-xs text-black lg:mt-3 lg:px-8 lg:py-5 lg:text-sm"
           >
-            <Play className="h-5 w-5" />
+            <Play className="h-4 w-4 lg:h-5 lg:w-5" />
             {starting ? "ЗАЖИГАНИЕ…" : "ЗАПУСК ДВИГАТЕЛЕЙ"}
           </button>
           <p className="text-center font-term text-[11px] text-slate-500">

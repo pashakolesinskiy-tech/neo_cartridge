@@ -19,10 +19,8 @@ function isTouchOrMobileViewport(): boolean {
   if (typeof window === 'undefined') return false;
   return (
     window.matchMedia('(pointer: coarse)').matches ||
-    'ontouchstart' in window ||
-    navigator.maxTouchPoints > 0 ||
     window.innerWidth <= 920 ||
-    window.innerHeight <= 520
+    window.innerHeight <= 540
   );
 }
 
@@ -36,7 +34,7 @@ function readSettings(): Settings {
       volume: typeof saved.volume === 'number' && Number.isFinite(saved.volume) ? Math.max(0, Math.min(1, saved.volume)) : defaults.volume,
       muted: typeof saved.muted === 'boolean' ? saved.muted : defaults.muted,
       shake: typeof saved.shake === 'boolean' ? saved.shake : defaults.shake,
-      touch: autoTouch ? true : (typeof saved.touch === 'boolean' ? saved.touch : defaults.touch),
+      touch: typeof saved.touch === 'boolean' ? saved.touch : defaults.touch,
     };
   } catch { return defaults; }
 }
@@ -66,6 +64,7 @@ export default function App() {
   const resumeAfterModal = useRef(false);
   const onlineRef = useRef<OnlineGame | null>(null);
   const qrHandledRef = useRef(false);
+  const reportedMatchRef = useRef(false);
   const configRef = useRef(config);
   const screenRef = useRef(screen);
   const settingsRef = useRef(settings);
@@ -77,7 +76,27 @@ export default function App() {
     const instance = createGame(canvasRef.current, settingsRef.current, state => { if (active) setSnapshot(state); });
     engineRef.current = instance.engine;
     instance.engine.preview(configRef.current);
-    return () => { active = false; instance.destroy(); engineRef.current = null; };
+    const unlockOnce = () => engineRef.current?.audio.unlock();
+    window.addEventListener('pointerdown', unlockOnce, { passive: true });
+    window.addEventListener('keydown', unlockOnce, { passive: true });
+    const onShellMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'NEO_SET_MUTE') {
+        const muted = Boolean(event.data.muted);
+        setSettings(prev => (prev.muted === muted ? prev : { ...prev, muted }));
+      }
+    };
+    window.addEventListener('message', onShellMessage);
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'NEO_REQUEST_MUTE_STATE' }, '*');
+    }
+    return () => {
+      active = false;
+      window.removeEventListener('pointerdown', unlockOnce);
+      window.removeEventListener('keydown', unlockOnce);
+      window.removeEventListener('message', onShellMessage);
+      instance.destroy();
+      engineRef.current = null;
+    };
   }, []);
 
   useEffect(() => {
@@ -272,7 +291,28 @@ export default function App() {
     return () => window.clearTimeout(timeout);
   }, [toast]);
 
-  useEffect(() => { if (snapshot.phase === 'match-end') document.querySelector<HTMLButtonElement>('.rematch-button')?.focus({ preventScroll: true }); }, [snapshot.phase]);
+  useEffect(() => {
+    if (screen !== 'battle' || snapshot.phase !== 'match-end' || modal || snapshot.paused) {
+      if (snapshot.paused || snapshot.phase === 'match-end' || modal || screen !== 'battle') {
+        engineRef.current?.clearInput();
+      }
+    }
+  }, [screen, snapshot.phase, snapshot.paused, modal]);
+
+  useEffect(() => {
+    if (snapshot.phase !== 'match-end') {
+      reportedMatchRef.current = false;
+      return;
+    }
+    if (!reportedMatchRef.current && window.parent && window.parent !== window) {
+      reportedMatchRef.current = true;
+      const mySide = online?.role === 'guest' ? snapshot.enemy : snapshot.player;
+      const won = snapshot.winner === (online?.role === 'guest' ? 1 : 0);
+      const score = mySide.wins * 1000 + Math.max(0, mySide.health) * 10 + (won ? 1500 : 250);
+      window.parent.postMessage({ type: 'NEO_HIGHSCORE', game: 'stick_fighting', score }, '*');
+    }
+    document.querySelector<HTMLButtonElement>('.rematch-button')?.focus({ preventScroll: true });
+  }, [snapshot.phase, snapshot.winner, snapshot.player, snapshot.enemy, online?.role]);
 
   const toggleFullscreen = async () => {
     try {
@@ -310,7 +350,7 @@ export default function App() {
             <h1 className="hero-title" aria-label="StickFighting"><PixelWord text="STICK" /><PixelWord text="FIGHTING" className="accent" /></h1>
             <h2 className="hero-subtitle">Маленькие бойцы.<br />Большие разборки.</h2>
             <p className="hero-description">Один на один с ИИ или с другом по сети. Всё решает твой следующий удар.</p>
-            <div className="hero-actions"><button type="button" className="primary-button play-button" onClick={showSetup}><Play size={19} fill="currentColor" /> ИГРАТЬ <ChevronRight size={21} /></button><button type="button" className="secondary-button online-button" onClick={showOnline}><Wifi size={19} /> По сети</button><button type="button" className="secondary-button" onClick={() => openModal('help')}><Keyboard size={19} /> Управление</button></div>
+            <div className="hero-actions"><button type="button" className="primary-button play-button" onClick={showSetup}><Play size={19} fill="currentColor" /> ИГРАТЬ <ChevronRight size={21} /></button><button type="button" className="secondary-button online-button" onClick={showOnline}><Wifi size={19} /> По сети</button></div>
             <div className="start-hint"><Kbd>Enter</Kbd><span>чтобы начать</span></div>
           </div>
           <div className="stage-vignette" />

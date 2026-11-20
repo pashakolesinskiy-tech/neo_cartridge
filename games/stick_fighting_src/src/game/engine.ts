@@ -614,8 +614,11 @@ export class FightEngine {
   /** Guest: no simulation. Show the host's states one per tick, with a one-tick buffer against network jitter. */
   private stepClient(dt: number) {
     const queue = this.stateQueue;
-    if (queue.length > 3) queue.splice(0, queue.length - 2);
-    if (queue.length > 1) this.applyState(queue.shift()!);
+    if (queue.length > 4) queue.splice(0, queue.length - 2);
+    while (queue.length > 1) this.applyState(queue.shift()!);
+    if (queue.length === 1 && !this.paused && !this.hitstopView) {
+      this.applyState(queue.shift()!);
+    }
     if (this.paused || this.hitstopView) return;
     this.visualTime += dt;
     this.updateEffects(dt);

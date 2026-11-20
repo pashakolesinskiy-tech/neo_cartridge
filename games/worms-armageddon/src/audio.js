@@ -23,7 +23,11 @@ export class SoundEngine {
   }
 
   _canPlay() {
-    return !this.muted && this.ctx && this.ctx.state === 'running';
+    if (this.muted || !this.ctx) return false;
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+    return true;
   }
 
   _buildNoiseBuffer() {

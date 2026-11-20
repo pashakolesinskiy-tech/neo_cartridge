@@ -38,8 +38,6 @@ export class Renderer {
   private jumpT = 0;
   private flash = 0;
   private shieldFlash = 0;
-  private nebula: HTMLImageElement | null = null;
-  private nebulaOk = false;
   private sheet: HTMLImageElement | null = null;
   private sheetOk = false;
   // конец игры
@@ -208,17 +206,6 @@ export class Renderer {
     // ---- фон ----
     ctx.fillStyle = "#04060e";
     ctx.fillRect(-20, -20, W + 40, H + 40);
-    if (this.nebula && this.nebulaOk) {
-      const img = this.nebula;
-      const scale = Math.max(H / img.height, W / img.width) * 1.06;
-      const iw = img.width * scale, ih = img.height * scale;
-      const px = (W - iw) / 2 - ((now * 0.006) % 40);
-      ctx.globalAlpha = 0.5;
-      ctx.drawImage(img, px, (H - ih) / 2, iw, ih);
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = "rgba(4,6,14,0.45)";
-      ctx.fillRect(-20, -20, W + 40, H + 40);
-    }
 
     const speedFactor = (0.25 + sim.speed / 26) * (this.jumpT > 0 ? 6 : 1) * (this.winT >= 0 ? Math.max(0.15, 1 - this.winT) : 1);
     for (const s of this.stars) {
@@ -268,7 +255,7 @@ export class Renderer {
         shipX += (660 - WORLD.shipX) * (t * t);
         if (this.winT > 1.4) this.shipSink += dt;
       }
-      this.drawShip(ctx, shipX, sim.shipY + this.shipSink * 10, sim, now);
+      this.drawShip(ctx, shipX, sim.shipY + this.shipSink * 10, sim, now, dt);
       if (this.winT > 1.5 && Math.random() < 0.3) {
         this.burst(shipX + 40, sim.shipY, 2, ["#3bff8f", "#c8ffe2", "#57e6e6"], 60);
       }
@@ -307,11 +294,12 @@ export class Renderer {
     if (!sim.breakers.B2 || this.glitchSeed > 0) {
       this.glitchSeed = Math.max(0, this.glitchSeed - dt);
       for (let i = 0; i < 4; i++) {
-        const gy = (Math.random() * H) | 0;
-        const gh = 2 + (Math.random() * 6) | 0;
-        const off = ((Math.random() - 0.5) * 22) | 0;
-        const slice = ctx.getImageData(0, gy, W, gh);
-        ctx.putImageData(slice, off, gy);
+        const gy = (Math.random() * Math.max(1, H - 8)) | 0;
+        const gh = 2 + ((Math.random() * 6) | 0);
+        const off = ((Math.random() - 0.5) * 24) | 0;
+        ctx.drawImage(ctx.canvas, 0, gy, W, gh, off, gy, W, gh);
+        ctx.fillStyle = i % 2 === 0 ? "rgba(87,230,230,0.14)" : "rgba(255,59,91,0.12)";
+        ctx.fillRect(0, gy, W, 1);
       }
     }
 
@@ -426,7 +414,8 @@ export class Renderer {
           return;
         }
         case "comet": {
-          this.drawSprite(ctx, 3, 1, e.x + 14, e.y, 68, 68, 0, 1);
+          const cometRot = Math.atan2(-e.vy, -e.vx);
+          this.drawSprite(ctx, 3, 1, e.x + Math.cos(cometRot) * 12, e.y - Math.sin(cometRot) * 12, 68, 68, cometRot, 1);
           return;
         }
         case "flareT":
@@ -539,7 +528,7 @@ export class Renderer {
     }
   }
 
-  private drawShip(ctx: CanvasRenderingContext2D, x: number, y: number, sim: GameSim, now: number) {
+  private drawShip(ctx: CanvasRenderingContext2D, x: number, y: number, sim: GameSim, now: number, dt = 0.016) {
     const u = 4;
     const px = (dx: number, dy: number, wd: number, ht: number, c: string) => {
       ctx.fillStyle = c;
@@ -552,7 +541,7 @@ export class Renderer {
     // щит
     if (sim.shieldUp) {
       const fl = 1 + this.shieldFlash * 2.4;
-      this.shieldFlash = Math.max(0, this.shieldFlash - 0.02);
+      this.shieldFlash = Math.max(0, this.shieldFlash - dt * 1.4);
       ctx.save();
       ctx.strokeStyle = `rgba(87,230,230,${0.35 * fl})`;
       ctx.lineWidth = 3;

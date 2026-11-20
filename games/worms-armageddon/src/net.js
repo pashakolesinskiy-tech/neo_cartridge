@@ -312,11 +312,11 @@ class WormsP2PLink {
         if (this.peerWsQueue.length < 48) this.peerWsQueue.push(env);
       }
     }
-    const needsNtfy = msg.sig === 'join' || msg.sig === 'offer' || msg.sig === 'answer';
+    const needsNtfy = msg.sig === 'join' || msg.sig === 'offer' || msg.sig === 'answer' || (msg.sig === 'ice' && !this.peerWsOpen);
     if (needsNtfy && this.ntfyTopic && Date.now() >= this.ntfyRateLimitedUntil) {
       const tid = setTimeout(() => {
         this.ntfyTimers.delete(tid);
-        if (this.closed || !this.ntfyTopic || this.open || this.viaBc || Date.now() < this.ntfyRateLimitedUntil) return;
+        if (this.closed || !this.ntfyTopic || this.open || Date.now() < this.ntfyRateLimitedUntil) return;
         if (msg.sig === 'join') {
           if (Date.now() - this.lastNtfyJoinAt < 3500) return;
           this.lastNtfyJoinAt = Date.now();
@@ -476,7 +476,7 @@ class WormsP2PLink {
 
   async _handleHostSig(msg, via) {
     if (msg.sig === 'join') {
-      const stale = this.pc && !this.open && Date.now() - this.createdAt > 4000;
+      const stale = this.pc && !this.open && Date.now() - this.createdAt > 12000;
       if (this.remotePeerId && this.remotePeerId !== msg.from && (this.open || !stale)) {
         if (this.open) {
           this._broadcastSig({ sig: 'full', from: this.myId, to: msg.from });

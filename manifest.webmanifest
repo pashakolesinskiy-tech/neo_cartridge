@@ -40,17 +40,38 @@
   ],
   "shortcuts": [
     {
-      "name": "Worms Armageddon",
-      "short_name": "Worms",
-      "description": "Открыть картридж Worms Armageddon",
-      "url": "./?game=worms_armageddon",
-      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
-    },
-    {
       "name": "Stick Fighting",
       "short_name": "StickFight",
       "description": "Открыть картридж Stick Fighting",
       "url": "./?game=stick_fighting",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Pixel Drift GP",
+      "short_name": "PixelDrift",
+      "description": "Открыть картридж Pixel Drift GP",
+      "url": "./?game=pixel_drift",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Chrono Blade",
+      "short_name": "ChronoBlade",
+      "description": "Открыть картридж Chrono Blade",
+      "url": "./?game=chrono_blade",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Mecha Siege",
+      "short_name": "MechaSiege",
+      "description": "Открыть картридж Mecha Siege",
+      "url": "./?game=mecha_siege",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Worms Armageddon",
+      "short_name": "Worms",
+      "description": "Открыть картридж Worms Armageddon",
+      "url": "./?game=worms_armageddon",
       "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {

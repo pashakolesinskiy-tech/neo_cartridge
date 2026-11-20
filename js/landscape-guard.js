@@ -1,23 +1,31 @@
 /**
  * NEO-CARTRIDGE // Universal Mobile Landscape Orientation Guard
  * Requires phone/mobile users to hold their device horizontally (landscape)
- * when playing any game cartridge.
+ * when playing any game cartridge, while cleanly exempting portrait Crew Deck/phone controllers.
  */
 (function () {
   if (window.__NEO_LANDSCAPE_GUARD__) return;
   window.__NEO_LANDSCAPE_GUARD__ = true;
 
   const isConsoleShell = !!document.getElementById('screen-housing') && !window.location.pathname.includes('/games/');
-  const isInsideConsoleIframe = (function () {
+  const urlParams = new URLSearchParams(window.location.search);
+  const isEmbeddedSubframe = (function () {
+    if (urlParams.get('embed') === '1') return true;
     try {
-      return window.self !== window.top && window.top && window.top.document && !!window.top.document.getElementById('screen-housing');
+      return window.self !== window.top;
     } catch {
-      return false;
+      return true;
     }
   })();
 
   let bypassedUntilLandscape = false;
   let overlayEl = null;
+
+  function isPortraitPhoneControllerRoute() {
+    const path = window.location.pathname.toLowerCase();
+    const hash = (window.location.hash || '').toLowerCase();
+    return path.includes('cosmo_junk') && hash.startsWith('#/play/');
+  }
 
   function injectStyles() {
     if (document.getElementById('neo-landscape-guard-styles')) return;
@@ -179,7 +187,11 @@
         <p class="nlg-sub">Игровые картриджи разработаны для альбомной ориентации экрана. Переверните устройство для запуска игры.</p>
         <div class="nlg-actions">
           <button type="button" class="nlg-btn-primary" id="nlg-btn-lock">🔄 ПОВЕРНУТЬ ЭКРАН (АВТО)</button>
-          ${isConsoleShell ? '<button type="button" class="nlg-btn-secondary" id="nlg-btn-exit">⏻ Вернуться к выбору картриджа</button>' : ''}
+          ${
+            isConsoleShell
+              ? '<button type="button" class="nlg-btn-secondary" id="nlg-btn-exit">⏻ Вернуться к выбору картриджа</button>'
+              : '<button type="button" class="nlg-btn-secondary" id="nlg-btn-bypass">Продолжить вертикально</button>'
+          }
         </div>
       </div>
     `;
@@ -189,10 +201,10 @@
     if (lockBtn) {
       lockBtn.addEventListener('click', async () => {
         try {
-          const docEl = document.documentElement;
-          const reqFs = docEl.requestFullscreen || docEl.webkitRequestFullscreen;
+          const targetEl = (isConsoleShell && document.getElementById('screen-housing')) || document.documentElement;
+          const reqFs = targetEl.requestFullscreen || targetEl.webkitRequestFullscreen;
           if (reqFs && !document.fullscreenElement && !document.webkitFullscreenElement) {
-            await Promise.resolve(reqFs.call(docEl)).catch(() => {});
+            await Promise.resolve(reqFs.call(targetEl)).catch(() => {});
           }
           if (screen.orientation && screen.orientation.lock) {
             await screen.orientation.lock('landscape');
@@ -206,8 +218,16 @@
     if (exitBtn) {
       exitBtn.addEventListener('click', () => {
         if (window.App && typeof window.App.powerOffConsole === 'function') {
-          window.App.powerOffConsole();
+          window.App.powerOffConsole(true);
         }
+        evaluateOrientation();
+      });
+    }
+
+    const bypassBtn = overlayEl.querySelector('#nlg-btn-bypass');
+    if (bypassBtn) {
+      bypassBtn.addEventListener('click', () => {
+        bypassedUntilLandscape = true;
         evaluateOrientation();
       });
     }
@@ -224,8 +244,7 @@
   }
 
   function shouldRequireLandscape() {
-    // If inside the console shell's iframe, let the parent console shell display the overlay
-    if (isInsideConsoleIframe) return false;
+    if (isEmbeddedSubframe || isPortraitPhoneControllerRoute()) return false;
 
     const vw = window.innerWidth || document.documentElement.clientWidth || 0;
     const vh = window.innerHeight || document.documentElement.clientHeight || 0;
@@ -239,10 +258,9 @@
     if (bypassedUntilLandscape) return false;
 
     if (isConsoleShell) {
-      return document.body && document.body.classList.contains('game-playing');
+      return !!(document.body && document.body.classList.contains('game-playing'));
     }
 
-    // Standalone game page opened directly on a portrait mobile screen
     return true;
   }
 
@@ -260,6 +278,7 @@
   function initGuard() {
     evaluateOrientation();
     window.addEventListener('resize', evaluateOrientation, { passive: true });
+    window.addEventListener('hashchange', evaluateOrientation, { passive: true });
     window.addEventListener('orientationchange', () => {
       setTimeout(evaluateOrientation, 60);
       setTimeout(evaluateOrientation, 220);

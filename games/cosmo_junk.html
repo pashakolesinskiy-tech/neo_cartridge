@@ -24,7 +24,8 @@
         font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
         overflow-x: hidden;
       }
-      body.cj-embed {
+      body.cj-embed,
+      body.cj-phone-route {
         --cj-bar-h: 0px;
       }
       #cj-topbar {
@@ -44,7 +45,12 @@
         font-size: 11px;
         user-select: none;
       }
-      body.cj-embed #cj-topbar {
+      body.cj-embed #cj-topbar,
+      body.cj-phone-route #cj-topbar {
+        display: none !important;
+      }
+      body.cj-embed #cj-deck-panel,
+      body.cj-phone-route #cj-deck-panel {
         display: none !important;
       }
       .cj-brand {
@@ -307,50 +313,19 @@
         word-break: break-all;
       }
 
-      /* Keep in-app ВЫХОД / ЗВУК bar below #cj-topbar and compact flight HUD on small screens */
-      body:not(.cj-embed) #root .relative.min-h-dvh > .absolute.top-0.z-50 {
-        top: 6px !important;
+      /* Keep in-app ВЫХОД / ЗВУК bar clean on mobile & standalone controller */
+      body:not(.cj-embed):not(.cj-phone-route) #root .relative.min-h-dvh > .pointer-events-none.top-0.z-50 {
+        top: 2px;
       }
       @media (max-width: 920px), (max-height: 520px) {
-        /* Compact ShipScreen flight HUD so all panels fit inside scaled 16:9 box */
-        #root .aspect-video > .pointer-events-none.absolute.inset-0.z-30 {
-          padding: 6px !important;
-        }
-        #root .aspect-video .pxl-panel {
-          padding: 3px 6px !important;
-        }
-        #root .aspect-video .font-pixel {
-          font-size: 7px !important;
-        }
-        #root .aspect-video .font-term {
-          font-size: 8px !important;
-          line-height: 1.2 !important;
-        }
-        #root .aspect-video .h-3\.5.w-\[9px\] {
-          width: 4px !important;
-          height: 8px !important;
-        }
-      }
-      /* Compact embedded Crew Deck controller (body.cj-embed) on short landscape viewports */
-      @media (max-height: 520px) {
-        body.cj-embed .min-h-dvh {
-          min-height: 100dvh !important;
-          padding-top: 6px !important;
-          padding-bottom: 6px !important;
-        }
-        body.cj-embed .pxl-btn {
-          padding-top: 8px !important;
-          padding-bottom: 8px !important;
-          min-height: 54px !important;
-        }
-        body.cj-embed .pxl-panel {
-          padding: 6px 8px !important;
+        body.cj-phone-route .glitchy {
+          animation: none;
         }
       }
     </style>
-    <script src="../js/landscape-guard.js?v=10"></script>
-    <script src="../js/game-hero-screen.js?v=10"></script>
-    <script src="../js/webrtc-room.js?v=10"></script>
+    <script src="../js/landscape-guard.js?v=12"></script>
+    <script src="../js/game-hero-screen.js?v=12"></script>
+    <script src="../js/webrtc-room.js?v=12"></script>
   </head>
   <body class="min-h-screen antialiased selection:bg-[#57e6e6] selection:text-[#04060e]">
     <script>
@@ -358,6 +333,14 @@
         const params = new URLSearchParams(window.location.search);
         const isEmbed = params.get("embed") === "1";
         const slotId = params.get("slot") || "1";
+        function syncPhoneRouteClass() {
+          const isPhone = String(window.location.hash || "").startsWith("#/play/");
+          document.body.classList.toggle("cj-phone-route", isPhone);
+        }
+        syncPhoneRouteClass();
+        window.addEventListener("hashchange", syncPhoneRouteClass);
+        window.addEventListener("popstate", syncPhoneRouteClass);
+        window.addEventListener("cosmo:route", syncPhoneRouteClass);
         if (isEmbed) {
           document.body.classList.add("cj-embed");
           // Isolated sessionStorage per embedded controller slot so multiple crew tabs/slots can join on 1 PC
@@ -590,14 +573,22 @@
 
         function toPublic(room) {
           pruneRoom(room);
+          const t = Date.now();
+          const playersWithConn = (room.players || []).map((p) => {
+            const seen = (room.lastSeen && room.lastSeen[p.id]) || p.joinedAt || t;
+            return {
+              ...p,
+              connected: t - seen <= PLAYER_TIMEOUT
+            };
+          });
           return {
             code: room.code,
             shipName: room.shipName,
             phase: room.phase,
             createdAt: room.createdAt,
-            players: room.players,
+            players: playersWithConn,
             snapshot: room.snapshot,
-            hostOnline: Date.now() - (room.hostLastSeen || 0) < HOST_TIMEOUT
+            hostOnline: t - (room.hostLastSeen || 0) < HOST_TIMEOUT
           };
         }
 
@@ -634,10 +625,11 @@
           if (mRoom) {
             const code = decodeURIComponent(mRoom[1] || "").toUpperCase();
             const sub = mRoom[2] || "";
+            const isHostPoll = method === "GET" && !sub && urlObj.searchParams.get("host") === "1";
             let room = bus.rooms[code];
 
-            // Auto-create room if navigated directly to #/ship/CODE or #/play/CODE
-            if (!room && code && code.length >= 2) {
+            // Auto-create room only when the Ship host itself opens #/ship/CODE directly
+            if (!room && isHostPoll && code && code.length >= 2) {
               room = createRoom(code);
             }
             if (!room) {
@@ -645,7 +637,7 @@
             }
 
             if (method === "GET" && !sub) {
-              const isHost = urlObj.searchParams.get("host") === "1";
+              const isHost = isHostPoll;
               const playerId = urlObj.searchParams.get("player");
               if (isHost) {
                 room.hostLastSeen = Date.now();
@@ -694,8 +686,13 @@
 
               const taken = new Set(room.players.map((p) => p.role));
               let role = "spectator";
-              if (preferredRole && ROLES.includes(preferredRole) && !taken.has(preferredRole)) {
-                role = preferredRole;
+              let wantRole = preferredRole && ROLES.includes(preferredRole) ? preferredRole : null;
+              if (!wantRole && bus.preferredRole && ROLES.includes(bus.preferredRole)) {
+                wantRole = bus.preferredRole;
+              }
+              if (wantRole && !taken.has(wantRole)) {
+                role = wantRole;
+                if (wantRole === bus.preferredRole) bus.preferredRole = null;
               } else {
                 for (const r of ROLES) {
                   if (!taken.has(r)) {
@@ -712,11 +709,13 @@
                 callsign = pool.length ? pick(pool) : `${pick(CALLSIGNS)}-${room.players.length + 1}`;
               }
 
+              const nowTs = Date.now();
               const player = {
                 id: uid(),
                 name: callsign,
                 role,
-                joinedAt: Date.now()
+                joinedAt: nowTs,
+                connected: true
               };
               room.players.push(player);
               room.lastSeen[player.id] = Date.now();
@@ -831,7 +830,7 @@
           cjHostCode = clean;
           cjHostRoom = new NeoP2PRoom({
             namespace: "cosmojunk",
-            maxPeers: 4,
+            maxPeers: 8,
             codeLength: 4,
             onMessage: async (msg, fromPeerId) => {
               if (!msg || msg.t !== "rpc" || !msg.id) return;
@@ -849,7 +848,7 @@
           cjHostRoom.host(clean).catch(() => {});
         }
 
-        function ensureCosmoGuest(code, timeoutMs = 1800) {
+        function ensureCosmoGuest(code, timeoutMs = 6500) {
           const clean = String(code || "").toUpperCase();
           if (!clean || !window.NeoP2PRoom || isEmbed) return Promise.resolve(false);
           if (cjGuestRoom && cjGuestCode === clean && cjGuestRoom.getConnectedPeerIds().length > 0) {
@@ -886,16 +885,20 @@
               resolve(true);
               return;
             }
-            const timer = setTimeout(() => resolve(false), timeoutMs);
-            cjGuestWaiters.push(() => {
+            const onOpen = () => {
               clearTimeout(timer);
               resolve(true);
-            });
+            };
+            const timer = setTimeout(() => {
+              cjGuestWaiters = cjGuestWaiters.filter((fn) => fn !== onOpen);
+              resolve(false);
+            }, timeoutMs);
+            cjGuestWaiters.push(onOpen);
           });
         }
 
         async function callRemoteCosmoRpc(code, urlObj, init) {
-          const connected = await ensureCosmoGuest(code, 1800);
+          const connected = await ensureCosmoGuest(code, 6500);
           if (!connected || !cjGuestRoom || cjGuestRoom.getConnectedPeerIds().length === 0) {
             return null;
           }
@@ -910,7 +913,7 @@
             const timer = setTimeout(() => {
               cjPendingRpc.delete(id);
               resolve(null);
-            }, 2200);
+            }, 4000);
             cjPendingRpc.set(id, { resolve, timer });
             const ok = cjGuestRoom.send({
               t: "rpc",
@@ -992,6 +995,9 @@
         <span class="cj-badge" id="cj-room-badge" style="display:none"></span>
       </div>
       <div class="cj-actions">
+        <button type="button" class="cj-btn" id="cj-btn-hero" title="Главный экран выбора экипажа">
+          ★ ЭКИПАЖ
+        </button>
         <button type="button" class="cj-btn" id="cj-btn-home" title="На главную (Лобби и Зал Славы)">
           ⌂ ЛОББИ
         </button>
@@ -1057,6 +1063,7 @@
         if (document.body.classList.contains("cj-embed")) return;
 
         const STORAGE_LAN_KEY = "cosmo_junk_v1_lan_server";
+        const btnHero = document.getElementById("cj-btn-hero");
         const btnHome = document.getElementById("cj-btn-home");
         const btnDeck = document.getElementById("cj-btn-deck");
         const btnTab = document.getElementById("cj-btn-tab");
@@ -1136,10 +1143,44 @@
         window.addEventListener("cosmo:route", updateBadges);
         updateBadges();
 
+        btnHero?.addEventListener("click", () => {
+          deckPanel.classList.remove("open");
+          btnDeck.classList.remove("active");
+          window.NeoHeroLanding?.show?.();
+        });
+
         btnHome.addEventListener("click", () => {
           window.location.hash = "#/";
           window.dispatchEvent(new HashChangeEvent("hashchange"));
         });
+
+        window.CosmoJunkHeroAPI = {
+          async startShip(preferredRole) {
+            if (preferredRole && window.__COSMO_BUS__) {
+              window.__COSMO_BUS__.preferredRole = String(preferredRole);
+            }
+            try {
+              const res = await window.fetch("/api/rooms", { method: "POST" });
+              const d = await res.json();
+              if (d && d.code) {
+                window.location.hash = `#/ship/${d.code}`;
+                window.dispatchEvent(new HashChangeEvent("hashchange"));
+                updateBadges();
+              }
+            } catch {}
+          },
+          async openDeck() {
+            if (!deckPanel.classList.contains("open")) {
+              btnDeck.click();
+            }
+          },
+          openLobby() {
+            deckPanel.classList.remove("open");
+            btnDeck.classList.remove("active");
+            window.location.hash = "#/";
+            window.dispatchEvent(new HashChangeEvent("hashchange"));
+          }
+        };
 
         btnDeck.addEventListener("click", async () => {
           if (deckPanel.classList.contains("open")) {
@@ -1213,6 +1254,12 @@
 
         lanModal.addEventListener("click", (e) => {
           if (e.target === lanModal) lanModal.classList.remove("open");
+        });
+
+        window.addEventListener("message", (e) => {
+          if (e.data && e.data.type === "NEO_SET_MUTE" && deckFrame && deckFrame.contentWindow) {
+            try { deckFrame.contentWindow.postMessage(e.data, "*"); } catch {}
+          }
         });
       })();
     </script>

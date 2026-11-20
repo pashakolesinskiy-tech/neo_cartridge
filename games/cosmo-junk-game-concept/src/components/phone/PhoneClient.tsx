@@ -8,7 +8,7 @@ import type { InputMsg, Role, RoomPublic } from "@/lib/game/types";
 import { ROLE_META } from "@/lib/game/types";
 import { sfx, vibrate } from "@/lib/sfx";
 import {
-  BookOpen, Crosshair, Eye, Gamepad2, Loader2, Radio, Rocket, Satellite, TriangleAlert, Wrench,
+  BookOpen, Crosshair, Eye, Gamepad2, Loader2, Radio, Rocket, Satellite, TriangleAlert, Volume2, VolumeX, Wrench,
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -37,6 +37,26 @@ export default function PhoneClient({ code }: { code: string }) {
   const [err, setErr] = useState("");
   const [flashKey, setFlashKey] = useState(0);
   const [alarmKey, setAlarmKey] = useState(0);
+  const [muted, setMuted] = useState(false);
+
+  useEffect(() => {
+    const onMsg = (e: MessageEvent) => {
+      if (e.data && e.data.type === "NEO_SET_MUTE") {
+        const m = Boolean(e.data.muted);
+        setMuted(m);
+        sfx.setMuted(m);
+      }
+    };
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+  }, []);
+
+  const toggleMute = () => {
+    sfx.ensure();
+    const next = !muted;
+    setMuted(next);
+    sfx.setMuted(next);
+  };
 
   const prevShake = useRef(-1);
   const prevErr = useRef(-1);
@@ -231,35 +251,46 @@ export default function PhoneClient({ code }: { code: string }) {
 
       {/* шапка пульта */}
       <header
-        className="z-10 border-b-2 px-4 pb-3 pt-4"
+        className="z-10 border-b-2 px-3 py-2 sm:px-4 sm:pb-3 sm:pt-4"
         style={{ borderColor: `${meta.color}55`, background: "#05080fb8" }}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 sm:gap-3">
             <div
-              className="flex h-11 w-11 items-center justify-center border-2"
+              className="flex h-9 w-9 items-center justify-center border-2 sm:h-11 sm:w-11"
               style={{ borderColor: meta.color, background: `${meta.color}1c` }}
             >
-              <Icon className="h-6 w-6" style={{ color: meta.color }} />
+              <Icon className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: meta.color }} />
             </div>
             <div>
-              <div className="font-pixel text-[11px]" style={{ color: meta.color }}>
+              <div className="font-pixel text-[10px] sm:text-[11px]" style={{ color: meta.color }}>
                 {meta.label}
               </div>
-              <div className="font-term text-[10px] text-slate-400">
+              <div className="font-term text-[9px] text-slate-400 sm:text-[10px]">
                 {joined.name} · {joined.shipName}
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 font-pixel text-[8px] text-emerald-300">
-            <Radio className={`h-3.5 w-3.5 ${room ? "" : "opacity-30"}`} />
-            {room ? "СВЯЗЬ" : "…"}
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={toggleMute}
+              className="inline-flex items-center gap-1 border border-slate-700 bg-[#081224] px-2 py-1 font-pixel text-[8px] text-slate-300 hover:border-cyan-400 hover:text-cyan-300"
+              aria-label="Переключить звук"
+            >
+              {muted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+              <span className="hidden sm:inline">{muted ? "ТИХО" : "ЗВУК"}</span>
+            </button>
+            <div className="flex items-center gap-1.5 font-pixel text-[8px] text-emerald-300">
+              <Radio className={`h-3.5 w-3.5 ${room ? "" : "opacity-30"}`} />
+              {room ? "СВЯЗЬ" : "…"}
+            </div>
           </div>
         </div>
       </header>
 
       {/* тело */}
-      <main className="z-10 flex flex-1 flex-col px-4 py-4">
+      <main className="z-10 flex min-h-0 flex-1 flex-col px-3 py-2 sm:px-4 sm:py-4">
         {!room && (
           <div className="flex flex-1 items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin" style={{ color: meta.color }} />

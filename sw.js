@@ -1,4 +1,4 @@
-const CACHE_NAME = 'neo-cartridge-pwa-v11';
+const CACHE_NAME = 'neo-cartridge-pwa-v12';
 
 const CORE_ASSETS = [
   './',
@@ -17,8 +17,10 @@ const CORE_ASSETS = [
   './js/pwa.js',
   './assets/favicon.svg',
   './assets/logo.svg',
+  './assets/icons/apple-touch-icon.png',
   './assets/icons/icon-192.png',
   './assets/icons/icon-512.png',
+  './assets/icons/icon-maskable-512.png',
 ];
 
 const OFFLINE_GAME_ASSETS = [

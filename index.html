@@ -19,8 +19,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/console.css?v=11">
-  <link rel="stylesheet" href="css/components.css?v=11">
+  <link rel="stylesheet" href="css/console.css?v=12">
+  <link rel="stylesheet" href="css/components.css?v=12">
 </head>
 <body data-active-game="stick_fighting">
 
@@ -134,9 +134,8 @@
               <div class="screen-header-actions">
                 <button id="screen-restart-btn" class="btn-tactile" style="display:none; padding:3px 8px; font-size:0.625rem;" onclick="App.restartGame()" title="Перезагрузить картридж">🔄</button>
                 <button id="screen-fullscreen-btn" class="btn-tactile" style="display:none; padding:3px 8px; font-size:0.625rem;" onclick="App.openFullscreenGame()" title="На весь экран">⛶</button>
-                <button id="screen-poweroff-btn" class="btn-tactile btn-danger-action" style="display:none; padding:3px 8px; font-size:0.625rem;" onclick="App.powerOffConsole()">⏻ ВЫХ</button>
-                <button class="btn-tactile" style="padding:3px 8px; font-size:0.625rem;" onclick="App.openModal('settings-modal')">⚙️ НАСТРОЙКИ</button>
-                <span id="crt-status-indicator" style="display:none;">CRT FILTER: ACTIVE</span>
+                <button id="screen-settings-btn" class="btn-tactile" style="display:none; padding:3px 8px; font-size:0.625rem;" onclick="App.openModal('settings-modal')" title="Настройки консоли">⚙️</button>
+                <button id="screen-poweroff-btn" class="btn-tactile btn-danger-action" style="display:none; padding:3px 8px; font-size:0.625rem;" onclick="App.powerOffConsole(true)">⏻ ВЫХ</button>
               </div>
             </div>
 
@@ -160,7 +159,7 @@
                       <!-- Card 0: STICK_FIGHTING -->
                       <div class="sts-card active" data-index="0" data-game="stick_fighting" onclick="App.onCardClick(0)">
                         <div class="sts-card-inner card-theme-red">
-                          <div class="sts-energy-gem" title="Стоимость энергии: 1">
+                          <div class="sts-energy-gem" title="Картридж ROM #01">
                             <span class="gem-cost">1</span>
                           </div>
                           <div class="sts-title-bar">
@@ -192,7 +191,7 @@
                       <!-- Card 1: PIXEL_DRIFT -->
                       <div class="sts-card" data-index="1" data-game="pixel_drift" onclick="App.onCardClick(1)">
                         <div class="sts-card-inner card-theme-cyan">
-                          <div class="sts-energy-gem" title="Стоимость энергии: 2">
+                          <div class="sts-energy-gem" title="Картридж ROM #02">
                             <span class="gem-cost">2</span>
                           </div>
                           <div class="sts-title-bar">
@@ -224,7 +223,7 @@
                       <!-- Card 2: CHRONO_BLADE -->
                       <div class="sts-card" data-index="2" data-game="chrono_blade" onclick="App.onCardClick(2)">
                         <div class="sts-card-inner card-theme-purple">
-                          <div class="sts-energy-gem" title="Стоимость энергии: 3">
+                          <div class="sts-energy-gem" title="Картридж ROM #03">
                             <span class="gem-cost">3</span>
                           </div>
                           <div class="sts-title-bar">
@@ -256,7 +255,7 @@
                       <!-- Card 3: MECHA_SIEGE -->
                       <div class="sts-card" data-index="3" data-game="mecha_siege" onclick="App.onCardClick(3)">
                         <div class="sts-card-inner card-theme-amber">
-                          <div class="sts-energy-gem" title="Стоимость энергии: 4">
+                          <div class="sts-energy-gem" title="Картридж ROM #04">
                             <span class="gem-cost">4</span>
                           </div>
                           <div class="sts-title-bar">
@@ -288,7 +287,7 @@
                       <!-- Card 4: WORMS_ARMAGEDDON -->
                       <div class="sts-card" data-index="4" data-game="worms_armageddon" onclick="App.onCardClick(4)">
                         <div class="sts-card-inner card-theme-emerald">
-                          <div class="sts-energy-gem" title="Стоимость энергии: 5">
+                          <div class="sts-energy-gem" title="Картридж ROM #05">
                             <span class="gem-cost">5</span>
                           </div>
                           <div class="sts-title-bar">
@@ -320,7 +319,7 @@
                       <!-- Card 5: COSMO_JUNK -->
                       <div class="sts-card" data-index="5" data-game="cosmo_junk" onclick="App.onCardClick(5)">
                         <div class="sts-card-inner card-theme-blue">
-                          <div class="sts-energy-gem" title="Стоимость энергии: 6">
+                          <div class="sts-energy-gem" title="Картридж ROM #06">
                             <span class="gem-cost">6</span>
                           </div>
                           <div class="sts-title-bar">
@@ -463,8 +462,8 @@
                   <button class="btn-tactile btn-p2p-quick" onclick="if (window.P2P && P2P.syncSelectedGameFromConsole) P2P.syncSelectedGameFromConsole(); App.openModal('p2p-modal');">
                     <span>🌐 ОНЛАЙН P2P</span>
                   </button>
-                  <button class="btn-tactile btn-settings-main" onclick="App.openModal('settings-modal')">
-                    <span>⚙️ НАСТРОЙКИ</span>
+                  <button class="btn-tactile btn-settings-main" onclick="App.openModal('save-modal')">
+                    <span>💾 СЕЙВЫ</span>
                   </button>
                 </div>
               </div>
@@ -500,7 +499,7 @@
             <span class="dock-sub">Клик — выбор • Повторный клик или Enter — запуск</span>
           </div>
           <div class="dock-grid">
-            <button type="button" class="dock-card active" data-index="0" data-game="stick_fighting" onclick="App.onCardClick(0)">
+            <button type="button" class="dock-card active" data-index="0" data-game="stick_fighting" onclick="App.onDockClick(0)">
               <span class="dock-rom-num">01</span>
               <span class="dock-thumb thumb-stick"></span>
               <span class="dock-meta">
@@ -508,7 +507,7 @@
                 <span class="dock-genre">2D Fighter • P2P</span>
               </span>
             </button>
-            <button type="button" class="dock-card" data-index="1" data-game="pixel_drift" onclick="App.onCardClick(1)">
+            <button type="button" class="dock-card" data-index="1" data-game="pixel_drift" onclick="App.onDockClick(1)">
               <span class="dock-rom-num">02</span>
               <span class="dock-thumb thumb-drift"></span>
               <span class="dock-meta">
@@ -516,7 +515,7 @@
                 <span class="dock-genre">Arcade Drift • 4P</span>
               </span>
             </button>
-            <button type="button" class="dock-card" data-index="2" data-game="chrono_blade" onclick="App.onCardClick(2)">
+            <button type="button" class="dock-card" data-index="2" data-game="chrono_blade" onclick="App.onDockClick(2)">
               <span class="dock-rom-num">03</span>
               <span class="dock-thumb thumb-chrono"></span>
               <span class="dock-meta">
@@ -524,7 +523,7 @@
                 <span class="dock-genre">Cyber Slasher • Co-op</span>
               </span>
             </button>
-            <button type="button" class="dock-card" data-index="3" data-game="mecha_siege" onclick="App.onCardClick(3)">
+            <button type="button" class="dock-card" data-index="3" data-game="mecha_siege" onclick="App.onDockClick(3)">
               <span class="dock-rom-num">04</span>
               <span class="dock-thumb thumb-mecha"></span>
               <span class="dock-meta">
@@ -532,7 +531,7 @@
                 <span class="dock-genre">Dieselpunk TD • 2P</span>
               </span>
             </button>
-            <button type="button" class="dock-card" data-index="4" data-game="worms_armageddon" onclick="App.onCardClick(4)">
+            <button type="button" class="dock-card" data-index="4" data-game="worms_armageddon" onclick="App.onDockClick(4)">
               <span class="dock-rom-num">05</span>
               <span class="dock-thumb thumb-worms"></span>
               <span class="dock-meta">
@@ -540,7 +539,7 @@
                 <span class="dock-genre">34 Weapons • Online</span>
               </span>
             </button>
-            <button type="button" class="dock-card" data-index="5" data-game="cosmo_junk" onclick="App.onCardClick(5)">
+            <button type="button" class="dock-card" data-index="5" data-game="cosmo_junk" onclick="App.onDockClick(5)">
               <span class="dock-rom-num">06</span>
               <span class="dock-thumb thumb-cosmo"></span>
               <span class="dock-meta">
@@ -762,7 +761,7 @@
         <div style="font-size:1.5rem; margin-bottom:6px;">📁</div>
         <div style="font-family:var(--font-retro); font-size:0.75rem; color:var(--text-main);">НАЖМИТЕ ДЛЯ ИМПОРТА СЕЙВА (.CART)</div>
         <div style="font-size:0.6875rem; color:var(--text-dim);">или перетащите файл сюда</div>
-        <input type="file" accept=".cart,.json" style="display:none;" onchange="Storage.importSaveFile(this.files[0], (ok, msg) => { if(ok) { alert('Сейв успешно загружен!'); App.closeModal('save-modal'); location.reload(); } else { alert(msg); } })">
+        <input type="file" accept=".cart,.json" style="display:none;" onchange="if (this.files && this.files[0]) { Storage.importSaveFile(this.files[0], (ok, msg) => { this.value = ''; if(ok) { App.closeModal('save-modal'); App.updateDashboardInfo(); App.renderAchievementsModal(); Storage.showAchievementToast({ icon: '💾', tag: '// ИМПОРТ ЗАВЕРШЁН', title: 'Сейв загружен!', desc: 'Рекорды, ачивки и настройки восстановлены.' }); } else { alert(msg); } }); }">
       </label>
     </div>
   </div>
@@ -809,13 +808,13 @@
   </div>
 
   <!-- Core Scripts -->
-  <script src="js/landscape-guard.js?v=11"></script>
-  <script src="js/audio.js?v=11"></script>
-  <script src="js/storage.js?v=11"></script>
-  <script src="js/webrtc-room.js?v=11"></script>
-  <script src="js/p2p.js?v=11"></script>
-  <script src="js/previews.js?v=11"></script>
-  <script src="js/pwa.js?v=11"></script>
-  <script src="js/app.js?v=11"></script>
+  <script src="js/landscape-guard.js?v=12"></script>
+  <script src="js/audio.js?v=12"></script>
+  <script src="js/storage.js?v=12"></script>
+  <script src="js/webrtc-room.js?v=12"></script>
+  <script src="js/p2p.js?v=12"></script>
+  <script src="js/previews.js?v=12"></script>
+  <script src="js/pwa.js?v=12"></script>
+  <script src="js/app.js?v=12"></script>
 </body>
 </html>

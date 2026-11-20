@@ -7,120 +7,97 @@ const Sound = {
   ctx: null,
   muted: false,
   musicRunning: false,
+  bgmPreferred: false,
   musicTimer: null,
   masterGain: null,
 
-  init() {
-    if (this.ctx) return;
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    if (AudioContextClass) {
-      this.ctx = new AudioContextClass();
-      this.masterGain = this.ctx.createGain();
-      this.masterGain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-      this.masterGain.connect(this.ctx.destination);
-    }
-  },
-
-  resume() {
-    if (!this.ctx) this.init();
-    if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume();
-    }
-  },
-
-  toggleMute() {
-    this.muted = !this.muted;
-    if (this.masterGain && this.ctx) {
-      this.masterGain.gain.setValueAtTime(this.muted ? 0 : 0.2, this.ctx.currentTime);
-    }
+  get isMuted() {
     return this.muted;
   },
 
-  // 1. Звук лазера / выстрела
-  playLaser() {
-    if (this.muted || !this.ctx) return;
-    this.resume();
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(880, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(110, this.ctx.currentTime + 0.15);
-
-    gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
-
-    osc.connect(gain);
-    gain.connect(this.masterGain);
-
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.15);
+  get isBGMPlaying() {
+    return this.musicRunning;
   },
 
-  // 2. Звук взрыва (белый шум + спад фильтра)
-  playExplosion() {
-    if (this.muted || !this.ctx) return;
-    this.resume();
-    
-    const bufferSize = this.ctx.sampleRate * 0.35;
-    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1;
+  init() {
+    // Lazy initialization happens inside ensureContext() on first user gesture
+  },
+
+  ensureContext() {
+    if (this.muted) return false;
+    if (!this.ctx) {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return false;
+      try {
+        this.ctx = new AudioContextClass();
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.setValueAtTime(this.muted ? 0 : 0.2, this.ctx.currentTime);
+        this.masterGain.connect(this.ctx.destination);
+      } catch (_) {
+        return false;
+      }
     }
-
-    const noise = this.ctx.createBufferSource();
-    noise.buffer = buffer;
-
-    const filter = this.ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(800, this.ctx.currentTime);
-    filter.frequency.linearRampToValueAtTime(80, this.ctx.currentTime + 0.35);
-
-    const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.35);
-
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(this.masterGain);
-
-    noise.start();
+    if (this.ctx && this.ctx.state === 'suspended') {
+      try {
+        this.ctx.resume().catch(() => {});
+      } catch (_) {}
+    }
+    return !!this.ctx;
   },
 
-  // 3. Звук подбора бонуса / очков (Арпеджио B5 -> E6)
-  playCoin() {
-    if (this.muted || !this.ctx) return;
-    this.resume();
-
-    const t = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(987.77, t); // B5
-    osc.frequency.setValueAtTime(1318.51, t + 0.08); // E6
-
-    gain.gain.setValueAtTime(0.25, t);
-    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.28);
-
-    osc.connect(gain);
-    gain.connect(this.masterGain);
-
-    osc.start(t);
-    osc.stop(t + 0.28);
+  resume() {
+    return this.ensureContext();
   },
 
-  // 4. Повышение уровня / Ачивка (Восходящий аккорд)
+  syncIframeMute() {
+    try {
+      const iframe = document.getElementById('game-iframe');
+      if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage({ type: 'NEO_SET_MUTE', muted: this.muted }, '*');
+      }
+    } catch (_) {}
+  },
+
+  setMuted(muted, persist = true) {
+    this.muted = !!muted;
+    if (this.masterGain && this.ctx) {
+      try {
+        this.masterGain.gain.setValueAtTime(this.muted ? 0 : 0.2, this.ctx.currentTime);
+      } catch (_) {}
+    }
+    if (this.muted && this.musicRunning) {
+      this.stopBGM();
+    }
+    if (persist && typeof Storage !== 'undefined' && Storage.data && Storage.data.settings) {
+      Storage.data.settings.soundEnabled = !this.muted;
+      Storage.save();
+    }
+    this.syncIframeMute();
+    return this.muted;
+  },
+
+  toggleMute() {
+    return this.setMuted(!this.muted, true);
+  },
+
+  _disconnectOnEnded(node, chainEnd) {
+    if (!node) return;
+    node.onended = () => {
+      try { node.disconnect(); } catch (_) {}
+      if (chainEnd && chainEnd !== node) {
+        try { chainEnd.disconnect(); } catch (_) {}
+      }
+    };
+  },
+
+  // 1. Повышение уровня / Ачивка (Восходящий аккорд)
   playPowerup() {
-    if (this.muted || !this.ctx) return;
-    this.resume();
-
+    if (!this.ensureContext()) return;
     const notes = [261.63, 329.63, 392.00, 523.25, 659.25]; // C4, E4, G4, C5, E5
     notes.forEach((freq, idx) => {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
-      const start = this.ctx.currentTime + (idx * 0.06);
+      const start = this.ctx.currentTime + idx * 0.06;
 
       osc.type = 'triangle';
       osc.frequency.setValueAtTime(freq, start);
@@ -130,38 +107,38 @@ const Sound = {
 
       osc.connect(gain);
       gain.connect(this.masterGain);
+      this._disconnectOnEnded(osc, gain);
 
       osc.start(start);
-      osc.stop(start + 0.2);
+      osc.stop(start + 0.21);
     });
   },
 
-  // 5. Механический тактильный клик консоли
+  // 2. Механический тактильный клик консоли
   playClick() {
-    if (this.muted || !this.ctx) return;
-    this.resume();
-
+    if (!this.ensureContext()) return;
+    const t = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(440, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.03);
+    osc.frequency.setValueAtTime(440, t);
+    osc.frequency.exponentialRampToValueAtTime(120, t + 0.03);
 
-    gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.03);
+    gain.gain.setValueAtTime(0.15, t);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.03);
 
     osc.connect(gain);
     gain.connect(this.masterGain);
+    this._disconnectOnEnded(osc, gain);
 
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.03);
+    osc.start(t);
+    osc.stop(t + 0.035);
   },
 
-  // 5.1. Треск поворота карусели картриджей
+  // 3. Треск поворота слайдера картриджей
   playCarouselTick() {
-    if (this.muted || !this.ctx) return;
-    this.resume();
+    if (!this.ensureContext()) return;
     const t = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
@@ -172,17 +149,16 @@ const Sound = {
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
     osc.connect(gain);
     gain.connect(this.masterGain);
+    this._disconnectOnEnded(osc, gain);
     osc.start(t);
-    osc.stop(t + 0.03);
+    osc.stop(t + 0.035);
   },
 
-  // 5.2. Тяжёлая механическая вставка картриджа в слот (скольжение + фиксатор)
+  // 4. Тяжёлая механическая вставка картриджа в слот (скольжение + фиксатор)
   playCartridgeInsert() {
-    if (this.muted || !this.ctx) return;
-    this.resume();
+    if (!this.ensureContext()) return;
     const t = this.ctx.currentTime;
 
-    // Скольжение направляющих
     const bufferSize = Math.floor(this.ctx.sampleRate * 0.07);
     const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
     const data = buffer.getChannelData(0);
@@ -198,9 +174,9 @@ const Sound = {
     noise.connect(noiseFilter);
     noiseFilter.connect(noiseGain);
     noiseGain.connect(this.masterGain);
+    this._disconnectOnEnded(noise, noiseGain);
     noise.start(t);
 
-    // Удар фиксатора замка и контактов слота
     const t2 = t + 0.05;
     const osc1 = this.ctx.createOscillator();
     const gain1 = this.ctx.createGain();
@@ -211,8 +187,9 @@ const Sound = {
     gain1.gain.exponentialRampToValueAtTime(0.01, t2 + 0.09);
     osc1.connect(gain1);
     gain1.connect(this.masterGain);
+    this._disconnectOnEnded(osc1, gain1);
     osc1.start(t2);
-    osc1.stop(t2 + 0.09);
+    osc1.stop(t2 + 0.095);
 
     const osc2 = this.ctx.createOscillator();
     const gain2 = this.ctx.createGain();
@@ -223,14 +200,14 @@ const Sound = {
     gain2.gain.exponentialRampToValueAtTime(0.01, t2 + 0.05);
     osc2.connect(gain2);
     gain2.connect(this.masterGain);
+    this._disconnectOnEnded(osc2, gain2);
     osc2.start(t2);
-    osc2.stop(t2 + 0.05);
+    osc2.stop(t2 + 0.055);
   },
 
-  // 5.3. Пружинный выброс картриджа (Eject lever)
+  // 5. Пружинный выброс картриджа (Eject lever)
   playCartridgeEject() {
-    if (this.muted || !this.ctx) return;
-    this.resume();
+    if (!this.ensureContext()) return;
     const t = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
@@ -242,14 +219,14 @@ const Sound = {
     gain.gain.exponentialRampToValueAtTime(0.01, t + 0.12);
     osc.connect(gain);
     gain.connect(this.masterGain);
+    this._disconnectOnEnded(osc, gain);
     osc.start(t);
-    osc.stop(t + 0.12);
+    osc.stop(t + 0.125);
   },
 
-  // 5.4. Тактильный щелчок тумблера питания POWER
+  // 6. Тактильный щелчок тумблера питания POWER
   playPowerClick() {
-    if (this.muted || !this.ctx) return;
-    this.resume();
+    if (!this.ensureContext()) return;
     const t = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
@@ -260,14 +237,14 @@ const Sound = {
     gain.gain.exponentialRampToValueAtTime(0.01, t + 0.04);
     osc.connect(gain);
     gain.connect(this.masterGain);
+    this._disconnectOnEnded(osc, gain);
     osc.start(t);
-    osc.stop(t + 0.04);
+    osc.stop(t + 0.045);
   },
 
-  // 5.5. Звук выключения ЭЛТ-монитора (спад высокого напряжения)
+  // 7. Звук выключения ЭЛТ-монитора
   playPowerOff() {
-    if (this.muted || !this.ctx) return;
-    this.resume();
+    if (!this.ensureContext()) return;
     const t = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
@@ -278,25 +255,25 @@ const Sound = {
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
     osc.connect(gain);
     gain.connect(this.masterGain);
+    this._disconnectOnEnded(osc, gain);
     osc.start(t);
-    osc.stop(t + 0.28);
+    osc.stop(t + 0.29);
   },
 
-  // 5.6. 16-битный BIOS Chime запуска приставки (GameBoy / NeoGeo style)
+  // 8. 16-битный BIOS Chime запуска приставки
   playBootJingle() {
-    if (this.muted || !this.ctx) return;
-    this.resume();
+    if (!this.ensureContext()) return;
     const t = this.ctx.currentTime;
     const notes = [
-      { f: 329.63, delay: 0, dur: 0.12 },     // E4
-      { f: 415.30, delay: 0.09, dur: 0.12 },   // G#4
-      { f: 493.88, delay: 0.18, dur: 0.12 },   // B4
-      { f: 659.25, delay: 0.27, dur: 0.22 },   // E5
-      { f: 830.61, delay: 0.38, dur: 0.55 },   // G#5
-      { f: 1318.51, delay: 0.40, dur: 0.65 }   // E6 (колокольчик)
+      { f: 329.63, delay: 0, dur: 0.12 },
+      { f: 415.30, delay: 0.09, dur: 0.12 },
+      { f: 493.88, delay: 0.18, dur: 0.12 },
+      { f: 659.25, delay: 0.27, dur: 0.22 },
+      { f: 830.61, delay: 0.38, dur: 0.55 },
+      { f: 1318.51, delay: 0.40, dur: 0.65 }
     ];
 
-    notes.forEach(n => {
+    notes.forEach((n) => {
       const start = t + n.delay;
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
@@ -306,35 +283,42 @@ const Sound = {
       gain.gain.exponentialRampToValueAtTime(0.005, start + n.dur);
       osc.connect(gain);
       gain.connect(this.masterGain);
+      this._disconnectOnEnded(osc, gain);
       osc.start(start);
-      osc.stop(start + n.dur);
+      osc.stop(start + n.dur + 0.01);
     });
   },
 
-  // 6. Процедурная ретро-музыка (Чиптюн генератор баса и мелодии)
+  // 9. Процедурная ретро-музыка (Чиптюн генератор баса и мелодии)
   toggleBGM() {
     if (this.musicRunning) {
+      this.bgmPreferred = false;
       this.stopBGM();
       return false;
-    } else {
-      this.startBGM();
-      return true;
     }
+    if (this.muted) {
+      this.setMuted(false, true);
+    }
+    this.bgmPreferred = true;
+    this.startBGM();
+    return this.musicRunning;
   },
 
   startBGM() {
-    if (this.muted || !this.ctx) return;
-    this.resume();
+    if (this.muted || this.musicRunning) return;
+    if (!this.ensureContext()) return;
     this.musicRunning = true;
 
     const scale = [130.81, 146.83, 164.81, 196.00, 220.00, 261.63]; // C3 minor pentatonic
     let step = 0;
 
     const tick = () => {
-      if (!this.musicRunning || this.muted) return;
+      if (!this.musicRunning || this.muted || !this.ctx) {
+        this.stopBGM();
+        return;
+      }
       const t = this.ctx.currentTime;
-      
-      // Bass line
+
       const bassNote = scale[step % 4];
       const bassOsc = this.ctx.createOscillator();
       const bassGain = this.ctx.createGain();
@@ -344,10 +328,10 @@ const Sound = {
       bassGain.gain.exponentialRampToValueAtTime(0.01, t + 0.16);
       bassOsc.connect(bassGain);
       bassGain.connect(this.masterGain);
+      this._disconnectOnEnded(bassOsc, bassGain);
       bassOsc.start(t);
-      bassOsc.stop(t + 0.16);
+      bassOsc.stop(t + 0.17);
 
-      // Lead arp every 2 steps
       if (step % 2 === 0) {
         const leadNote = scale[(step * 3) % scale.length] * 2;
         const leadOsc = this.ctx.createOscillator();
@@ -358,8 +342,9 @@ const Sound = {
         leadGain.gain.exponentialRampToValueAtTime(0.01, t + 0.12);
         leadOsc.connect(leadGain);
         leadGain.connect(this.masterGain);
+        this._disconnectOnEnded(leadOsc, leadGain);
         leadOsc.start(t);
-        leadOsc.stop(t + 0.12);
+        leadOsc.stop(t + 0.13);
       }
 
       step++;
@@ -367,6 +352,19 @@ const Sound = {
     };
 
     tick();
+  },
+
+  pauseBGMForGame() {
+    if (this.musicRunning) {
+      this.bgmPreferred = true;
+      this.stopBGM();
+    }
+  },
+
+  resumeBGMFromGame() {
+    if (this.bgmPreferred && !this.muted && !this.musicRunning) {
+      this.startBGM();
+    }
   },
 
   stopBGM() {

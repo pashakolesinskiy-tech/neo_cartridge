@@ -7,22 +7,37 @@ import { ArenaThumbnail, FighterPortrait } from './GameUI';
 const CODE_PATTERN = /^(SF[01]-[OA]-[A-Za-z0-9_-]{20,}|[A-Za-z0-9]{4,12})$/;
 const looksLikeCode = (text: string) => CODE_PATTERN.test(text.replace(/\s+/g, '')) || text.includes('?join=');
 
-// ---- Zero-Dependency ISO/IEC 18004 QR Code SVG Generator (Versions 1..6, ECC-L) -------------
+// ---- Zero-Dependency ISO/IEC 18004 QR Code SVG Generator (Versions 1..10, ECC-L) ------------
 
-const QR_VERSIONS = [
-  { size: 21, dataBytes: 19, eccBytes: 7, align: [] as number[] },
-  { size: 25, dataBytes: 34, eccBytes: 10, align: [6, 18] },
-  { size: 29, dataBytes: 55, eccBytes: 15, align: [6, 22] },
-  { size: 33, dataBytes: 80, eccBytes: 20, align: [6, 26] },
-  { size: 37, dataBytes: 108, eccBytes: 26, align: [6, 30] },
-  { size: 41, dataBytes: 136, eccBytes: 36, align: [6, 34] }, // 2 blocks of (68 data, 18 ecc)
+interface QrVersionSpec {
+  size: number;
+  dataBytes: number;
+  groups: ReadonlyArray<readonly [blocks: number, dataPerBlock: number, eccPerBlock: number]>;
+  align: readonly number[];
+  verBits: number;
+  countBits: number;
+}
+
+const QR_VERSIONS: readonly QrVersionSpec[] = [
+  { size: 21, dataBytes: 19, groups: [[1, 19, 7]], align: [], verBits: 0, countBits: 8 },
+  { size: 25, dataBytes: 34, groups: [[1, 34, 10]], align: [6, 18], verBits: 0, countBits: 8 },
+  { size: 29, dataBytes: 55, groups: [[1, 55, 15]], align: [6, 22], verBits: 0, countBits: 8 },
+  { size: 33, dataBytes: 80, groups: [[1, 80, 20]], align: [6, 26], verBits: 0, countBits: 8 },
+  { size: 37, dataBytes: 108, groups: [[1, 108, 26]], align: [6, 30], verBits: 0, countBits: 8 },
+  { size: 41, dataBytes: 136, groups: [[2, 68, 18]], align: [6, 34], verBits: 0, countBits: 8 },
+  { size: 45, dataBytes: 156, groups: [[2, 78, 20]], align: [6, 22, 38], verBits: 0x07c94, countBits: 8 },
+  { size: 49, dataBytes: 194, groups: [[2, 97, 24]], align: [6, 24, 42], verBits: 0x085bc, countBits: 8 },
+  { size: 53, dataBytes: 232, groups: [[2, 116, 30]], align: [6, 26, 46], verBits: 0x09a99, countBits: 8 },
+  { size: 57, dataBytes: 274, groups: [[2, 68, 18], [2, 69, 18]], align: [6, 28, 50], verBits: 0x0a4d3, countBits: 16 },
 ];
 
 function makeQrMatrix(text: string): boolean[][] | null {
   const payload = new TextEncoder().encode(text);
-  const verIdx = QR_VERSIONS.findIndex(v => payload.length + 2 <= v.dataBytes);
-  if (verIdx === -1) return null;
-  const ver = QR_VERSIONS[verIdx];
+  const ver = QR_VERSIONS.find(v => {
+    const headerBytes = Math.ceil((4 + v.countBits) / 8);
+    return payload.length + headerBytes <= v.dataBytes;
+  });
+  if (!ver) return null;
   const size = ver.size;
 
   // 1. Encode data bits (Byte mode 0100)
@@ -31,7 +46,7 @@ function makeQrMatrix(text: string): boolean[][] | null {
     for (let i = len - 1; i >= 0; i--) bits.push((val >>> i) & 1);
   };
   pushBits(0b0100, 4);
-  pushBits(payload.length, 8);
+  pushBits(payload.length, ver.countBits);
   for (const b of payload) pushBits(b, 8);
   const maxBits = ver.dataBytes * 8;
   pushBits(0, Math.min(4, maxBits - bits.length));
@@ -79,15 +94,27 @@ function makeQrMatrix(text: string): boolean[][] | null {
     return rem;
   };
 
-  let codewords: number[] = [];
-  if (verIdx < 5) {
-    const ecc = computeEcc(data, ver.eccBytes);
-    codewords = [...data, ...ecc];
-  } else {
-    const b1 = data.subarray(0, 68), b2 = data.subarray(68, 136);
-    const e1 = computeEcc(b1, 18), e2 = computeEcc(b2, 18);
-    for (let i = 0; i < 68; i++) codewords.push(b1[i], b2[i]);
-    for (let i = 0; i < 18; i++) codewords.push(e1[i], e2[i]);
+  const dataBlocks: Uint8Array[] = [];
+  const eccBlocks: Uint8Array[] = [];
+  let offset = 0;
+  let maxDataLen = 0;
+  let maxEccLen = 0;
+  for (const [count, dLen, eLen] of ver.groups) {
+    maxDataLen = Math.max(maxDataLen, dLen);
+    maxEccLen = Math.max(maxEccLen, eLen);
+    for (let b = 0; b < count; b++) {
+      const blk = data.subarray(offset, offset + dLen);
+      offset += dLen;
+      dataBlocks.push(blk);
+      eccBlocks.push(computeEcc(blk, eLen));
+    }
+  }
+  const codewords: number[] = [];
+  for (let i = 0; i < maxDataLen; i++) {
+    for (const blk of dataBlocks) if (i < blk.length) codewords.push(blk[i]);
+  }
+  for (let i = 0; i < maxEccLen; i++) {
+    for (const blk of eccBlocks) if (i < blk.length) codewords.push(blk[i]);
   }
 
   // 3. Matrix setup & function patterns
@@ -116,12 +143,28 @@ function makeQrMatrix(text: string): boolean[][] | null {
     setFunc(i, 6, i % 2 === 0);
   }
 
-  if (ver.align.length === 2) {
-    const ar = ver.align[1], ac = ver.align[1];
-    for (let dr = -2; dr <= 2; dr++) {
-      for (let dc = -2; dc <= 2; dc++) {
-        setFunc(ar + dr, ac + dc, Math.max(Math.abs(dr), Math.abs(dc)) !== 1);
+  for (const ar of ver.align) {
+    for (const ac of ver.align) {
+      const nearFinder =
+        (ar <= 8 && ac <= 8) ||
+        (ar <= 8 && ac >= size - 8) ||
+        (ar >= size - 8 && ac <= 8);
+      if (nearFinder) continue;
+      for (let dr = -2; dr <= 2; dr++) {
+        for (let dc = -2; dc <= 2; dc++) {
+          setFunc(ar + dr, ac + dc, Math.max(Math.abs(dr), Math.abs(dc)) !== 1);
+        }
       }
+    }
+  }
+
+  if (ver.verBits !== 0) {
+    for (let i = 0; i < 18; i++) {
+      const bit = ((ver.verBits >>> i) & 1) === 1;
+      const r = Math.floor(i / 3);
+      const c = size - 11 + (i % 3);
+      setFunc(r, c, bit);
+      setFunc(c, r, bit);
     }
   }
 
@@ -149,7 +192,7 @@ function makeQrMatrix(text: string): boolean[][] | null {
   }
 
   // 5. Place Format Info for ECC Level L (01) + Mask 0 (000) -> 0x7584
-  const fmt = 0x7584;
+  const fmt = 0x77c4;
   const fBit = (i: number) => ((fmt >>> i) & 1) === 1;
   for (let i = 0; i <= 5; i++) modules[8][i] = fBit(14 - i);
   modules[8][7] = fBit(8);

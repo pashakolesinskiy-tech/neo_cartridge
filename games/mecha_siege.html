@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Press+Start+2P&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
-  <script src="../js/webrtc-room.js?v=5"></script>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%230a0d14'/></svg>">
 
   <style>
     :root {
@@ -1120,9 +1120,9 @@
         padding: 4px 7px;
         font-size: 0.58rem;
       }
-      .dock-hotkey-legend,
       .dock-status-bar {
-        display: none !important;
+        display: flex !important;
+        padding-bottom: 2px;
       }
       .command-dock {
         bottom: max(4px, env(safe-area-inset-bottom, 4px));
@@ -1147,18 +1147,35 @@
       }
       .menu-card,
       .upgrade-choice-card {
-        padding: 12px 14px;
+        padding: 10px 12px;
         max-height: 92dvh;
         overflow-y: auto;
+      }
+      .upgrade-options-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+      }
+      .spec-card {
+        padding: 8px !important;
+      }
+      .spec-desc {
+        font-size: 0.65rem !important;
+        line-height: 1.25 !important;
       }
       .armory-grid,
       .bestiary-grid {
         max-height: calc(100dvh - 155px);
       }
     }
+    .tower-card-btn:disabled, .dock-act-btn:disabled {
+      opacity: 0.42;
+      filter: grayscale(0.5);
+      cursor: not-allowed;
+    }
   </style>
-  <script src="../js/landscape-guard.js?v=10"></script>
-  <script src="../js/game-hero-screen.js?v=10"></script>
+  <script src="../js/webrtc-room.js?v=12"></script>
+  <script src="../js/landscape-guard.js?v=12"></script>
+  <script src="../js/game-hero-screen.js?v=12"></script>
 </head>
 <body>
 
@@ -1216,8 +1233,20 @@
         <div id="cd-overdrive" class="super-cooldown-fill"></div>
       </button>
 
+      <button id="btn-speed-toggle" class="btn-super" style="border-color:var(--accent-amber); color:var(--accent-amber);" onclick="Game.toggleSpeed()" title="Ускорение 1x / 2x">
+        <span id="hud-speed-text">⏩ 1x</span>
+      </button>
+
+      <button id="btn-hud-pause" class="btn-super" onclick="Game.togglePause()" title="Пауза [Esc / P]">
+        <span>⏸</span>
+      </button>
+
+      <button id="btn-hud-mute" class="btn-super" onclick="Game.toggleMute()" title="Звук Вкл/Выкл">
+        <span>🔊</span>
+      </button>
+
       <button id="btn-mode-badge" class="btn-super" style="border-color:var(--accent-cyan); color:var(--accent-cyan);" onclick="Game.openMenu()">
-        <span id="hud-mode-text">SOLO // ОДИНОЧНЫЙ</span>
+        <span id="hud-mode-text">SOLO</span>
       </button>
     </div>
   </div>
@@ -1478,16 +1507,16 @@
             <div class="armory-icon-box" style="color:var(--accent-pink); border-color:rgba(255,0,85,0.3);">💥</div>
             <div class="armory-info">
               <div class="armory-header">
-                <span class="armory-name">[2] ТЯЖЁЛАЯ ЗЕНИТКА</span>
-                <span class="armory-cost">160🔩</span>
+                <span class="armory-name">[2] ТЯЖЁЛАЯ ГАУБИЦА</span>
+                <span class="armory-cost">150🔩</span>
               </div>
               <div style="font-size:0.75rem; color:var(--text-dim); line-height:1.4;">
                 Запускает фугасные 120-мм снаряды с осколочным сплэш-уроном по площади. Разносит плотные колонны танков.
               </div>
               <div class="armory-stats-row">
-                <span class="stat-pill">💥 Урон: 42</span>
-                <span class="stat-pill">💣 Сплэш: 50px</span>
-                <span class="stat-pill">🎯 Радиус: 180px</span>
+                <span class="stat-pill">💥 Урон: 85</span>
+                <span class="stat-pill">💣 Сплэш: 65px</span>
+                <span class="stat-pill">🎯 Радиус: 210px</span>
                 <span class="stat-pill" style="color:var(--accent-pink);">★ Апгрейд: Кластерные мины</span>
               </div>
             </div>
@@ -1536,7 +1565,7 @@
             <div class="armory-info">
               <div class="armory-header">
                 <span class="armory-name">[5] МИННЫЙ РАСКЛАДЧИК</span>
-                <span class="armory-cost">240🔩</span>
+                <span class="armory-cost">80🔩</span>
               </div>
               <div style="font-size:0.75rem; color:var(--text-dim); line-height:1.4;">
                 Устанавливает контактные магнитные мины прямо на дорожное полотно. Детонируют с колоссальной силой при наезде.
@@ -1736,6 +1765,20 @@
     </div>
   </div>
 
+  <!-- Pause Modal -->
+  <div id="pause-modal" class="overlay-backdrop" style="display:none;">
+    <div class="menu-card" style="text-align:center; max-width:360px;">
+      <div class="menu-title" style="color:var(--accent-cyan);">ИГРА НА ПАУЗЕ</div>
+      <div class="menu-subtitle">// ОБОРОНА РЕАКТОРА ПРИОСТАНОВЛЕНА</div>
+      <div style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
+        <button class="menu-btn" style="justify-content:center; background:var(--accent-amber); color:#000; font-weight:900;" onclick="Game.togglePause(false)">▶ ПРОДОЛЖИТЬ</button>
+        <button class="menu-btn" style="justify-content:center;" onclick="Game.restart()">🔄 ЗАНОВО</button>
+        <button class="menu-btn" style="justify-content:center;" onclick="Game.openMenu()">☰ МЕНЮ РЕЖИМОВ</button>
+        <button class="menu-btn" style="justify-content:center; color:var(--accent-cyan);" onclick="Game.returnToHero()">★ НА ГЛАВНУЮ</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Game Over / Victory Modal -->
   <div id="gameover-modal" class="overlay-backdrop" style="display:none;">
     <div class="menu-card" style="text-align:center;">
@@ -1760,8 +1803,11 @@
       <button class="menu-btn" style="width:100%; justify-content:center; background:var(--accent-amber); color:#000; font-weight:900; margin-bottom:8px;" onclick="Game.restart()">
         🔄 ИГРАТЬ СНОВА
       </button>
-      <button class="menu-btn" style="width:100%; justify-content:center;" onclick="Game.openMenu()">
+      <button class="menu-btn" style="width:100%; justify-content:center; margin-bottom:8px;" onclick="Game.openMenu()">
         ☰ ГЛАВНОЕ МЕНЮ
+      </button>
+      <button class="menu-btn" style="width:100%; justify-content:center; color:var(--accent-cyan);" onclick="Game.returnToHero()">
+        ★ НА ГЛАВНУЮ
       </button>
     </div>
   </div>
@@ -1991,6 +2037,14 @@
         const interval = (60 / bpm) / 4;
         const bassScale = [43.65, 43.65, 49.00, 43.65, 58.27, 43.65, 49.00, 65.41]; // F-minor diesel march
 
+        if (!this._noiseBuf) {
+          const nLen = Math.floor(this.ctx.sampleRate * 0.1);
+          const nBuf = this.ctx.createBuffer(1, nLen, this.ctx.sampleRate);
+          const nData = nBuf.getChannelData(0);
+          for (let i = 0; i < nLen; i++) nData[i] = Math.random() * 2 - 1;
+          this._noiseBuf = nBuf;
+        }
+
         const tick = () => {
           if (!this.ctx || this.muted) return;
           const now = this.ctx.currentTime;
@@ -2010,18 +2064,16 @@
           }
 
           // 2. Metallic Snare on beat 4 & 12
-          if (step % 8 === 4) {
+          if (step % 8 === 4 && this._noiseBuf) {
             const sNoise = this.ctx.createBufferSource();
-            const sBuf = this.ctx.createBuffer(1, this.ctx.sampleRate * 0.07, this.ctx.sampleRate);
-            const sData = sBuf.getChannelData(0);
-            for (let i = 0; i < sData.length; i++) sData[i] = Math.random() * 2 - 1;
-            sNoise.buffer = sBuf;
+            sNoise.buffer = this._noiseBuf;
             const sGain = this.ctx.createGain();
             sGain.gain.setValueAtTime(0.12, now);
             sGain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
             sNoise.connect(sGain);
             sGain.connect(this.ctx.destination);
             sNoise.start(now);
+            sNoise.stop(now + 0.075);
           }
 
           // 3. Heavy Diesel Bass Synth
@@ -2040,6 +2092,25 @@
         };
 
         this.bgmTimer = setInterval(tick, interval * 1000);
+      },
+
+      stopBGM() {
+        if (this.bgmTimer) {
+          clearInterval(this.bgmTimer);
+          this.bgmTimer = null;
+        }
+      },
+
+      setMuted(m) {
+        this.muted = Boolean(m);
+        if (this.muted) this.stopBGM();
+        else if (window.Game && Game.isRunning && !Game.isPaused) {
+          this.init();
+          this.resume();
+          this.startBGM();
+        }
+        const btn = document.getElementById('btn-hud-mute');
+        if (btn) btn.textContent = this.muted ? '🔇' : '🔊';
       }
     };
 
@@ -2391,9 +2462,14 @@
         // Core Perimeter Last Line of Defense
         { id: 11, x: 560, y: 360, sector: 'p2', tower: null },
         { id: 12, x: 670, y: 250, sector: 'p2', tower: null },
-        { id: 13, x: 670, y: 450, sector: 'p2', tower: null },
+        { id: 13, x: 695, y: 360, sector: 'p2', tower: null },
         { id: 14, x: 540, y: 470, sector: 'p2', tower: null }
       ],
+      gameSpeed: 1,
+      dpr: 1,
+      viewScale: 1,
+      viewOffsetX: 0,
+      viewOffsetY: 0,
 
       // Navigation & Selection
       selectedPadIndex: 0,
@@ -2445,21 +2521,46 @@
           this.initP2PChannel(joinCode, false);
         }
 
+        window.addEventListener('message', (e) => {
+          if (e.data && e.data.type === 'NEO_SET_MUTE') AudioEngine.setMuted(e.data.muted);
+        });
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: 'NEO_REQUEST_MUTE_STATE' }, '*');
+        }
+        window.Game = this;
+
         // Start animation loop
         requestAnimationFrame((t) => this.loop(t));
       },
 
       resize() {
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
-        this.scaleX = this.canvas.width / this.width;
-        this.scaleY = this.canvas.height / this.height;
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+        this.canvas.width = Math.round(w * this.dpr);
+        this.canvas.height = Math.round(h * this.dpr);
+        // Reserve thin header/dock bands so 4:3 tactical field stays unclipped and undistorted
+        const padTop = h <= 520 ? 34 : 52;
+        const padBot = h <= 520 ? 58 : 88;
+        const availH = Math.max(200, h - padTop - padBot);
+        const scale = Math.min(w / this.width, availH / this.height);
+        this.viewScale = scale;
+        this.scaleX = scale;
+        this.scaleY = scale;
+        this.viewOffsetX = (w - this.width * scale) * 0.5;
+        this.viewOffsetY = padTop + (availH - this.height * scale) * 0.5;
       },
 
       setupKeyboard() {
         window.addEventListener('keydown', (e) => {
           if (e.target && e.target.closest && e.target.closest('input, textarea, select')) return;
           AudioEngine.resume();
+
+          if ((e.code === 'Escape' || e.code === 'KeyP') && !e.repeat && this.isRunning && !this.isUpgradeChoosing) {
+            e.preventDefault();
+            this.togglePause();
+            return;
+          }
 
           // Quick Start / Menu hotkeys if menu is open
           if (!this.isRunning) {
@@ -2493,11 +2594,11 @@
             return;
           }
 
-          // P1 Controls (WASD + 1-5 + Space/X)
-          if (e.code === 'KeyW') this.movePadSelection(-1, 0, 'p1');
-          if (e.code === 'KeyS') this.movePadSelection(1, 0, 'p1');
-          if (e.code === 'KeyA') this.movePadSelection(0, -1, 'p1');
-          if (e.code === 'KeyD') this.movePadSelection(0, 1, 'p1');
+          // P1 Controls (WASD + Arrows in solo + 1-5 + Space/X)
+          if (e.code === 'KeyW' || (this.mode !== 'hotseat' && e.code === 'ArrowUp')) this.movePadSelection(-1, 0, 'p1');
+          if (e.code === 'KeyS' || (this.mode !== 'hotseat' && e.code === 'ArrowDown')) this.movePadSelection(1, 0, 'p1');
+          if (e.code === 'KeyA' || (this.mode !== 'hotseat' && e.code === 'ArrowLeft')) this.movePadSelection(0, -1, 'p1');
+          if (e.code === 'KeyD' || (this.mode !== 'hotseat' && e.code === 'ArrowRight')) this.movePadSelection(0, 1, 'p1');
 
           // Quick Build P1 (1-5 or J-I)
           if (e.code === 'Digit1' || e.code === 'KeyJ') this.quickBuild('gatling', 'p1');
@@ -2538,21 +2639,22 @@
           }
         });
 
-        // Mouse click support
+        // Mouse click support (uniform aspect coordinate mapping)
         this.canvas.addEventListener('mousedown', (e) => {
           AudioEngine.resume();
           const rect = this.canvas.getBoundingClientRect();
-          const mx = (e.clientX - rect.left) / (this.canvas.width / this.width);
-          const my = (e.clientY - rect.top) / (this.canvas.height / this.height);
+          const mx = (e.clientX - rect.left - this.viewOffsetX) / (this.viewScale || 1);
+          const my = (e.clientY - rect.top - this.viewOffsetY) / (this.viewScale || 1);
 
           // Find clicked pad
           for (let i = 0; i < this.buildPads.length; i++) {
             const pad = this.buildPads[i];
             const dist = Math.hypot(pad.x - mx, pad.y - my);
-            if (dist < 26) {
+            if (dist < 28) {
               this.selectedPadIndex = i;
               AudioEngine.playSelect();
               this.updatePadInfoUI();
+              this.updateHUD();
               return;
             }
           }
@@ -2565,17 +2667,18 @@
           AudioEngine.resume();
           const touch = e.touches[0];
           const rect = this.canvas.getBoundingClientRect();
-          const mx = (touch.clientX - rect.left) / (this.canvas.width / this.width);
-          const my = (touch.clientY - rect.top) / (this.canvas.height / this.height);
+          const mx = (touch.clientX - rect.left - this.viewOffsetX) / (this.viewScale || 1);
+          const my = (touch.clientY - rect.top - this.viewOffsetY) / (this.viewScale || 1);
 
           for (let i = 0; i < this.buildPads.length; i++) {
             const pad = this.buildPads[i];
             const dist = Math.hypot(pad.x - mx, pad.y - my);
-            if (dist < 32) {
+            if (dist < 34) {
               this.selectedPadIndex = i;
               if (navigator.vibrate) navigator.vibrate(10);
               AudioEngine.playSelect();
               this.updatePadInfoUI();
+              this.updateHUD();
               return;
             }
           }
@@ -2889,7 +2992,7 @@
       },
 
       callNextWaveEarly(fromRemote = false) {
-        if (this.waveInProgress && this.enemies.length > 0) return;
+        if (this.waveInProgress && (this.enemies.length > 0 || this.spawnQueue.length > 0)) return;
         this.waveTimer = 0;
         this.scrap += 25; // Bonus for calling wave early!
         this.triggerFloatingText(this.corePos.x, this.corePos.y - 30, '+25🔩 РАННЯЯ ВОЛНА!', '#ffb800');
@@ -2932,11 +3035,14 @@
           this.screenShake = 16;
           this.flashAlpha = 0.45;
 
-          // Fire craters & active napalm flame zones along road
-          for (let i = 0; i < 6; i++) {
-            const wx = 130 + i * 85;
-            const wy = 300 + (Math.random() - 0.5) * 35;
-            this.createFireZone(wx, wy, 65, 5.5, 45);
+          // Fire craters & active napalm flame zones along BOTH North & West lanes + center choke
+          const napalmSpots = [
+            { x: 160, y: 80 }, { x: 300, y: 80 },
+            { x: 160, y: 460 }, { x: 310, y: 300 },
+            { x: 460, y: 300 }, { x: 600, y: 350 }
+          ];
+          for (const sp of napalmSpots) {
+            this.createFireZone(sp.x, sp.y, 70, 5.5, 45);
           }
 
           // Damage all enemies on path
@@ -2970,6 +3076,15 @@
         this.waveTimer = 22;
         this.spawnQueue = [];
 
+        // Deterministic PRNG seeded by matchSeed + wave so P2P Co-op Host & Guest spawn identical waves
+        let rngState = ((this.matchSeed || 1337) + this.wave * 2654435761) >>> 0;
+        const seededRand = () => {
+          rngState = (rngState + 0x6D2B79F5) >>> 0;
+          let t = Math.imul(rngState ^ (rngState >>> 15), 1 | rngState);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+
         // Check if boss wave (Wave 5, 10, 15)
         const isBossWave = (this.wave === 5 || this.wave === 10 || this.wave === 15);
         if (isBossWave) {
@@ -2987,14 +3102,14 @@
         // Build enemy roster for this wave
         const count = 8 + this.wave * 4;
         for (let i = 0; i < count; i++) {
-          const lane = Math.random() > 0.5 ? 'north' : 'west';
+          const lane = seededRand() > 0.5 ? 'north' : 'west';
           let type = 'scout';
 
-          const r = Math.random();
+          const r = seededRand();
           if (this.wave >= 2 && r > 0.6) type = 'walker';
           if (this.wave >= 3 && r > 0.8) type = 'panzer';
-          if (this.wave >= 4 && r > 0.88) type = 'shield';
-          if (this.wave >= 6 && r > 0.92) type = 'jammer';
+          if (this.wave >= 4 && r > 0.88) type = 'hover';
+          if (this.wave >= 6 && r > 0.92) type = 'stealth';
 
           this.spawnQueue.push({ type, lane, delay: i * 0.9 });
         }
@@ -3029,10 +3144,10 @@
         } else if (type === 'panzer') {
           speed = 52; hp = 350 + this.wave * 80; radius = 22; color = '#cbd5e1'; scrapReward = 45;
         } else if (type === 'shield' || type === 'hover') {
-          speed = 68; hp = 240 + this.wave * 50; radius = 18; color = '#00f3ff'; scrapReward = 35;
+          speed = 88; hp = 210 + this.wave * 45; radius = 18; color = '#00f3ff'; scrapReward = 35;
         } else if (type === 'jammer' || type === 'stealth') {
-          speed = 78; hp = 200 + this.wave * 45; radius = 16; color = '#a855f7'; scrapReward = 32;
-        } else if (type === 'boss_brutus') {
+          speed = 80; hp = 185 + this.wave * 42; radius = 16; color = '#a855f7'; scrapReward = 32;
+        } else if (type === 'boss_brutus' || type === 'colossus') {
           speed = 40; hp = 3400; radius = 36; color = '#ff0055'; scrapReward = 350;
         } else if (type === 'boss_goliath') {
           speed = 32; hp = 7800; radius = 44; color = '#e11d48'; scrapReward = 650;
@@ -3056,9 +3171,11 @@
           slowTimer: 0,
           stunTimer: 0,
           burnTimer: 0,
+          damageVuln: 1.0,
+          teslaHits: 0,
           walkTime: 0,
-          shieldRadius: type === 'shield' ? 55 : 0,
-          isBoss: type.startsWith('boss')
+          shieldRadius: (type === 'shield' || type === 'boss_brutus' || type === 'boss_goliath') ? 55 : 0,
+          isBoss: type.startsWith('boss') || type === 'colossus'
         });
       },
 
@@ -3135,12 +3252,49 @@
 
       openMenu() {
         this.isPaused = true;
+        AudioEngine.stopBGM();
+        const pm = document.getElementById('pause-modal');
+        if (pm) pm.style.display = 'none';
         this.switchMenuTab('modes');
         document.getElementById('menu-modal').style.display = 'flex';
       },
 
+      openArmory() {
+        this.isPaused = true;
+        this.switchMenuTab('armory');
+        document.getElementById('menu-modal').style.display = 'flex';
+      },
+
+      togglePause(force) {
+        if (!this.isRunning) return;
+        this.isPaused = typeof force === 'boolean' ? force : !this.isPaused;
+        const pm = document.getElementById('pause-modal');
+        if (pm) pm.style.display = this.isPaused ? 'flex' : 'none';
+        if (this.isPaused) AudioEngine.stopBGM();
+        else if (!AudioEngine.muted) AudioEngine.startBGM();
+      },
+
+      toggleSpeed() {
+        this.gameSpeed = this.gameSpeed === 1 ? 2 : 1;
+        const el = document.getElementById('hud-speed-text');
+        if (el) el.textContent = this.gameSpeed === 2 ? '⏩ 2x' : '⏩ 1x';
+      },
+
+      toggleMute() {
+        AudioEngine.setMuted(!AudioEngine.muted);
+      },
+
+      returnToHero() {
+        this.isPaused = true;
+        AudioEngine.stopBGM();
+        this.closeModals();
+        if (window.NeoHeroScreen && window.NeoHeroScreen.show) window.NeoHeroScreen.show();
+      },
+
       closeModals() {
         this.isPaused = false;
+        const pm = document.getElementById('pause-modal');
+        if (pm) pm.style.display = 'none';
         document.getElementById('menu-modal').style.display = 'none';
         document.getElementById('p2p-modal').style.display = 'none';
         document.getElementById('gameover-modal').style.display = 'none';
@@ -3163,8 +3317,13 @@
       },
 
       startCoopFromLobby() {
+        if (this.netRole === 'guest') {
+          this.setNetStatus('Ожидайте запуска игры от хоста.', true);
+          return;
+        }
+        this.matchSeed = Math.floor(Math.random() * 900000) + 1000;
         if (this.netRoom && this.netRole === 'host' && this.netRoom.getConnectedPeerIds().length > 0) {
-          this.netRoom.send({ t: 'start_coop' });
+          this.netRoom.send({ t: 'start_coop', seed: this.matchSeed });
         }
         this.startMode('p2p_coop');
       },
@@ -3177,6 +3336,12 @@
         const cleanCode = window.NeoP2PRoom ? NeoP2PRoom.normalizeCode(roomCode) : String(roomCode || '').toUpperCase();
         this.currentRoomCode = cleanCode;
         this.netRole = isHost ? 'host' : 'guest';
+        const p2pStartBtn = document.getElementById('btn-p2p-start');
+        if (p2pStartBtn) {
+          p2pStartBtn.disabled = !isHost;
+          p2pStartBtn.style.opacity = isHost ? '1' : '0.45';
+          p2pStartBtn.textContent = isHost ? '▶ НАЧАТЬ КООП' : '⏳ ЖДЁМ ХОСТА...';
+        }
         const myCodeEl = document.getElementById('p2p-my-code');
         if (myCodeEl) myCodeEl.textContent = cleanCode;
         this.setNetStatus(isHost ? `Комната ${cleanCode} открыта. Ожидание напарника...` : `Подключение к комнате ${cleanCode}...`);
@@ -3198,12 +3363,11 @@
           onPeerOpen: () => {
             this.setNetStatus('Напарник подключён! Запуск кооператива...');
             if (this.netRole === 'host') {
-              this.netRoom.send({ t: 'start_coop' });
+              this.matchSeed = Math.floor(Math.random() * 900000) + 1000;
+              this.netRoom.send({ t: 'start_coop', seed: this.matchSeed });
               if (this.mode !== 'p2p_coop' || !this.isRunning) {
                 this.startMode('p2p_coop');
               }
-            } else if (this.mode !== 'p2p_coop' || !this.isRunning) {
-              this.startMode('p2p_coop');
             }
           },
           onPeerClose: () => {
@@ -3212,6 +3376,7 @@
           onMessage: (msg) => {
             if (!msg || !msg.t) return;
             if (msg.t === 'start_coop') {
+              if (msg.seed) this.matchSeed = msg.seed;
               this.closeModals();
               if (this.mode !== 'p2p_coop' || !this.isRunning) {
                 this.startMode('p2p_coop');
@@ -3284,6 +3449,7 @@
 
       showGameOver(victory) {
         this.isRunning = false;
+        AudioEngine.stopBGM();
         AudioEngine.playExplosion();
 
         document.getElementById('final-wave').textContent = this.wave;
@@ -3300,6 +3466,11 @@
           title.textContent = 'РЕАКТОР УНИЧТОЖЕН';
           title.style.color = '#ff0055';
           desc.textContent = 'Оборона пала под натиском бронированных мехов.';
+        }
+
+        if (window.parent && window.parent !== window) {
+          const finalScore = Math.round(this.score + this.kills * 25 + (victory ? 2000 : 0));
+          window.parent.postMessage({ type: 'NEO_HIGHSCORE', game: 'mecha_siege', score: finalScore }, '*');
         }
 
         document.getElementById('gameover-modal').style.display = 'flex';
@@ -3666,25 +3837,47 @@
         if (waveEl) waveEl.textContent = `${this.wave}/${this.maxWaves}`;
         if (scoreEl) scoreEl.textContent = this.score.toLocaleString();
 
-        // Super weapons buttons state
+        // Super weapons buttons & live cooldown fill bars
         const bEmp = document.getElementById('btn-super-emp');
         const bNap = document.getElementById('btn-super-napalm');
         const bOvr = document.getElementById('btn-super-overdrive');
         if (bEmp) bEmp.disabled = (this.cooldowns.emp > 0 || this.scrap < 200);
         if (bNap) bNap.disabled = (this.cooldowns.napalm > 0 || this.scrap < 250);
         if (bOvr) bOvr.disabled = (this.cooldowns.overdrive > 0 || this.scrap < 180);
+
+        const cdEmp = document.getElementById('cd-emp');
+        const cdNap = document.getElementById('cd-napalm');
+        const cdOvr = document.getElementById('cd-overdrive');
+        if (cdEmp) cdEmp.style.width = `${Math.max(0, Math.min(100, (this.cooldowns.emp / 25) * 100))}%`;
+        if (cdNap) cdNap.style.width = `${Math.max(0, Math.min(100, (this.cooldowns.napalm / 30) * 100))}%`;
+        if (cdOvr) cdOvr.style.width = `${Math.max(0, Math.min(100, (this.cooldowns.overdrive / 20) * 100))}%`;
+
+        // Tower & action dock affordability / occupancy state
+        const pad = this.buildPads[this.selectedPadIndex];
+        const hasTower = Boolean(pad && pad.tower);
+        document.querySelectorAll('.tower-card-btn[data-tower]').forEach(btn => {
+          const proto = TOWER_TYPES[btn.dataset.tower];
+          btn.disabled = hasTower || !proto || this.scrap < proto.cost;
+        });
+        const btnUpg = document.getElementById('btn-mobile-upgrade');
+        const btnSell = document.getElementById('btn-mobile-sell');
+        const btnWave = document.getElementById('btn-mobile-wave');
+        if (btnUpg) btnUpg.disabled = !hasTower || pad.tower.tier >= 3 || this.scrap < pad.tower.upgradeCost;
+        if (btnSell) btnSell.disabled = !hasTower;
+        if (btnWave) btnWave.disabled = this.waveInProgress && (this.enemies.length > 0 || this.spawnQueue.length > 0);
       },
 
       loop(timestamp) {
         requestAnimationFrame((t) => this.loop(t));
 
-        const dt = this._lastTs ? Math.min(0.05, Math.max(0.001, (timestamp - this._lastTs) / 1000)) : 1 / 60;
+        const rawDt = this._lastTs ? Math.min(0.05, Math.max(0.001, (timestamp - this._lastTs) / 1000)) : 1 / 60;
         this._lastTs = timestamp;
 
-        if (!this.isRunning || this.isPaused) {
+        if (!this.isRunning || this.isPaused || this.isUpgradeChoosing) {
           this.render();
           return;
         }
+        const dt = rawDt * (this.gameSpeed || 1);
 
         if (this.mode === 'p2p_coop' && this.netRole === 'host' && this.netRoom && this.netRoom.getConnectedPeerIds().length > 0 && timestamp - this._lastSyncTs >= 2500) {
           this._lastSyncTs = timestamp;
@@ -3731,9 +3924,14 @@
         }
 
         // Super Weapons Cooldowns
+        let cdActive = false;
         for (const k in this.cooldowns) {
-          if (this.cooldowns[k] > 0) this.cooldowns[k] -= dt;
+          if (this.cooldowns[k] > 0) {
+            this.cooldowns[k] = Math.max(0, this.cooldowns[k] - dt);
+            cdActive = true;
+          }
         }
+        if (cdActive) this.updateHUD();
         if (this.overdriveTimer > 0) this.overdriveTimer -= dt;
 
         // Update Towers
@@ -3789,9 +3987,9 @@
                 const isShredder = Boolean(t.isShredder || t.abilities?.includes('gatling_shredder'));
 
                 if (isShredder) {
-                  // 5-pellet shotgun cone
+                  // 5-pellet true spread shotgun cone (unguided straight vectors)
                   for (let s = -2; s <= 2; s++) {
-                    const sa = t.angle + s * 0.08;
+                    const sa = t.angle + s * 0.13;
                     const smx = t.x + Math.cos(sa) * muzzleDist;
                     const smy = t.y + Math.sin(sa) * muzzleDist;
                     this.projectiles.push({
@@ -3800,15 +3998,18 @@
                       y: smy,
                       prevX: smx,
                       prevY: smy,
-                      target,
+                      target: null,
+                      unguided: true,
+                      vx: Math.cos(sa) * 640,
+                      vy: Math.sin(sa) * 640,
                       angle: sa,
                       damage: Math.round(t.damage * 0.45),
-                      speed: 620,
+                      speed: 640,
                       color: '#ffb800',
                       isVulcan: false,
                       isExplosive: false,
                       isPlasma: false,
-                      life: 0.9
+                      life: 0.55
                     });
                   }
                 } else {
@@ -3933,8 +4134,9 @@
                   this.spawnBallLightning(t.x, t.y, target, t.damage);
                 }
               } else if (t.type === 'mines') {
-                if (this.mines.length < (t.maxMines || 5)) {
-                  // Lay a mine on the closest road lane point
+                const towerMinesCount = this.mines.filter(m => m.ownerX === t.x && m.ownerY === t.y).length;
+                if (towerMinesCount < (t.maxMines || 4)) {
+                  // Lay a mine on the closest road lane point and face it
                   let bestRoadPoint = { x: t.x + Math.cos(t.angle) * 45, y: t.y + Math.sin(t.angle) * 45 };
                   let minRoadDist = Infinity;
                   const allPathPoints = [...this.pathNorth, ...this.pathWest];
@@ -3945,9 +4147,12 @@
                       bestRoadPoint = pt;
                     }
                   }
+                  t.angle = Math.atan2(bestRoadPoint.y - t.y, bestRoadPoint.x - t.x);
                   const jx = (Math.random() - 0.5) * 18;
                   const jy = (Math.random() - 0.5) * 18;
                   this.mines.push({
+                    ownerX: t.x,
+                    ownerY: t.y,
                     x: bestRoadPoint.x + jx,
                     y: bestRoadPoint.y + jy,
                     damage: t.damage,
@@ -3995,8 +4200,8 @@
           const p = this.projectiles[i];
 
           if (p.type === 'bullet') {
-            // Retarget if current target is dead instead of vanishing mid-air
-            if (!p.target || p.target.hp <= 0) {
+            // Retarget guided bullets if current target is dead
+            if (!p.unguided && (!p.target || p.target.hp <= 0)) {
               let nearest = null;
               let nearDist = 180;
               for (const e of this.enemies) {
@@ -4011,9 +4216,8 @@
               p.target = nearest;
             }
 
-            if (!p.target) {
-              // No live enemies nearby; expire bullet gracefully
-              p.life = (p.life || 0.4) - dt;
+            if (p.unguided || !p.target) {
+              p.life = (p.life !== undefined ? p.life : 0.4) - dt;
               if (p.life <= 0) {
                 this.projectiles.splice(i, 1);
                 continue;
@@ -4025,7 +4229,7 @@
             let targetY = p.y;
             let targetRadius = 14;
 
-            if (p.target) {
+            if (!p.unguided && p.target) {
               targetX = p.target.x;
               targetY = p.target.y;
               targetRadius = p.target.radius || 14;
@@ -4034,10 +4238,11 @@
             const dist = Math.hypot(targetX - p.x, targetY - p.y);
 
             const onBulletImpact = (targetEnemy, hitX, hitY) => {
-              targetEnemy.hp -= p.damage;
+              const effDmg = Math.round(p.damage * (targetEnemy.damageVuln || 1));
+              targetEnemy.hp -= effDmg;
               targetEnemy.hitFlash = 0.09;
               this.createSparks(targetEnemy.x, targetEnemy.y, p.color, 7);
-              this.triggerFloatingText(targetEnemy.x, targetEnemy.y - 10, `-${p.damage}`, p.color, 11);
+              this.triggerFloatingText(targetEnemy.x, targetEnemy.y - 10, `-${effDmg}`, p.color, 11);
 
               if (p.isExplosive) {
                 this.createShockwave(hitX, hitY, '#ff5500', p.splash || 32, 2.5);
@@ -4091,12 +4296,17 @@
               continue;
             }
 
-            // Move projectile towards target
+            // Move projectile along fixed vector (unguided shotgun) or towards target
             p.prevX = p.x;
             p.prevY = p.y;
-            const angle = Math.atan2(targetY - p.y, targetX - p.x);
-            p.x += Math.cos(angle) * moveDist;
-            p.y += Math.sin(angle) * moveDist;
+            if (p.unguided) {
+              p.x += (p.vx || 0) * dt;
+              p.y += (p.vy || 0) * dt;
+            } else {
+              const angle = Math.atan2(targetY - p.y, targetX - p.x);
+              p.x += Math.cos(angle) * moveDist;
+              p.y += Math.sin(angle) * moveDist;
+            }
 
             // Proximity sweep: check collision with any enemy across the trajectory
             let collided = false;
@@ -4132,9 +4342,10 @@
 
               // Guaranteed direct hit to targeted mech
               if (p.target && p.target.hp > 0) {
-                p.target.hp -= p.damage;
+                const directDmg = Math.round(p.damage * (p.target.damageVuln || 1));
+                p.target.hp -= directDmg;
                 p.target.hitFlash = 0.16;
-                this.triggerFloatingText(p.target.x, p.target.y - 12, `-${p.damage}`, '#ff0055', 13);
+                this.triggerFloatingText(p.target.x, p.target.y - 12, `-${directDmg}`, '#ff0055', 13);
               }
 
               // Area of effect damage to all mechs in splash radius
@@ -4143,7 +4354,7 @@
                 const ed = Math.hypot(e.x - impactX, e.y - impactY);
                 if (ed < p.splash) {
                   const splashRatio = 1 - (ed / p.splash) * 0.45;
-                  const splashDmg = Math.round(p.damage * splashRatio);
+                  const splashDmg = Math.round(p.damage * splashRatio * (e.damageVuln || 1));
                   e.hp -= splashDmg;
                   e.hitFlash = 0.12;
                   this.createSparks(e.x, e.y, '#ff0055', 4);
@@ -4299,12 +4510,26 @@
           }
 
           for (const e of this.enemies) {
+            if (e.hp <= 0 || e.type === 'hover' || e.type === 'shield') continue;
             if (Math.hypot(e.x - mine.x, e.y - mine.y) < e.radius + mine.radius) {
               AudioEngine.playExplosion();
               this.createHeavyExplosion(mine.x, mine.y, mine.isNuke ? 95 : 65);
-              e.hp -= mine.damage;
+              const mineDmg = Math.round(mine.damage * (e.damageVuln || 1));
+              e.hp -= mineDmg;
               e.hitFlash = 0.15;
-              this.triggerFloatingText(e.x, e.y - 12, `-${mine.damage}`, '#ff5500', 13);
+              this.triggerFloatingText(e.x, e.y - 12, `-${mineDmg}`, '#ff5500', 13);
+
+              if (mine.acid) {
+                this.createShockwave(mine.x, mine.y, '#00ff88', 75, 3);
+                for (const other of this.enemies) {
+                  if (other.hp > 0 && Math.hypot(other.x - mine.x, other.y - mine.y) < 75) {
+                    other.damageVuln = Math.max(other.damageVuln || 1, 1.35);
+                    other.burnTimer = Math.max(other.burnTimer || 0, 4.0);
+                    this.createSparks(other.x, other.y, '#00ff88', 6);
+                  }
+                }
+                this.triggerFloatingText(mine.x, mine.y - 16, '☣ НАНО-КИСЛОТА! ☣', '#00ff88', 12);
+              }
 
               if (mine.cryoEmp) {
                 AudioEngine.playFreeze();
@@ -4541,23 +4766,20 @@
         for (let i = this.enemies.length - 1; i >= 0; i--) {
           const e = this.enemies[i];
 
-          // Status effects
+          // Status effects (DoT & death check run even while stunned/frozen so 0-HP enemies die immediately!)
           if (e.hitFlash > 0) {
             e.hitFlash -= dt;
           }
-          if (e.stunTimer > 0) {
-            e.stunTimer -= dt;
-            continue;
-          }
           if (e.slowTimer > 0) {
-            e.slowTimer -= dt;
+            const slowDecay = (e.type === 'hover' || e.type === 'shield') ? dt * 1.65 : dt;
+            e.slowTimer = Math.max(0, e.slowTimer - slowDecay);
             e.speed = e.baseSpeed * 0.45;
           } else {
             e.speed = e.baseSpeed;
           }
           if (e.burnTimer > 0) {
             e.burnTimer -= dt;
-            e.hp -= 32 * dt;
+            e.hp -= 32 * dt * (e.damageVuln || 1);
             if (Math.random() < 0.25) {
               this.particles.push({
                 type: 'smoke',
@@ -4571,6 +4793,37 @@
                 maxLife: 0.4
               });
             }
+          }
+
+          // Enemy Death Check (before stun continue so stunned 0-HP corpses never linger!)
+          if (e.hp <= 0) {
+            AudioEngine.playExplosion();
+            this.scrap += e.scrapReward;
+            this.score += e.scrapReward * 10;
+            this.kills++;
+            this.createSparks(e.x, e.y, e.color, 14);
+            this.createShockwave(e.x, e.y, e.color, 45);
+            this.triggerFloatingText(e.x, e.y - 12, `+${e.scrapReward}🔩`, '#ffb800');
+            if ((e.slowTimer > 0 || e.stunTimer > 0) && this.towers.some(tw => tw.frostNovaOnDeath && Math.hypot(tw.x - e.x, tw.y - e.y) <= tw.range * 1.5)) {
+              AudioEngine.playFreeze();
+              this.createShockwave(e.x, e.y, '#00f3ff', 95, 4);
+              for (const other of this.enemies) {
+                if (other !== e && other.hp > 0 && Math.hypot(other.x - e.x, other.y - e.y) <= 95) {
+                  other.hp -= 55;
+                  other.stunTimer = Math.max(other.stunTimer || 0, 2.2);
+                  other.slowTimer = Math.max(other.slowTimer || 0, 3.5);
+                }
+              }
+              this.triggerFloatingText(e.x, e.y - 24, '💎 КРИО-НОВА!', '#00f3ff', 13);
+            }
+            this.enemies.splice(i, 1);
+            this.updateHUD();
+            continue;
+          }
+
+          if (e.stunTimer > 0) {
+            e.stunTimer -= dt;
+            continue;
           }
 
           e.walkTime += dt * 5;
@@ -4603,19 +4856,6 @@
             e.angle = Math.atan2(dy, dx);
             e.x += (dx / dist) * e.speed * dt;
             e.y += (dy / dist) * e.speed * dt;
-          }
-
-          // Enemy Death Check
-          if (e.hp <= 0) {
-            AudioEngine.playExplosion();
-            this.scrap += e.scrapReward;
-            this.score += e.scrapReward * 10;
-            this.kills++;
-            this.createSparks(e.x, e.y, e.color, 14);
-            this.createShockwave(e.x, e.y, e.color, 45);
-            this.triggerFloatingText(e.x, e.y - 12, `+${e.scrapReward}🔩`, '#ffb800');
-            this.enemies.splice(i, 1);
-            this.updateHUD();
           }
         }
 
@@ -4680,25 +4920,38 @@
       fireTeslaChain(tower, firstTarget) {
         const chains = tower.chains || 3;
         const towerTopX = tower.x;
-        const towerTopY = tower.y - 4; // Tesla emitter ball
+        const towerTopY = tower.y - 4;
+        const applyElectricHit = (targetEnemy, baseDmg, color = '#00f3ff') => {
+          const dmg = Math.round(baseDmg * (targetEnemy.damageVuln || 1));
+          targetEnemy.hp -= dmg;
+          targetEnemy.hitFlash = 0.12;
+          this.triggerFloatingText(targetEnemy.x, targetEnemy.y - 10, `-${dmg}`, color, 11);
+          if (tower.overloadCharge || tower.abilities?.includes('tesla_overload')) {
+            targetEnemy.teslaHits = (targetEnemy.teslaHits || 0) + 1;
+            if (targetEnemy.teslaHits % 3 === 0) {
+              this.createShockwave(targetEnemy.x, targetEnemy.y, '#d946ef', 75, 4);
+              for (const other of this.enemies) {
+                if (other.hp > 0 && Math.hypot(other.x - targetEnemy.x, other.y - targetEnemy.y) <= 75) {
+                  other.hp -= Math.round(tower.damage * 1.4);
+                  other.stunTimer = Math.max(other.stunTimer || 0, 1.2);
+                }
+              }
+              this.triggerFloatingText(targetEnemy.x, targetEnemy.y - 22, '💥 ПЕРЕГРУЗ!', '#d946ef', 13);
+            }
+          }
+        };
 
-        // Spark emitter at tower top
         this.createMuzzleFlash(towerTopX, towerTopY, 0, '#00f3ff', 16);
         this.createSparks(towerTopX, towerTopY, '#00f3ff', 5);
-
-        // Primary lightning discharge to first target
         this.createLightningArc(towerTopX, towerTopY, firstTarget.x, firstTarget.y, '#ffffff', '#00f3ff', 4.5);
         this.createSparks(firstTarget.x, firstTarget.y, '#00f3ff', 8);
         this.createShockwave(firstTarget.x, firstTarget.y, '#00f3ff', 24);
-        firstTarget.hp -= tower.damage;
-        firstTarget.hitFlash = 0.12;
-        this.triggerFloatingText(firstTarget.x, firstTarget.y - 10, `-${tower.damage}`, '#00f3ff', 12);
+        applyElectricHit(firstTarget, tower.damage, '#00f3ff');
         this.screenShake = Math.max(this.screenShake, 3.5);
 
         let current = firstTarget;
         const hit = [current];
 
-        // Secondary chain lightning jumps
         for (let c = 1; c < chains; c++) {
           let nextTarget = null;
           let minDist = 135;
@@ -4716,9 +4969,7 @@
             const chainDmg = Math.round(tower.damage * (1 - c * 0.15));
             this.createLightningArc(current.x, current.y, nextTarget.x, nextTarget.y, '#00f3ff', '#d946ef', 3.2);
             this.createSparks(nextTarget.x, nextTarget.y, '#d946ef', 6);
-            nextTarget.hp -= chainDmg;
-            nextTarget.hitFlash = 0.12;
-            this.triggerFloatingText(nextTarget.x, nextTarget.y - 10, `-${chainDmg}`, '#d946ef', 11);
+            applyElectricHit(nextTarget, chainDmg, '#d946ef');
             hit.push(nextTarget);
             current = nextTarget;
           } else {
@@ -4730,45 +4981,45 @@
       render() {
         const ctx = this.ctx;
         ctx.save();
+        ctx.setTransform(this.dpr || 1, 0, 0, this.dpr || 1, 0, 0);
 
-        // Screen Shake
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        ctx.fillStyle = '#070a10';
+        ctx.fillRect(0, 0, vw, vh);
+
+        // Screen Shake & Uniform 4:3 View Transform
         const sx = (Math.random() - 0.5) * this.screenShake;
         const sy = (Math.random() - 0.5) * this.screenShake;
-        ctx.translate(sx, sy);
+        ctx.translate(this.viewOffsetX + sx, this.viewOffsetY + sy);
+        ctx.scale(this.viewScale || 1, this.viewScale || 1);
 
-        // Scale to virtual 800x600 resolution
-        ctx.scale(this.scaleX, this.scaleY);
-
-        // Background / Industrial Grid
+        // Dieselpunk Metal Floor Base
         ctx.fillStyle = '#0a0d14';
         ctx.fillRect(0, 0, this.width, this.height);
+        ctx.strokeStyle = 'rgba(30, 41, 59, 0.55)';
+        ctx.lineWidth = 1;
+        for (let gx = 0; gx <= this.width; gx += 80) {
+          ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, this.height); ctx.stroke();
+        }
+        for (let gy = 0; gy <= this.height; gy += 60) {
+          ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(this.width, gy); ctx.stroke();
+        }
 
-        // Draw Roads & Lanes (Concrete Metal Grate)
+        // Draw Roads & Lanes (Dieselpunk Steel Plate Road)
         this.renderRoads(ctx);
 
-        // Draw Debris & Scorch Marks
+        // Draw Debris & Scorch Marks + Gears Sprite
         for (const d of this.debris) {
           const alpha = Math.max(0, Math.min(1, d.life / (d.maxLife || 14)));
           ctx.save();
           ctx.translate(d.x, d.y);
-          // Dark scorch crater
           ctx.beginPath();
           ctx.arc(0, 0, d.radius, 0, Math.PI * 2);
           ctx.fillStyle = `rgba(10, 8, 14, ${0.75 * alpha})`;
           ctx.fill();
-          // Smoldering crater rim
-          ctx.beginPath();
-          ctx.arc(0, 0, d.radius * 0.65, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(35, 15, 10, ${0.45 * alpha})`;
-          ctx.fill();
-          // Impact blast crack lines
-          ctx.strokeStyle = `rgba(255, 90, 0, ${0.25 * alpha})`;
-          ctx.lineWidth = 1;
-          for (let a = 0; a < Math.PI * 2; a += Math.PI / 3) {
-            ctx.beginPath();
-            ctx.moveTo(Math.cos(a) * d.radius * 0.35, Math.sin(a) * d.radius * 0.35);
-            ctx.lineTo(Math.cos(a + 0.12) * d.radius * 1.1, Math.sin(a + 0.12) * d.radius * 1.1);
-            ctx.stroke();
+          if (mechaSheetReady) {
+            drawMechaSprite(ctx, 5, 3, 0, 0, d.radius * 1.9, d.radius * 1.9, (d.x * 0.05) % 6.28, alpha * 0.85);
           }
           ctx.restore();
         }
@@ -4848,11 +5099,14 @@
           ctx.stroke();
         }
 
-        // Draw Blizzard Storm AoE Zones (On Ground)
+        // Draw Blizzard Storm AoE Zones (Vortex Sprite + Snow)
         for (const zone of this.blizzardZones) {
           const alpha = Math.min(1, zone.duration / (zone.maxDuration || 2));
           ctx.save();
           ctx.translate(zone.x, zone.y);
+          if (mechaSheetReady) {
+            drawMechaSprite(ctx, 3, 3, 0, 0, zone.radius * 2.1, zone.radius * 2.1, zone.spinAngle, alpha * 0.72);
+          }
 
           // 1. Frost Mist Ground Gradient
           const grad = ctx.createRadialGradient(0, 0, zone.radius * 0.1, 0, 0, zone.radius);
@@ -5444,43 +5698,28 @@
       },
 
       renderRoads(ctx) {
-        ctx.strokeStyle = '#1e2638';
-        ctx.lineWidth = 42;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
+        const strokeLane = (pts, width, color) => {
+          ctx.strokeStyle = color;
+          ctx.lineWidth = width;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.beginPath();
+          for (let i = 0; i < pts.length; i++) {
+            if (i === 0) ctx.moveTo(pts[i].x, pts[i].y);
+            else ctx.lineTo(pts[i].x, pts[i].y);
+          }
+          ctx.stroke();
+        };
+        strokeLane(this.pathNorth, 48, '#28334a');
+        strokeLane(this.pathWest, 48, '#28334a');
+        strokeLane(this.pathNorth, 42, '#1b2232');
+        strokeLane(this.pathWest, 42, '#1b2232');
 
-        // Draw North Lane Road
-        ctx.beginPath();
-        for (let i = 0; i < this.pathNorth.length; i++) {
-          const pt = this.pathNorth[i];
-          if (i === 0) ctx.moveTo(pt.x, pt.y); else ctx.lineTo(pt.x, pt.y);
-        }
-        ctx.stroke();
-
-        // Draw West Lane Road
-        ctx.beginPath();
-        for (let i = 0; i < this.pathWest.length; i++) {
-          const pt = this.pathWest[i];
-          if (i === 0) ctx.moveTo(pt.x, pt.y); else ctx.lineTo(pt.x, pt.y);
-        }
-        ctx.stroke();
-
-        // Road Center Dash Striping (Industrial Yellow Hazard)
-        ctx.strokeStyle = 'rgba(255, 184, 0, 0.25)';
+        ctx.strokeStyle = 'rgba(255, 184, 0, 0.3)';
         ctx.lineWidth = 2;
         ctx.setLineDash([8, 8]);
-        ctx.beginPath();
-        for (let i = 0; i < this.pathNorth.length; i++) {
-          const pt = this.pathNorth[i];
-          if (i === 0) ctx.moveTo(pt.x, pt.y); else ctx.lineTo(pt.x, pt.y);
-        }
-        ctx.stroke();
-        ctx.beginPath();
-        for (let i = 0; i < this.pathWest.length; i++) {
-          const pt = this.pathWest[i];
-          if (i === 0) ctx.moveTo(pt.x, pt.y); else ctx.lineTo(pt.x, pt.y);
-        }
-        ctx.stroke();
+        strokeLane(this.pathNorth, 2, 'rgba(255, 184, 0, 0.3)');
+        strokeLane(this.pathWest, 2, 'rgba(255, 184, 0, 0.3)');
         ctx.setLineDash([]);
       },
 
@@ -6266,14 +6505,18 @@
         // 3. Force Field Bubble (if active)
         if (e.shieldRadius > 0 || (e.type === 'shield' && e.hp > 0)) {
           const sRad = e.shieldRadius || 26;
-          ctx.strokeStyle = 'rgba(0, 243, 255, 0.7)';
-          ctx.lineWidth = 2.5;
-          ctx.shadowColor = '#00f3ff';
-          ctx.shadowBlur = 10;
-          ctx.beginPath();
-          ctx.arc(0, 0, sRad, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.shadowBlur = 0;
+          if (mechaSheetReady) {
+            drawMechaSprite(ctx, 2, 3, 0, 0, sRad * 2.1, sRad * 2.1, 0, 0.55);
+          } else {
+            ctx.strokeStyle = 'rgba(0, 243, 255, 0.7)';
+            ctx.lineWidth = 2.5;
+            ctx.shadowColor = '#00f3ff';
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.arc(0, 0, sRad, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+          }
         }
 
         // 4. White-Hot Combat Hit Flash Silhouette Overlay

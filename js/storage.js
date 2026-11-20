@@ -39,12 +39,32 @@ const Storage = {
     this.unlock("FIRST_BOOT");
   },
 
+  _mergeLoaded(parsed) {
+    if (!parsed || typeof parsed !== "object") return;
+    this.data = {
+      ...this.data,
+      ...parsed,
+      highscores: {
+        ...this.data.highscores,
+        ...(parsed.highscores && typeof parsed.highscores === "object" ? parsed.highscores : {})
+      },
+      achievements: {
+        ...this.data.achievements,
+        ...(parsed.achievements && typeof parsed.achievements === "object" ? parsed.achievements : {})
+      },
+      settings: {
+        ...this.data.settings,
+        ...(parsed.settings && typeof parsed.settings === "object" ? parsed.settings : {})
+      }
+    };
+  },
+
   load() {
     try {
-      const saved = localStorage.getItem('neo_cartridge_data');
+      const saved = localStorage.getItem("neo_cartridge_data");
       if (saved) {
         const parsed = JSON.parse(saved);
-        this.data = { ...this.data, ...parsed };
+        this._mergeLoaded(parsed);
       }
     } catch (e) {
       console.warn("Storage error, fallback to memory", e);
@@ -53,7 +73,7 @@ const Storage = {
 
   save() {
     try {
-      localStorage.setItem('neo_cartridge_data', JSON.stringify(this.data));
+      localStorage.setItem("neo_cartridge_data", JSON.stringify(this.data));
     } catch (e) {
       console.warn("Failed to save to localStorage", e);
     }
@@ -64,41 +84,43 @@ const Storage = {
   },
 
   updateHighscore(gameId, score) {
-    if (score > (this.data.highscores[gameId] || 0)) {
-      this.data.highscores[gameId] = score;
+    const num = Math.floor(Number(score) || 0);
+    if (!gameId || num <= 0) return false;
+    if (num > (this.data.highscores[gameId] || 0)) {
+      this.data.highscores[gameId] = num;
       this.save();
-      return true; // New record!
+      return true;
     }
     return false;
   },
 
   unlock(achieveId) {
     if (!this.data.achievements[achieveId]) {
-      const info = this.achievementsList.find(a => a.id === achieveId);
+      const info = this.achievementsList.find((a) => a.id === achieveId);
       if (info) {
         this.data.achievements[achieveId] = Date.now();
         this.save();
-        if (typeof Sound !== 'undefined') Sound.playPowerup();
+        if (typeof Sound !== "undefined") Sound.playPowerup();
         this.showAchievementToast(info);
       }
     }
   },
 
   showAchievementToast(info) {
-    let container = document.getElementById('achievement-toast-container');
+    let container = document.getElementById("achievement-toast-container");
     if (!container) {
-      container = document.createElement('div');
-      container.id = 'achievement-toast-container';
-      container.className = 'achievement-toast-container';
+      container = document.createElement("div");
+      container.id = "achievement-toast-container";
+      container.className = "achievement-toast-container";
       document.body.appendChild(container);
     }
 
-    const toast = document.createElement('div');
-    toast.className = 'achieve-toast';
+    const toast = document.createElement("div");
+    toast.className = "achieve-toast";
     toast.innerHTML = `
       <div class="achieve-icon">${info.icon}</div>
       <div class="achieve-info">
-        <div class="achieve-tag">// АЧИВКА РАЗБЛОКИРОВАНА</div>
+        <div class="achieve-tag">${info.tag || "// АЧИВКА РАЗБЛОКИРОВАНА"}</div>
         <div class="achieve-title">${info.title}</div>
         <div class="achieve-desc">${info.desc}</div>
       </div>
@@ -106,44 +128,76 @@ const Storage = {
     container.appendChild(toast);
 
     setTimeout(() => {
-      toast.classList.add('hide');
+      toast.classList.add("hide");
       setTimeout(() => toast.remove(), 400);
     }, 4000);
   },
 
   exportSaveFile() {
     const jsonStr = JSON.stringify(this.data, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const blob = new Blob([jsonStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = `neo-cartridge-save-${new Date().toISOString().slice(0, 10)}.cart`;
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   },
 
   importSaveFile(file, callback) {
+    if (!file) return;
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
         const parsed = JSON.parse(e.target.result);
         if (parsed && parsed.highscores) {
-          this.data = {
-            ...this.data,
-            ...parsed,
-            highscores: { ...this.data.highscores, ...parsed.highscores },
-            achievements: { ...this.data.achievements, ...(parsed.achievements || {}) },
-            settings: { ...this.data.settings, ...(parsed.settings || {}) }
-          };
+          this._mergeLoaded(parsed);
           this.save();
           if (callback) callback(true);
         } else {
           if (callback) callback(false, "Неверный формат картридж-файла");
         }
-      } catch (err) {
+      } catch (_) {
         if (callback) callback(false, "Ошибка чтения JSON");
       }
     };
     reader.readAsText(file);
+  },
+
+  setupDropZone() {
+    const dropEl = document.querySelector(".save-drop-area");
+    if (!dropEl || dropEl.dataset.dndReady) return;
+    dropEl.dataset.dndReady = "1";
+
+    dropEl.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropEl.classList.add("drag-over");
+    });
+    dropEl.addEventListener("dragleave", () => {
+      dropEl.classList.remove("drag-over");
+    });
+    dropEl.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropEl.classList.remove("drag-over");
+      const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (!file) return;
+      this.importSaveFile(file, (ok, msg) => {
+        if (ok) {
+          if (window.App) {
+            App.closeModal("save-modal");
+            App.updateDashboardInfo();
+            App.renderAchievementsModal();
+          }
+          this.showAchievementToast({
+            icon: "💾",
+            tag: "// ИМПОРТ ЗАВЕРШЁН",
+            title: "Сейв загружен!",
+            desc: "Рекорды, ачивки и настройки восстановлены."
+          });
+        } else {
+          alert(msg || "Ошибка импорта файла");
+        }
+      });
+    });
   }
 };

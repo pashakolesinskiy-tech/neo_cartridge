@@ -374,7 +374,7 @@ function selectSpriteCell(fighter: FighterVisual, time: number): { col: number; 
         case 'special':
           if (fighter.id === 'spark') return { col: 5, row: 3 };
           if (fighter.id === 'titan') return { col: 4, row: 3 };
-          return { col: 4, row: 2 };
+          return { col: 4, row: 3 };
         default:
           return { col: 0, row: 2 };
       }

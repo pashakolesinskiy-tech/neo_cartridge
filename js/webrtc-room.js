@@ -87,11 +87,17 @@
       this._reconnectTimer = null;
       this._hostId = null;
 
+      this._peerRetryCount = 0;
+      this._unloadBound = false;
       this._boundUnload = () => this._sendByeAll();
-      if (typeof global.addEventListener === 'function') {
-        global.addEventListener('beforeunload', this._boundUnload);
-        global.addEventListener('pagehide', this._boundUnload);
-      }
+      this._bindUnloadListeners();
+    }
+
+    _bindUnloadListeners() {
+      if (this._unloadBound || typeof global.addEventListener !== 'function') return;
+      this._unloadBound = true;
+      global.addEventListener('beforeunload', this._boundUnload);
+      global.addEventListener('pagehide', this._boundUnload);
     }
 
     static generateCode(length) {
@@ -144,6 +150,8 @@
       this.role = 'host';
       this.code = clean;
       this.closed = false;
+      this._peerRetryCount = 0;
+      this._bindUnloadListeners();
       this._emitStatus('hosting', { code: clean });
       this._startSignaling();
       this._broadcastSignal({
@@ -169,6 +177,8 @@
       this.role = 'guest';
       this.code = clean;
       this.closed = false;
+      this._peerRetryCount = 0;
+      this._bindUnloadListeners();
       this._emitStatus('connecting', { code: clean });
       this._startSignaling();
 
@@ -266,12 +276,13 @@
 
     close() {
       if (this.closed) return;
-      this.closed = true;
       this._sendByeAll();
+      this.closed = true;
       this._resetRuntime();
       if (typeof global.removeEventListener === 'function') {
         global.removeEventListener('beforeunload', this._boundUnload);
         global.removeEventListener('pagehide', this._boundUnload);
+        this._unloadBound = false;
       }
       this._emitStatus('closed', { code: this.code });
     }
@@ -454,6 +465,7 @@
         this._peerWsOpen = false;
 
         ws.onopen = () => {
+          this._peerRetryCount = 0;
           if (this._peerHeartbeat) global.clearInterval(this._peerHeartbeat);
           this._peerHeartbeat = global.setInterval(() => {
             if (ws.readyState === WebSocket.OPEN) {
@@ -487,7 +499,13 @@
             global.clearInterval(this._peerHeartbeat);
             this._peerHeartbeat = null;
           }
-          // Keep ntfy & BroadcastChannel running; only quietly close PeerJS slot
+          if (!this.closed && (this._peerRetryCount || 0) < 4) {
+            const delay = Math.min(8000, 2000 * Math.pow(2, this._peerRetryCount || 0));
+            this._peerRetryCount = (this._peerRetryCount || 0) + 1;
+            global.setTimeout(() => {
+              if (!this.closed && !this._peerWsOpen) this._setupPeerJsSocket();
+            }, delay);
+          }
         };
       } catch (_) {}
     }
@@ -516,7 +534,10 @@
 
         ws.onerror = () => {};
         ws.onclose = () => {
-          if (!this.closed && this.getConnectedPeerIds().length === 0) {
+          const needMorePeers = this.role === 'host'
+            ? this.getConnectedPeerIds().length < this.maxPeers
+            : this.getConnectedPeerIds().length === 0;
+          if (!this.closed && needMorePeers) {
             this._reconnectTimer = global.setTimeout(() => {
               if (!this.closed) this._setupNtfySocket();
             }, 2500);
@@ -561,9 +582,14 @@
         }
       }
 
-      // 3) Delayed ntfy.sh HTTP POST fallback (cross-device only, never for ice/bye/host_ready/full)
-      const needsNtfy = msg.sig === 'join' || msg.sig === 'offer' || msg.sig === 'answer';
+      // 3) Delayed ntfy.sh HTTP POST fallback (cross-device; includes ice when PeerJS WS is unavailable)
+      const needsNtfy =
+        msg.sig === 'join' ||
+        msg.sig === 'offer' ||
+        msg.sig === 'answer' ||
+        (msg.sig === 'ice' && !this._peerWsOpen);
       if (needsNtfy && this._ntfyTopic && Date.now() >= this._ntfyRateLimitedUntil) {
+        const delayMs = msg.sig === 'offer' || msg.sig === 'answer' ? 1400 : 650;
         const tid = global.setTimeout(() => {
           this._ntfyTimers.delete(tid);
           if (this.closed || !this._ntfyTopic || Date.now() < this._ntfyRateLimitedUntil) return;
@@ -592,7 +618,7 @@
               }
             }).catch(() => {});
           } catch (_) {}
-        }, 750);
+        }, delayMs);
         this._ntfyTimers.add(tid);
       }
     }
@@ -639,7 +665,7 @@
       for (const [id, p] of Array.from(this.peers.entries())) {
         const st = p.pc ? p.pc.iceConnectionState : 'closed';
         const deadIce = !p.bcFallback && (st === 'failed' || st === 'closed');
-        const stalePending = !p.open && now - p.createdAt > 5000;
+        const stalePending = !p.open && now - p.createdAt > 12000;
         if (deadIce || stalePending) {
           this._destroyPeer(id, 'stale', true);
         }

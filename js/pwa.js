@@ -5,9 +5,51 @@
  */
 
 const PWA = {
-  CACHE_NAME: 'neo-cartridge-pwa-v11',
+  CACHE_NAME: 'neo-cartridge-pwa-v12',
   DISMISS_KEY: 'neo_pwa_banner_dismissed',
   OFFLINE_READY_KEY: 'neo_pwa_offline_ready',
+  CORE_ASSETS: [
+    './',
+    './index.html',
+    './manifest.webmanifest',
+    './css/console.css',
+    './css/components.css',
+    './js/landscape-guard.js',
+    './js/game-hero-screen.js',
+    './js/app.js',
+    './js/audio.js',
+    './js/webrtc-room.js',
+    './js/p2p.js',
+    './js/previews.js',
+    './js/storage.js',
+    './js/pwa.js',
+    './assets/favicon.svg',
+    './assets/logo.svg',
+    './assets/icons/apple-touch-icon.png',
+    './assets/icons/icon-192.png',
+    './assets/icons/icon-512.png',
+    './assets/icons/icon-maskable-512.png',
+  ],
+  OFFLINE_GAME_ASSETS: [
+    './games/stick_fighting.html',
+    './games/stick_fighting_assets/fighter_vortex.png',
+    './games/stick_fighting_assets/vfx_props.png',
+    './games/pixel_drift.html',
+    './games/chrono_blade.html',
+    './games/mecha_siege.html',
+    './games/worms_armageddon.html',
+    './games/cosmo_junk.html',
+    './games/worms-armageddon/assets/worms-sheet.png',
+    './games/worms-armageddon/assets/items-sheet.png',
+    './games/worms-armageddon/assets/plane.png',
+    './games/cosmo-junk-game-concept/standalone/assets/app.js',
+    './games/cosmo-junk-game-concept/standalone/assets/app.css',
+    './games/cosmo-junk-game-concept/standalone/assets/icon.svg',
+    './games/sprites/pixel_drift_sheet.png',
+    './games/sprites/chrono_blade_sheet.png',
+    './games/sprites/mecha_siege_sheet.png',
+    './games/sprites/cosmo_junk_sheet.png',
+  ],
   deferredPrompt: null,
   registration: null,
   waitingWorker: null,
@@ -15,6 +57,8 @@ const PWA = {
   isIOS: false,
   isCaching: false,
   userRequestedReload: false,
+  _reloading: false,
+  _bannerTimer: null,
 
   init() {
     this.isStandalone =
@@ -55,12 +99,12 @@ const PWA = {
 
     this.registerServiceWorker();
     this.updateInstallUI();
-    this.updateOfflineUI();
+    this.verifyOfflineCacheState();
     this.updateOnlineStatus();
 
     // На iOS Safari событие beforeinstallprompt отсутствует — показываем кнопку и мягкий баннер установки
     if (this.isIOS && !this.isStandalone) {
-      setTimeout(() => this.maybeShowMobileBanner(), 2500);
+      this.maybeShowMobileBanner();
     }
   },
 
@@ -81,7 +125,8 @@ const PWA = {
     });
 
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (this.userRequestedReload) {
+      if (this.userRequestedReload && !this._reloading) {
+        this._reloading = true;
         window.location.reload();
       }
     });
@@ -105,9 +150,7 @@ const PWA = {
           });
         });
       })
-      .catch(() => {
-        // Игнорируем в средах без поддержки SW
-      });
+      .catch(() => {});
   },
 
   canShowInstallAction() {
@@ -175,7 +218,8 @@ const PWA = {
       }
     } catch {}
 
-    setTimeout(() => {
+    if (this._bannerTimer) clearTimeout(this._bannerTimer);
+    this._bannerTimer = setTimeout(() => {
       if (this.isStandalone || document.body.classList.contains('game-playing')) return;
       const banner = document.getElementById('pwa-install-banner');
       if (banner) banner.classList.add('open');
@@ -210,23 +254,50 @@ const PWA = {
       return;
     }
 
-    if (this.isIOS && window.App) {
-      App.openModal('pwa-ios-modal');
-      return;
-    }
-
     if (window.App) {
       App.openModal('pwa-ios-modal');
     }
   },
 
-  updateOfflineUI() {
+  async verifyOfflineCacheState() {
+    if (!('caches' in window)) {
+      this.updateOfflineUI(false);
+      return;
+    }
+    try {
+      const hasCurrentCache = await caches.has(this.CACHE_NAME);
+      if (!hasCurrentCache) {
+        try { localStorage.removeItem(this.OFFLINE_READY_KEY); } catch {}
+        this.updateOfflineUI(false);
+        return;
+      }
+      const cache = await caches.open(this.CACHE_NAME);
+      const checks = await Promise.all(
+        ['./games/stick_fighting.html', './games/worms_armageddon.html', './games/cosmo_junk.html']
+          .map((path) => cache.match(path, { ignoreSearch: true }))
+      );
+      const ready = checks.every(Boolean);
+      try {
+        if (ready) localStorage.setItem(this.OFFLINE_READY_KEY, '1');
+        else localStorage.removeItem(this.OFFLINE_READY_KEY);
+      } catch {}
+      this.updateOfflineUI(ready);
+    } catch {
+      this.updateOfflineUI();
+    }
+  },
+
+  updateOfflineUI(overrideReady) {
     const btn = document.getElementById('btn-setting-offline-cache');
     const desc = document.getElementById('pwa-offline-desc');
     let isReady = false;
-    try {
-      isReady = localStorage.getItem(this.OFFLINE_READY_KEY) === '1';
-    } catch {}
+    if (typeof overrideReady === 'boolean') {
+      isReady = overrideReady;
+    } else {
+      try {
+        isReady = localStorage.getItem(this.OFFLINE_READY_KEY) === '1';
+      } catch {}
+    }
 
     if (btn && !this.isCaching) {
       if (isReady) {
@@ -240,7 +311,7 @@ const PWA = {
     if (desc && !this.isCaching) {
       desc.textContent = isReady
         ? 'Все картриджи и текстуры сохранены для игры без интернета'
-        : 'Сохранить все 6 игр и спрайты Worms на устройство (~10 МБ)';
+        : 'Сохранить все 6 игр и спрайты на устройство (~10 МБ)';
     }
   },
 
@@ -270,6 +341,7 @@ const PWA = {
       }
       if (window.Sound && Sound.playPowerup) Sound.playPowerup();
     } else {
+      try { localStorage.removeItem(this.OFFLINE_READY_KEY); } catch {}
       if (btn) {
         btn.disabled = false;
         btn.classList.remove('active');
@@ -301,45 +373,12 @@ const PWA = {
       return;
     }
 
-    // Fallback: прямое кэширование через Cache Storage API, если SW ещё активируется
     if (!('caches' in window)) {
       this.onCacheDone(0, 1, 1);
       return;
     }
 
-    const fallbackAssets = [
-      './',
-      './index.html',
-      './manifest.webmanifest',
-      './css/console.css',
-      './css/components.css',
-      './js/app.js',
-      './js/audio.js',
-      './js/editor.js',
-      './js/webrtc-room.js',
-      './js/p2p.js',
-      './js/previews.js',
-      './js/storage.js',
-      './js/pwa.js',
-      './games/stick_fighting.html',
-      './games/stick_fighting_assets/fighter_vortex.png',
-      './games/stick_fighting_assets/vfx_props.png',
-      './games/pixel_drift.html',
-      './games/chrono_blade.html',
-      './games/mecha_siege.html',
-      './games/worms_armageddon.html',
-      './games/cosmo_junk.html',
-      './games/worms-armageddon/assets/worms-sheet.png',
-      './games/worms-armageddon/assets/items-sheet.png',
-      './games/worms-armageddon/assets/plane.png',
-      './games/cosmo-junk-game-concept/standalone/assets/app.js',
-      './games/cosmo-junk-game-concept/standalone/assets/app.css',
-      './games/cosmo-junk-game-concept/standalone/assets/icon.svg',
-      './games/sprites/pixel_drift_sheet.png',
-      './games/sprites/chrono_blade_sheet.png',
-      './games/sprites/mecha_siege_sheet.png',
-      './games/sprites/cosmo_junk_sheet.png',
-    ];
+    const fallbackAssets = [...this.CORE_ASSETS, ...this.OFFLINE_GAME_ASSETS];
 
     try {
       const cache = await caches.open(this.CACHE_NAME);
@@ -397,8 +436,14 @@ const PWA = {
     const target = this.waitingWorker || (this.registration && this.registration.waiting);
     if (target && target.state !== 'activated') {
       target.postMessage({ type: 'SKIP_WAITING' });
-      setTimeout(() => window.location.reload(), 600);
-    } else {
+      setTimeout(() => {
+        if (!this._reloading) {
+          this._reloading = true;
+          window.location.reload();
+        }
+      }, 600);
+    } else if (!this._reloading) {
+      this._reloading = true;
       window.location.reload();
     }
   }

@@ -95,6 +95,7 @@ export class GameAudio {
 
   play(sound: Sound) {
     if (!this.context || this.settings.muted || this.settings.volume === 0) return;
+    if (this.context.state === 'suspended') void this.context.resume().catch(() => {});
     const variation = 0.88 + Math.random() * 0.24;
     switch (sound) {
       case 'light': this.noise(0.07, 0.48, 2400 * variation); this.tone(160 * variation, 48, 0.07, 0.35, 'triangle'); break;

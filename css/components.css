@@ -32,12 +32,29 @@
   max-width: 600px;
   max-height: 85vh;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(56, 189, 248, 0.45) rgba(10, 14, 22, 0.6);
   z-index: 101;
   padding: 20px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
   opacity: 0;
   pointer-events: none;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.console-modal::-webkit-scrollbar {
+  width: 6px;
+}
+.console-modal::-webkit-scrollbar-track {
+  background: rgba(10, 14, 22, 0.7);
+  border-radius: 6px;
+}
+.console-modal::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.42);
+  border-radius: 6px;
+}
+.console-modal::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 136, 0.6);
 }
 
 .console-modal.open {
@@ -126,6 +143,33 @@
   margin-top: 4px;
 }
 
+.achieve-card.locked .achieve-card-status {
+  color: var(--text-dim);
+}
+
+.achieve-icon {
+  font-size: 1.75rem;
+  flex-shrink: 0;
+}
+
+.achieve-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.achieve-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.achieve-desc {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
 /* Toast Popups */
 .achievement-toast-container {
   position: fixed;
@@ -179,8 +223,21 @@
   margin: 16px 0;
 }
 
-.save-drop-area:hover {
+.save-drop-area:hover,
+.save-drop-area.drag-over {
   border-color: var(--crt-phosphor);
+  background: rgba(0, 255, 136, 0.06);
+}
+
+#p2p-status-pill.connected {
+  border-color: rgba(0, 255, 136, 0.45);
+  color: var(--crt-phosphor);
+  background: rgba(0, 255, 136, 0.1);
+}
+
+#p2p-status-pill.connected .dot {
+  background: var(--crt-phosphor) !important;
+  box-shadow: 0 0 8px var(--crt-phosphor) !important;
 }
 
 /* ==========================================================================

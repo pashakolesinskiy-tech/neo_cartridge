@@ -70,6 +70,9 @@ function HoldButton({
   };
 
   useEffect(() => release, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (disabled) release();
+  }, [disabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <button
@@ -77,7 +80,7 @@ function HoldButton({
       onPointerDown={(e) => {
         e.preventDefault();
         if (disabled || pressedRef.current) return;
-        (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+        e.currentTarget.setPointerCapture?.(e.pointerId);
         pressedRef.current = true;
         setPressed(true);
         onHeld(true);
@@ -87,7 +90,7 @@ function HoldButton({
       }}
       onPointerUp={release}
       onPointerCancel={release}
-      onPointerLeave={release}
+      onLostPointerCapture={release}
       onContextMenu={(e) => e.preventDefault()}
       className={`pxl-btn no-touch-callout ${pressed ? "pressed" : ""} ${className ?? ""}`}
       style={{ background: color, touchAction: "none" }}
@@ -158,20 +161,20 @@ export function PilotPanel({ snap, send }: PanelProps) {
   const meta = ROLE_META.pilot;
   const engineOff = !snap.breakers.A1;
   return (
-    <div className="flex flex-1 flex-col gap-3">
-      <div className="grid grid-cols-2 gap-3">
-        <div className="pxl-panel p-3">
+    <div className="flex min-h-0 flex-1 flex-col gap-2 sm:gap-3">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
+        <div className="pxl-panel p-2 sm:p-3">
           <div className="flex items-center gap-1.5 font-pixel text-[8px] text-slate-400">
             <GaugeIcon className="h-3.5 w-3.5" style={{ color: meta.color }} /> СКОРОСТЬ
           </div>
-          <div className="mt-1 font-pixel text-2xl" style={{ color: meta.color }}>
+          <div className="mt-0.5 font-pixel text-lg sm:mt-1 sm:text-2xl" style={{ color: meta.color }}>
             {snap.speed}
             <span className="text-[10px] text-slate-500"> СВ</span>
           </div>
         </div>
-        <div className="pxl-panel p-3">
+        <div className="pxl-panel p-2 sm:p-3">
           <div className="font-pixel text-[8px] text-slate-400">ПУТЬ ДО СТАНЦИИ</div>
-          <div className="mt-1 font-pixel text-2xl text-cyan-300">
+          <div className="mt-0.5 font-pixel text-lg text-cyan-300 sm:mt-1 sm:text-2xl">
             {Math.round(snap.progress * 100)}
             <span className="text-[10px] text-slate-500"> %</span>
           </div>
@@ -180,14 +183,14 @@ export function PilotPanel({ snap, send }: PanelProps) {
 
       {engineOff && <Warn text="ДВИГАТЕЛЬ ОБЕСТОЧЕН (A1). КРИЧИ ИНЖЕНЕРУ!" />}
 
-      <div className="grid flex-1 grid-cols-2 gap-3">
-        <div className="flex flex-col gap-3">
+      <div className="grid min-h-0 flex-1 grid-cols-2 gap-2 sm:gap-3">
+        <div className="flex min-h-0 flex-col gap-2 sm:gap-3">
           <HoldButton
             label="ВЫШЕ"
             icon={ChevronsUp}
             color={engineOff ? "#5a6470" : "#ffb000"}
             disabled={engineOff}
-            className="min-h-[110px] flex-1"
+            className="min-h-[64px] flex-1 sm:min-h-[96px]"
             onHeld={(v) => send({ kind: "held", key: "up", v })}
           />
           <HoldButton
@@ -195,35 +198,35 @@ export function PilotPanel({ snap, send }: PanelProps) {
             icon={ChevronsDown}
             color={engineOff ? "#5a6470" : "#ffb000"}
             disabled={engineOff}
-            className="min-h-[110px] flex-1"
+            className="min-h-[64px] flex-1 sm:min-h-[96px]"
             onHeld={(v) => send({ kind: "held", key: "down", v })}
           />
         </div>
-        <div className="flex flex-col gap-3">
+        <div className="flex min-h-0 flex-col gap-2 sm:gap-3">
           <HoldButton
             label="ГАЗ"
             note="ГРЕЕТ ДВИЖОК!"
             icon={Zap}
             color={engineOff ? "#5a6470" : "#ff8c42"}
             disabled={engineOff}
-            className="min-h-[110px] flex-1"
+            className="min-h-[64px] flex-1 sm:min-h-[96px]"
             onHeld={(v) => send({ kind: "held", key: "thrust", v })}
           />
-          <div className="flex-1">
+          <div className="flex min-h-0 flex-1 flex-col">
             <TapButton
               label="ГИПЕРПРЫЖОК"
               note={snap.cds.hyper > 0 ? `ЗАРЯД ${Math.ceil(snap.cds.hyper)}с` : "ГОТОВ"}
               icon={Rocket}
               color={snap.cds.hyper > 0 || engineOff ? "#5a6470" : "#57e6e6"}
               disabled={snap.cds.hyper > 0 || engineOff}
-              className="h-full min-h-[110px] w-full"
+              className="h-full min-h-[64px] w-full flex-1 sm:min-h-[96px]"
               onTap={() => send({ kind: "hyper" })}
             />
             <CooldownBar t={snap.cds.hyper} max={18} color="#57e6e6" />
           </div>
         </div>
       </div>
-      <p className="text-center font-term text-[10px] text-slate-500">
+      <p className="hidden text-center font-term text-[10px] text-slate-500 sm:block">
         Ты не видишь жар и щиты — спрашивай команду голосом
       </p>
     </div>
@@ -278,56 +281,60 @@ function Breaker({
 
 export function EngineerPanel({ snap, send }: PanelProps) {
   return (
-    <div className="flex flex-1 flex-col gap-3">
-      <div className="pxl-panel p-3">
-        <Gauge label="ЖАР ДВИГАТЕЛЯ" value={snap.heat} max={100} icon={Flame} color="#ff8c42" danger={snap.heat > 82} />
-        <div className="mt-3">
-          <Gauge label="ПОЖАРЫ В ОТСЕКАХ" value={snap.fires} max={3} icon={Flame} color="#ff3b5b" danger={snap.fires > 0} />
+    <div className="grid min-h-0 flex-1 grid-cols-1 content-start gap-2 md:grid-cols-[1.15fr_1fr] [@media(max-height:520px)]:grid-cols-[1.15fr_1fr] [@media(max-height:520px)]:items-stretch">
+      <div className="flex flex-col gap-2">
+        <div className="pxl-panel p-2.5 sm:p-3">
+          <Gauge label="ЖАР ДВИГАТЕЛЯ" value={snap.heat} max={100} icon={Flame} color="#ff8c42" danger={snap.heat > 82} />
+          <div className="mt-2 sm:mt-3">
+            <Gauge label="ПОЖАРЫ В ОТСЕКАХ" value={snap.fires} max={3} icon={Flame} color="#ff3b5b" danger={snap.fires > 0} />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+          {(Object.keys(snap.breakers) as BreakerId[]).map((id) => (
+            <Breaker
+              key={id}
+              id={id}
+              on={snap.breakers[id]}
+              tripped={snap.tripped === id}
+              onToggle={() => send({ kind: "breaker", id, v: !snap.breakers[id] })}
+            />
+          ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-2">
-        {(Object.keys(snap.breakers) as BreakerId[]).map((id) => (
-          <Breaker
-            key={id}
-            id={id}
-            on={snap.breakers[id]}
-            tripped={snap.tripped === id}
-            onToggle={() => send({ kind: "breaker", id, v: !snap.breakers[id] })}
-          />
-        ))}
-      </div>
+      <div className="flex flex-col justify-between gap-2">
+        {snap.tripped && <Warn text={`ВЫБИЛО ${snap.tripped}! ВЕРНИ ТУМБЛЕР!`} />}
 
-      {snap.tripped && <Warn text={`ВЫБИЛО ${snap.tripped}! ВЕРНИ ТУМБЛЕР!`} />}
-
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <TapButton
-            label="ТУШЕНИЕ"
-            note={snap.cds.extinguish > 0 ? `${Math.ceil(snap.cds.extinguish)}с` : `ОГОНЬ: ${snap.fires}`}
-            icon={Droplets}
-            color={snap.fires > 0 ? "#3bff8f" : "#5a6470"}
-            disabled={snap.cds.extinguish > 0}
-            className="h-24 w-full"
-            onTap={() => send({ kind: "extinguish" })}
-          />
-          <CooldownBar t={snap.cds.extinguish} max={5} color="#3bff8f" />
+        <div className="grid flex-1 grid-cols-2 gap-2 sm:gap-3">
+          <div className="flex flex-col">
+            <TapButton
+              label="ТУШЕНИЕ"
+              note={snap.cds.extinguish > 0 ? `${Math.ceil(snap.cds.extinguish)}с` : `ОГОНЬ: ${snap.fires}`}
+              icon={Droplets}
+              color={snap.fires > 0 ? "#3bff8f" : "#5a6470"}
+              disabled={snap.cds.extinguish > 0}
+              className="h-full min-h-[76px] w-full flex-1 sm:min-h-[96px]"
+              onTap={() => send({ kind: "extinguish" })}
+            />
+            <CooldownBar t={snap.cds.extinguish} max={5} color="#3bff8f" />
+          </div>
+          <div className="flex flex-col">
+            <TapButton
+              label="ОХЛАЖДЕНИЕ"
+              note={snap.coolantOn ? "РАБОТАЕТ · ЖРЁТ ЩИТЫ" : "ВЫКЛ"}
+              icon={Snowflake}
+              color={snap.coolantOn ? "#57e6e6" : "#5a6470"}
+              className="h-full min-h-[76px] w-full flex-1 sm:min-h-[96px]"
+              onTap={() => send({ kind: "coolant", v: !snap.coolantOn })}
+            />
+          </div>
         </div>
-        <div>
-          <TapButton
-            label="ОХЛАЖДЕНИЕ"
-            note={snap.coolantOn ? "РАБОТАЕТ · ЖРЁТ ЩИТЫ" : "ВЫКЛ"}
-            icon={Snowflake}
-            color={snap.coolantOn ? "#57e6e6" : "#5a6470"}
-            className="h-24 w-full"
-            onTap={() => send({ kind: "coolant", v: !snap.coolantOn })}
-          />
-        </div>
-      </div>
 
-      <p className="text-center font-term text-[10px] text-slate-500">
-        Охлаждение включено — канонир не может двигать щит. Договаривайтесь!
-      </p>
+        <p className="text-center font-term text-[10px] text-slate-500">
+          Охлаждение включено — канонир не может двигать щит. Договаривайтесь!
+        </p>
+      </div>
     </div>
   );
 }
@@ -367,83 +374,85 @@ export function GunnerPanel({ snap, send }: PanelProps) {
   };
 
   return (
-    <div className="flex flex-1 flex-col gap-3">
-      {shieldsOff && <Warn text="ЩИТЫ ОБЕСТОЧЕНЫ (A2). ИНЖЕНЕР, ПРИЁМ!" />}
-      {frozen && <Warn text="ЭНЕРГИЯ УШЛА В ОХЛАЖДЕНИЕ. ЩИТ ЗАМОРОЖЕН!" />}
-
-      <div className="pxl-panel p-4">
-        <div className="mb-3 text-center font-pixel text-[8px] text-slate-400">
+    <div className="grid min-h-0 flex-1 grid-cols-1 content-start gap-2 md:grid-cols-[1fr_1fr] [@media(max-height:520px)]:grid-cols-[1fr_1fr] [@media(max-height:520px)]:items-stretch">
+      <div className="pxl-panel flex flex-col justify-center p-2.5 sm:p-4">
+        <div className="mb-2 text-center font-pixel text-[8px] text-slate-400">
           СИЛОВОЙ ЩИТ · СЕЙЧАС: <span className="text-fuchsia-300">{SHIELD_LABELS[snap.shieldSide]}</span>
         </div>
-        <div className="mx-auto grid w-full max-w-[280px] grid-cols-3 grid-rows-3 gap-2">
+        <div className="mx-auto grid w-full max-w-[260px] grid-cols-3 grid-rows-3 gap-1.5 sm:gap-2">
           <div />
-          {sideBtn(1, "ВЕРХ", "h-16")}
+          {sideBtn(1, "ВЕРХ", "h-11 sm:h-16")}
           <div />
-          {sideBtn(2, "КОРМА", "h-16")}
-          <div className="flex h-16 items-center justify-center border-2 border-dashed border-[#1b2b3a]">
-            <Crosshair className="h-5 w-5 text-fuchsia-300/50" />
+          {sideBtn(2, "КОРМА", "h-11 sm:h-16")}
+          <div className="flex h-11 items-center justify-center border-2 border-dashed border-[#1b2b3a] sm:h-16">
+            <Crosshair className="h-4 w-4 text-fuchsia-300/50 sm:h-5 sm:w-5" />
           </div>
-          {sideBtn(0, "НОС", "h-16")}
+          {sideBtn(0, "НОС", "h-11 sm:h-16")}
           <div />
-          {sideBtn(3, "НИЗ", "h-16")}
+          {sideBtn(3, "НИЗ", "h-11 sm:h-16")}
           <div />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <TapButton
-            label="ОГОНЬ"
-            note={gunOff ? "ПУШКА МЕРТВА (B1)" : rebooting ? "ПЕРЕЗАГРУЗКА…" : snap.cds.fire > 0 ? "ЗАРЯД…" : "ЦЕЛЬ АВТО"}
-            icon={Crosshair}
-            color={gunOff || rebooting || snap.cds.fire > 0.15 ? "#5a6470" : "#ff4b5b"}
-            disabled={gunOff || rebooting || snap.cds.fire > 0.15}
-            className="h-28 w-full"
-            onTap={() => send({ kind: "fire" })}
-          />
-          <CooldownBar t={snap.cds.fire} max={snap.cds.fireMax} color="#ff4bd8" />
-        </div>
-        <div className="pxl-panel flex flex-col">
-          <button
-            disabled={rebooting}
-            onPointerDown={(e) => {
-              e.preventDefault();
-              if (rebooting) return;
-              send({ kind: "reboot" });
-              vibrate([20, 40, 20]);
-              sfx.play("click");
-            }}
-            className="flex flex-1 flex-col items-center justify-center gap-2 p-3"
-          >
-            {rebooting ? (
-              <Loader2 className="h-6 w-6 animate-spin text-cyan-300" />
-            ) : (
-              <RotateCw className="h-6 w-6 text-cyan-300" />
-            )}
-            <span className="font-pixel text-[9px] text-cyan-300">
-              {rebooting ? `СБРОС ${Math.round((snap.rebootT / 3) * 100)}%` : "ПЕРЕЗАГРУЗКА"}
-            </span>
-            {rebooting && (
-              <div className="h-1.5 w-full bg-[#14202e]">
-                <div className="h-full bg-cyan-300" style={{ width: `${(snap.rebootT / 3) * 100}%` }} />
-              </div>
-            )}
-          </button>
-        </div>
-      </div>
+      <div className="flex flex-col justify-between gap-2">
+        {shieldsOff && <Warn text="ЩИТЫ ОБЕСТОЧЕНЫ (A2). ИНЖЕНЕР, ПРИЁМ!" />}
+        {frozen && <Warn text="ЭНЕРГИЯ УШЛА В ОХЛАЖДЕНИЕ. ЩИТ ЗАМОРОЖЕН!" />}
 
-      {snap.hazards.length > 0 && (
-        <div className="flex flex-wrap justify-center gap-2">
-          {snap.hazards.map((h) => (
-            <span key={h} className="border border-fuchsia-500/60 bg-fuchsia-950/60 px-2 py-1 font-pixel text-[8px] text-fuchsia-300">
-              {h === "storm" ? "БУРЯ" : h === "gravity" ? "ГРАВИТЯГА" : "ПИРАТЫ С КОРМЫ"}
-            </span>
-          ))}
+        <div className="grid flex-1 grid-cols-2 gap-2 sm:gap-3">
+          <div className="flex flex-col">
+            <TapButton
+              label="ОГОНЬ"
+              note={gunOff ? "ПУШКА МЕРТВА (B1)" : rebooting ? "ПЕРЕЗАГРУЗКА…" : snap.cds.fire > 0 ? "ЗАРЯД…" : "ЦЕЛЬ АВТО"}
+              icon={Crosshair}
+              color={gunOff || rebooting || snap.cds.fire > 0.15 ? "#5a6470" : "#ff4b5b"}
+              disabled={gunOff || rebooting || snap.cds.fire > 0.15}
+              className="h-full min-h-[82px] w-full flex-1 sm:min-h-[112px]"
+              onTap={() => send({ kind: "fire" })}
+            />
+            <CooldownBar t={snap.cds.fire} max={snap.cds.fireMax} color="#ff4bd8" />
+          </div>
+          <div className="pxl-panel flex flex-col">
+            <button
+              disabled={rebooting}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                if (rebooting) return;
+                send({ kind: "reboot" });
+                vibrate([20, 40, 20]);
+                sfx.play("click");
+              }}
+              className="flex flex-1 flex-col items-center justify-center gap-1.5 p-2 sm:gap-2 sm:p-3"
+            >
+              {rebooting ? (
+                <Loader2 className="h-5 w-5 animate-spin text-cyan-300 sm:h-6 sm:w-6" />
+              ) : (
+                <RotateCw className="h-5 w-5 text-cyan-300 sm:h-6 sm:w-6" />
+              )}
+              <span className="font-pixel text-[9px] text-cyan-300">
+                {rebooting ? `СБРОС ${Math.round((snap.rebootT / 3) * 100)}%` : "ПЕРЕЗАГРУЗКА"}
+              </span>
+              {rebooting && (
+                <div className="h-1.5 w-full bg-[#14202e]">
+                  <div className="h-full bg-cyan-300" style={{ width: `${(snap.rebootT / 3) * 100}%` }} />
+                </div>
+              )}
+            </button>
+          </div>
         </div>
-      )}
-      <p className="text-center font-term text-[10px] text-slate-500">
-        Смотри на главный экран — видишь, откуда летит?
-      </p>
+
+        {snap.hazards.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-1.5">
+            {snap.hazards.map((h) => (
+              <span key={h} className="border border-fuchsia-500/60 bg-fuchsia-950/60 px-2 py-0.5 font-pixel text-[8px] text-fuchsia-300">
+                {h === "storm" ? "БУРЯ" : h === "gravity" ? "ГРАВИТЯГА" : "ПИРАТЫ С КОРМЫ"}
+              </span>
+            ))}
+          </div>
+        )}
+        <p className="text-center font-term text-[10px] text-slate-500">
+          Смотри на главный экран — видишь, откуда летит?
+        </p>
+      </div>
     </div>
   );
 }
@@ -453,10 +462,10 @@ export function GunnerPanel({ snap, send }: PanelProps) {
 function ManualEntryView({ id, active }: { id: string; active?: { tLeft: number; dur: number } }) {
   const [open, setOpen] = useState(!!active);
   const entry = MANUAL.find((m) => m.id === id);
-  if (!entry) return null;
   useEffect(() => {
     if (active) setOpen(true);
   }, [active]);
+  if (!entry) return null;
   return (
     <div className={`pxl-panel ${active ? "border-rose-500" : ""}`}>
       <button
@@ -519,16 +528,16 @@ function ManualEntryView({ id, active }: { id: string; active?: { tLeft: number;
 export function NavigatorPanel({ snap }: PanelProps) {
   const rest = MANUAL.filter((m) => !snap.errors.some((e) => e.code === m.code));
   return (
-    <div className="flex flex-1 flex-col gap-3">
+    <div className="flex min-h-0 flex-1 flex-col gap-2">
       {snap.errors.length === 0 ? (
-        <div className="pxl-panel px-3 py-3 text-center font-pixel text-[9px] text-emerald-300">
+        <div className="pxl-panel px-3 py-2 text-center font-pixel text-[8px] text-emerald-300 sm:py-3 sm:text-[9px]">
           ВСЕ СИСТЕМЫ В НОРМЕ. ЛУЧШЕ ПЕРЕЧИТАЙ МАНУАЛ.
         </div>
       ) : (
         <Warn text={`АКТИВНЫХ АВАРИЙ: ${snap.errors.length}. КРИЧИ ИНСТРУКЦИИ!`} />
       )}
 
-      <div className="term-scroll flex-1 space-y-2 overflow-y-auto pr-0.5">
+      <div className="term-scroll grid min-h-0 flex-1 grid-cols-1 content-start gap-2 overflow-y-auto pr-0.5 md:grid-cols-2 [@media(max-height:520px)]:grid-cols-2">
         {snap.errors.map((e) => {
           const m = MANUAL.find((mm) => mm.code === e.code);
           return m ? <ManualEntryView key={m.id} id={m.id} active={{ tLeft: e.tLeft, dur: e.dur }} /> : null;
@@ -536,7 +545,7 @@ export function NavigatorPanel({ snap }: PanelProps) {
         {rest.map((m) => (
           <ManualEntryView key={m.id} id={m.id} />
         ))}
-        <div className="pxl-panel p-3">
+        <div className="pxl-panel p-2.5 sm:p-3 md:col-span-2 [@media(max-height:520px)]:col-span-2">
           <div className="flex items-center gap-2 font-pixel text-[9px] text-amber-300">
             <BookOpen className="h-4 w-4" /> ПРИРОДНЫЕ УГРОЗЫ
           </div>

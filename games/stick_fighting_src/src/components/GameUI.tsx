@@ -175,12 +175,72 @@ function TouchButton({ action, label, children, onAction, className = '', disabl
 }
 
 export function TouchControls({ onAction, paused }: { onAction: (action: Action, down: boolean, source: string) => void; paused: boolean }) {
+  const activeDpadRef = useRef<Map<number, Action>>(new Map());
+  const [dpadPressed, setDpadPressed] = useState<Set<Action>>(new Set());
+
+  const syncPressedSet = () => {
+    setDpadPressed(new Set(activeDpadRef.current.values()));
+  };
+
+  useEffect(() => {
+    if (!paused) return;
+    for (const [pid, act] of activeDpadRef.current.entries()) {
+      onAction(act, false, `dpad-${pid}`);
+    }
+    activeDpadRef.current.clear();
+    setDpadPressed(new Set());
+  }, [paused, onAction]);
+
+  const actionAtPoint = (x: number, y: number): Action | null => {
+    const el = document.elementFromPoint(x, y)?.closest<HTMLElement>('[data-dpad-action]');
+    return (el?.dataset.dpadAction as Action | undefined) ?? null;
+  };
+
+  const handleDpadMove = (pid: number, x: number, y: number) => {
+    if (paused) return;
+    const next = actionAtPoint(x, y);
+    const prev = activeDpadRef.current.get(pid);
+    if (prev === next) return;
+    if (prev) onAction(prev, false, `dpad-${pid}`);
+    if (next) {
+      activeDpadRef.current.set(pid, next);
+      onAction(next, true, `dpad-${pid}`);
+    } else {
+      activeDpadRef.current.delete(pid);
+    }
+    syncPressedSet();
+  };
+
+  const releaseDpad = (pid: number) => {
+    const prev = activeDpadRef.current.get(pid);
+    if (!prev) return;
+    onAction(prev, false, `dpad-${pid}`);
+    activeDpadRef.current.delete(pid);
+    syncPressedSet();
+  };
+
   return <div className="touch-controls" aria-label="Сенсорное управление">
-    <div className="touch-dpad">
-      <TouchButton action="up" label="Прыжок" className="dpad-up" onAction={onAction} disabled={paused}><ArrowUp /></TouchButton>
-      <TouchButton action="left" label="Движение влево" className="dpad-left" onAction={onAction} disabled={paused}><ArrowLeft /></TouchButton>
-      <TouchButton action="down" label="Присесть" className="dpad-down" onAction={onAction} disabled={paused}><ArrowDown /></TouchButton>
-      <TouchButton action="right" label="Движение вправо" className="dpad-right" onAction={onAction} disabled={paused}><ArrowRight /></TouchButton>
+    <div
+      className="touch-dpad"
+      onPointerDown={e => {
+        if (paused) return;
+        e.preventDefault();
+        try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* Ignore */ }
+        handleDpadMove(e.pointerId, e.clientX, e.clientY);
+      }}
+      onPointerMove={e => {
+        if (!activeDpadRef.current.has(e.pointerId)) return;
+        handleDpadMove(e.pointerId, e.clientX, e.clientY);
+      }}
+      onPointerUp={e => releaseDpad(e.pointerId)}
+      onPointerCancel={e => releaseDpad(e.pointerId)}
+      onLostPointerCapture={e => releaseDpad(e.pointerId)}
+      onContextMenu={e => e.preventDefault()}
+    >
+      <button type="button" disabled={paused} data-dpad-action="up" aria-label="Прыжок" className={`touch-button dpad-up ${dpadPressed.has('up') ? 'pressed' : ''}`}><ArrowUp /></button>
+      <button type="button" disabled={paused} data-dpad-action="left" aria-label="Движение влево" className={`touch-button dpad-left ${dpadPressed.has('left') ? 'pressed' : ''}`}><ArrowLeft /></button>
+      <button type="button" disabled={paused} data-dpad-action="down" aria-label="Присесть" className={`touch-button dpad-down ${dpadPressed.has('down') ? 'pressed' : ''}`}><ArrowDown /></button>
+      <button type="button" disabled={paused} data-dpad-action="right" aria-label="Движение вправо" className={`touch-button dpad-right ${dpadPressed.has('right') ? 'pressed' : ''}`}><ArrowRight /></button>
     </div>
     <div className="touch-center-hint"><span>ДЕРЖИ ТЕМП.</span><span>ЛОВИ МОМЕНТ.</span></div>
     <div className="touch-attacks">

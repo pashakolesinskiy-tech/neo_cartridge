@@ -1,14 +1,12 @@
 /**
  * NEO-CARTRIDGE // Universal Hero Landing Screen (Stick Fighting Style)
- * Adds an atmospheric split-screen Hero Landing Page with live animated Worms-style
- * sprite showcase, bold pixel typography, primary CTA ("▶ ИГРАТЬ", "🌐 ПО СЕТИ",
- * "⚙ НАСТРОЙКИ / ГАРАЖ"), and an interactive 3-card Bottom Roster Bar to Games 2–6.
+ * Unified, responsive split-screen Hero Landing Page with Retina sprite stage,
+ * working direct Launch / Car & Role selection sync, keyboard lock & clean routing.
  */
 (function () {
   if (window.__NEO_HERO_LANDING__) return;
   window.__NEO_HERO_LANDING__ = true;
 
-  // Do not inject inside embedded controller slots (e.g. Cosmo Junk ?embed=1)
   const params = new URLSearchParams(window.location.search);
   if (params.get('embed') === '1') return;
 
@@ -22,8 +20,7 @@
 
   if (!gameKey) return;
 
-  // Auto-skip hero landing if URL has direct room/join/host query or active hash route
-  const hasAutoRoom =
+  const hasAutoRoom = () =>
     params.has('room') ||
     params.has('join') ||
     params.has('host') ||
@@ -34,54 +31,32 @@
       eyebrow: 'ОРИГИНАЛЬНЫЙ АРКАДНЫЙ ДРИФТ-РЕЙСИНГ',
       titleTop: 'PIXEL',
       titleBottom: 'DRIFT GP',
+      editionLabel: 'PIXEL DRIFT EDITION',
       accent: '#f59e0b',
       accentGlow: 'rgba(245, 158, 11, 0.35)',
-      secondaryAccent: '#22d3ee',
       subtitle: 'Жги резину.\nДержи угол заноса.',
-      description: 'Кольцевые трассы, цепные комбо дрифта, турбо-нитро, масляные ловушки голосом и сетевые заезды по QR-коду без сервера.',
+      description: 'Кольцевые трассы, цепные комбо дрифта, турбо-нитро, масляные ловушки по кнопке или голосу и сетевые заезды по QR-коду без сервера.',
       playLabel: 'НА СТАРТ',
       netLabel: 'По сети (QR)',
       setupLabel: 'Гараж и трассы',
       rosterEyebrow: 'ВЫБЕРИ СВОЙ БОЛИД',
       rosterHeading: 'Легенды\nдрифта.',
       sheetUrl: 'sprites/pixel_drift_sheet.png',
+      stageMode: 'topdown',
       cards: [
-        {
-          id: 0,
-          name: 'AE-86 TRUENO',
-          role: 'Баланс и угол заноса · 95% Дрифт',
-          tag: 'ВЫБРАН БОЛИД',
-          color: '#22d3ee',
-          spriteCol: 0,
-          spriteRow: 0
-        },
-        {
-          id: 1,
-          name: 'RX-7 FD3S APEX',
-          role: 'Роторный турбо-монстр · 92% Скорость',
-          tag: 'ВЫБРАТЬ БОЛИД',
-          color: '#f59e0b',
-          spriteCol: 1,
-          spriteRow: 0
-        },
-        {
-          id: 2,
-          name: 'CYBER GT-R V8',
-          role: 'Максимальный форсаж нитро · 98% Тяга',
-          tag: 'ВЫБРАТЬ БОЛИД',
-          color: '#ec4899',
-          spriteCol: 2,
-          spriteRow: 0
-        }
+        { id: 0, name: 'AE-86 TRUENO', role: 'Баланс и угол заноса', tag: 'КЛАССИКА', color: '#22d3ee', spriteCol: 0, spriteRow: 0 },
+        { id: 1, name: 'RX-7 ROTARY', role: 'Маневренность в шпильках', tag: 'РОТОРНЫЙ', color: '#ec4899', spriteCol: 2, spriteRow: 0 },
+        { id: 2, name: 'SKYLINE GT-R34', role: 'Ровный тяговый дрифт', tag: 'ТУРБО 4WD', color: '#38bdf8', spriteCol: 4, spriteRow: 0 },
+        { id: 3, name: 'CYBER-V8 NEON', role: 'Максимальный форсаж нитро', tag: 'ПРОТОТИП', color: '#f59e0b', spriteCol: 5, spriteRow: 0 }
       ]
     },
     chrono_blade: {
       eyebrow: 'ВЫСОКОСКОРОСТНОЙ КИБЕР-СЛЭШЕР',
       titleTop: 'CHRONO',
       titleBottom: 'BLADE',
+      editionLabel: 'CHRONO BLADE EDITION',
       accent: '#00f3ff',
       accentGlow: 'rgba(0, 243, 255, 0.35)',
-      secondaryAccent: '#ff0055',
       subtitle: 'Останови время.\nОтрази пулю клинком.',
       description: 'Молниеносные рывки сквозь врагов, замедление времени Bullet-Time, прокачка кибер-чипов и дуэли 1 на 1 по сети или на одном экране.',
       playLabel: 'В БОЙ',
@@ -90,133 +65,67 @@
       rosterEyebrow: 'ВЫБЕРИ РЕЖИМ КЛИНКА',
       rosterHeading: 'Твой стиль\nбоя.',
       sheetUrl: 'sprites/chrono_blade_sheet.png',
+      stageMode: 'ground',
+      opponentSprite: { col: 2, row: 2 },
       cards: [
-        {
-          id: 'campaign',
-          name: 'КАМПАНИЯ ZERO',
-          role: '5 секторов завода, чипы и 2 босса',
-          tag: 'ОДИНОЧНЫЙ РЕЖИМ',
-          color: '#00f3ff',
-          spriteCol: 2,
-          spriteRow: 0
-        },
-        {
-          id: 'duel_local',
-          name: 'ДУЭЛЬ HOT-SEAT',
-          role: '2 ниндзя на одном экране',
-          tag: '2 ИГРОКА',
-          color: '#ff0055',
-          spriteCol: 4,
-          spriteRow: 0
-        },
-        {
-          id: 'duel_net',
-          name: 'СЕТЬ WEBRTC P2P',
-          role: 'Онлайн-дуэль по коду комнаты',
-          tag: 'ОНЛАЙН ДУЭЛЬ',
-          color: '#00ff88',
-          spriteCol: 3,
-          spriteRow: 2
-        }
+        { id: 'campaign', name: 'КАМПАНИЯ ZERO', role: '5 секторов, чипы и боссы', tag: 'ОДИНОЧНЫЙ РЕЖИМ', color: '#00f3ff', spriteCol: 0, spriteRow: 0 },
+        { id: 'duel_local', name: 'ДУЭЛЬ HOT-SEAT', role: '2 ниндзя на одном экране', tag: '2 ИГРОКА', color: '#ff0055', spriteCol: 2, spriteRow: 1 },
+        { id: 'duel_net', name: 'СЕТЬ WEBRTC P2P', role: 'Онлайн-дуэль по коду', tag: 'ОНЛАЙН ДУЭЛЬ', color: '#00ff88', spriteCol: 2, spriteRow: 2 }
       ]
     },
     mecha_siege: {
       eyebrow: '16-БИТНЫЙ ТАКТИЧЕСКИЙ TOWER DEFENSE',
       titleTop: 'MECHA',
       titleBottom: 'SIEGE',
+      editionLabel: 'MECHA SIEGE EDITION',
       accent: '#ffb800',
       accentGlow: 'rgba(255, 184, 0, 0.35)',
-      secondaryAccent: '#00f3ff',
       subtitle: 'Стальной рубеж.\nНи шагу назад.',
-      description: 'Обороняй реакторное ядро от 15 волн шагоходов и боссов-колоссов: 5 типов турелей с ветками специализации, орбитальный напалм и кооператив.',
+      description: 'Обороняй реакторное ядро от 15 волн шагоходов и боссов-колоссов: 5 типов турелей со специализациями, орбитальный напалм и кооператив.',
       playLabel: 'К ОБОРОНЕ',
       netLabel: 'Кооп по сети',
       setupLabel: 'Арсенал и база',
       rosterEyebrow: 'ТАКТИЧЕСКИЙ РЕЖИМ',
       rosterHeading: 'Выбери\nкомандование.',
       sheetUrl: 'sprites/mecha_siege_sheet.png',
+      stageMode: 'topdown',
+      opponentSprite: { col: 2, row: 2 },
       cards: [
-        {
-          id: 'solo',
-          name: 'ОБОРОНА ЯДРА',
-          role: '15 волн мехов и боссы-колоссы',
-          tag: 'ОДИНОЧНАЯ КАМПАНИЯ',
-          color: '#ffb800',
-          spriteCol: 0,
-          spriteRow: 0
-        },
-        {
-          id: 'hotseat',
-          name: 'КООП 2 ИГРОКА',
-          role: 'Совместная стройка на 1 экране',
-          tag: 'HOT-SEAT CO-OP',
-          color: '#00f3ff',
-          spriteCol: 2,
-          spriteRow: 0
-        },
-        {
-          id: 'armory',
-          name: 'ТЕСЛА И КАТАЛОГ',
-          role: '5 турелей + ЭМИ, Напалм и Форсаж',
-          tag: 'СПРАВОЧНИК ОРУДИЙ',
-          color: '#00ff88',
-          spriteCol: 3,
-          spriteRow: 0
-        }
+        { id: 'solo', name: 'ОБОРОНА ЯДРА', role: '15 волн и боссы-колоссы', tag: 'КАМПАНИЯ', color: '#ffb800', spriteCol: 0, spriteRow: 0 },
+        { id: 'hotseat', name: 'КООП 2 ИГРОКА', role: 'Совместно на 1 экране', tag: 'HOT-SEAT CO-OP', color: '#00f3ff', spriteCol: 2, spriteRow: 0 },
+        { id: 'armory', name: 'АРСЕНАЛ ТУРЕЛЕЙ', role: '5 турелей + ЭМИ и Напалм', tag: 'СПРАВОЧНИК', color: '#00ff88', spriteCol: 3, spriteRow: 0 }
       ]
     },
     worms_armageddon: {
       eyebrow: 'ПОШАГОВАЯ АРТИЛЛЕРИЯ С РАЗРУШАЕМЫМ МИРОМ',
       titleTop: 'WORMS',
       titleBottom: 'ARMAGEDDON',
+      editionLabel: 'WORMS EDITION',
       accent: '#ffd32a',
       accentGlow: 'rgba(255, 211, 42, 0.35)',
-      secondaryAccent: '#ff4757',
       subtitle: '34 вида оружия.\nПолное разрушение.',
-      description: 'Базука, Святая Граната, Супер-Овца, Верёвка ниндзя, Напалм и Метеоритный шторм. Сражайся против баллистического ИИ, вчетвером на 1 экране или по сети.',
+      description: 'Базука, Святая Граната, Супер-Овца, Верёвка ниндзя, Напалм и Метеоритный шторм. Сражайся против ИИ, вчетвером на одном экране или по сети.',
       playLabel: 'В БОЙ',
       netLabel: 'По сети (QR)',
       setupLabel: 'Настройка матча',
       rosterEyebrow: 'ВЫБЕРИ СЦЕНАРИЙ БИТВЫ',
       rosterHeading: 'Взрывной\nхаос.',
       sheetUrl: 'worms-armageddon/assets/worms-sheet.png',
+      stageMode: 'ground',
+      opponentRect: [61, 43, 153, 185],
       cards: [
-        {
-          id: '1p',
-          name: '1P ПРОТИВ ИИ',
-          role: 'Дуэль против баллистического ИИ',
-          tag: 'БЫСТРЫЙ БОЙ',
-          color: '#ff4757',
-          spriteCol: 0,
-          spriteRow: 0
-        },
-        {
-          id: '2p',
-          name: '2P HOT-SEAT',
-          role: 'Битва вдвоём на одном устройстве',
-          tag: '2 КОМАНДЫ',
-          color: '#48dbfb',
-          spriteCol: 4,
-          spriteRow: 1
-        },
-        {
-          id: '4p',
-          name: '4-TEAM MAYHEM',
-          role: 'Тотальная война 4 армий червяков',
-          tag: '4 КОМАНДЫ',
-          color: '#ffd32a',
-          spriteCol: 1,
-          spriteRow: 2
-        }
+        { id: '1p', name: '1P ПРОТИВ ИИ', role: 'Дуэль против баллистического ИИ', tag: 'БЫСТРЫЙ БОЙ', color: '#ff4757', spriteRect: [41, 567, 180, 172] },
+        { id: '2p', name: '2P HOT-SEAT', role: 'Битва вдвоём на одном устройстве', tag: '2 КОМАНДЫ', color: '#48dbfb', spriteRect: [287, 533, 218, 206] },
+        { id: '4p', name: '4-TEAM MAYHEM', role: 'Тотальная война 4 армий червяков', tag: '4 КОМАНДЫ', color: '#ffd32a', spriteRect: [1055, 526, 168, 210] }
       ]
     },
     cosmo_junk: {
       eyebrow: 'КООПЕРАТИВНЫЙ КОСМИЧЕСКИЙ СИМУЛЯТОР ЭКИПАЖА',
       titleTop: 'COSMO',
       titleBottom: 'JUNK',
+      editionLabel: 'COSMO JUNK EDITION',
       accent: '#57e6e6',
       accentGlow: 'rgba(87, 230, 230, 0.35)',
-      secondaryAccent: '#ffb000',
       subtitle: 'Один корабль.\nЧетыре роли экипажа.',
       description: 'Пилот у штурвала, Инженер у реактора, Стрелок за турелью и Штурман с мануалом. Пустые кресла займут умные ИИ-боты, а встроенный пульт работает прямо на экране.',
       playLabel: 'СОЗДАТЬ КОРАБЛЬ',
@@ -225,34 +134,12 @@
       rosterEyebrow: 'РОЛИ БОРТОВОГО ЭКИПАЖА',
       rosterHeading: 'Выбери\nпост.',
       sheetUrl: 'sprites/cosmo_junk_sheet.png',
+      stageMode: 'space',
       cards: [
-        {
-          id: 'pilot',
-          name: 'ПИЛОТ И ШТУРВАЛ',
-          role: 'Манёвры между астероидами и гиперпрыжок',
-          tag: 'СЛОТ P1 + ИИ-БОТЫ',
-          color: '#ffb000',
-          spriteCol: 0,
-          spriteRow: 0
-        },
-        {
-          id: 'engineer',
-          name: 'ИНЖЕНЕР ТРЮМА',
-          role: 'Тушение пожаров, предохранители и коды',
-          tag: 'СЛОТ P2 + ИИ-БОТЫ',
-          color: '#3bff8f',
-          spriteCol: 1,
-          spriteRow: 0
-        },
-        {
-          id: 'gunner',
-          name: 'КАНОНИР И ЩИТЫ',
-          role: 'Отражение пиратских торпед в 4 секторах',
-          tag: 'СЛОТ P3 + ИИ-БОТЫ',
-          color: '#ff4bd8',
-          spriteCol: 2,
-          spriteRow: 0
-        }
+        { id: 'pilot', name: 'ПИЛОТ', role: 'Штурвал и гиперпрыжок', tag: 'СЛОТ P1 + БОТЫ', color: '#ffb000', spriteCol: 0, spriteRow: 2 },
+        { id: 'engineer', name: 'ИНЖЕНЕР', role: 'Пожары и предохранители', tag: 'СЛОТ P2 + БОТЫ', color: '#3bff8f', spriteCol: 1, spriteRow: 2 },
+        { id: 'gunner', name: 'КАНОНИР', role: 'Турели и щиты от торпед', tag: 'СЛОТ P3 + БОТЫ', color: '#ff4bd8', spriteCol: 2, spriteRow: 2 },
+        { id: 'navigator', name: 'ШТУРМАН', role: 'Расшифровка кодов угроз', tag: 'СЛОТ P4 + БОТЫ', color: '#57e6e6', spriteCol: 3, spriteRow: 2 }
       ]
     }
   };
@@ -262,6 +149,15 @@
   let animFrame = 0;
   let sheetImg = null;
   let sheetLoaded = false;
+
+  function loadFonts() {
+    if (document.getElementById('nhl-google-fonts')) return;
+    const link = document.createElement('link');
+    link.id = 'nhl-google-fonts';
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700;800&family=Press+Start+2P&family=Space+Grotesk:wght@500;600;700;900&display=swap';
+    document.head.appendChild(link);
+  }
 
   function loadSheet() {
     sheetImg = new Image();
@@ -278,6 +174,11 @@
     const style = document.createElement('style');
     style.id = 'neo-hero-landing-styles';
     style.textContent = `
+      html.nhl-locked,
+      body.nhl-locked {
+        overflow: hidden !important;
+        height: 100dvh !important;
+      }
       #neo-hero-landing {
         position: fixed;
         inset: 0;
@@ -302,18 +203,18 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        height: 64px;
-        min-height: 64px;
+        height: 58px;
+        min-height: 58px;
         padding: 0 4.5%;
         gap: 16px;
       }
       .nhl-brand {
         display: inline-flex;
         align-items: center;
-        gap: 11px;
+        gap: 10px;
         font-family: "JetBrains Mono", Consolas, monospace;
         font-weight: 900;
-        font-size: 15px;
+        font-size: 14px;
         letter-spacing: 0.12em;
         color: #f4f0e6;
       }
@@ -333,7 +234,7 @@
       .nhl-nav {
         display: flex;
         align-items: stretch;
-        gap: 24px;
+        gap: 20px;
         height: 100%;
       }
       .nhl-nav-btn {
@@ -360,33 +261,11 @@
         height: 2px;
         background: ${cfg.accent};
       }
-      .nhl-header-actions {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      .nhl-settings-btn {
-        background: #1b1c21;
-        border: 1px solid #343439;
-        color: #d4d0cb;
-        padding: 8px 14px;
-        font-size: 12px;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-        transition: all 0.15s;
-      }
-      .nhl-settings-btn:hover {
-        border-color: ${cfg.accent};
-        color: #ffffff;
-      }
       .nhl-stage {
         position: relative;
         flex: 1 0 auto;
-        min-height: 410px;
-        height: clamp(410px, 56dvh, 580px);
+        min-height: 390px;
+        height: clamp(390px, 56dvh, 560px);
         width: 100%;
         overflow: hidden;
         background: #171922;
@@ -406,7 +285,7 @@
         z-index: -1;
         pointer-events: none;
         background:
-          linear-gradient(90deg, #111216 0%, rgba(17, 18, 22, 0.94) 28%, rgba(17, 18, 22, 0.68) 54%, rgba(17, 18, 22, 0.12) 82%, transparent 100%),
+          linear-gradient(90deg, #111216 0%, rgba(17, 18, 22, 0.94) 30%, rgba(17, 18, 22, 0.68) 54%, rgba(17, 18, 22, 0.12) 82%, transparent 100%),
           linear-gradient(180deg, transparent 68%, rgba(17, 18, 22, 0.72) 100%);
       }
       .nhl-hero-content {
@@ -435,14 +314,14 @@
         flex-shrink: 0;
       }
       .nhl-title {
-        margin: 18px 0 16px;
+        margin: 16px 0 14px;
         display: flex;
         flex-direction: column;
         align-items: flex-start;
         gap: 4px;
         font-family: "Press Start 2P", "JetBrains Mono", Consolas, monospace;
         font-weight: 900;
-        font-size: clamp(30px, 4.4vw, 54px);
+        font-size: clamp(28px, 4.2vw, 52px);
         line-height: 1.08;
         letter-spacing: 0.04em;
         text-transform: uppercase;
@@ -454,16 +333,16 @@
       }
       .nhl-subtitle {
         margin: 0 0 10px;
-        font-size: clamp(19px, 1.8vw, 25px);
+        font-size: clamp(18px, 1.8vw, 24px);
         font-weight: 600;
         line-height: 1.28;
         color: #e8e3db;
         white-space: pre-line;
       }
       .nhl-description {
-        margin: 0 0 22px;
+        margin: 0 0 20px;
         font-size: 12.5px;
-        line-height: 1.6;
+        line-height: 1.55;
         color: #a39f9e;
         max-width: 470px;
       }
@@ -477,7 +356,7 @@
         background: ${cfg.accent};
         color: #191412;
         border: 0;
-        height: 48px;
+        height: 46px;
         min-width: 196px;
         padding: 0 22px;
         font-family: "JetBrains Mono", Consolas, monospace;
@@ -500,10 +379,10 @@
         transform: translateY(2px);
       }
       .nhl-btn-secondary {
-        background: rgba(24, 24, 30, 0.72);
+        background: rgba(24, 24, 30, 0.78);
         border: 1px solid #4e4747;
         color: #d6cac2;
-        height: 48px;
+        height: 46px;
         padding: 0 18px;
         font-size: 12px;
         font-weight: 600;
@@ -517,19 +396,20 @@
       .nhl-btn-secondary:hover {
         border-color: ${cfg.accent};
         color: #ffffff;
-        background: rgba(38, 36, 46, 0.88);
+        background: rgba(38, 36, 46, 0.92);
       }
       .nhl-roster {
         background: #15161b;
         border-top: 1px solid #323039;
         border-bottom: 1px solid #28282e;
-        padding: 20px 5.4% 22px;
+        padding: 18px 5.4%;
         display: flex;
         align-items: center;
-        gap: 28px;
+        gap: 24px;
       }
       .nhl-roster-heading {
-        flex: 0 0 19%;
+        flex: 0 0 17%;
+        min-width: 0;
       }
       .nhl-roster-heading .nhl-ro-eyebrow {
         font-family: "JetBrains Mono", Consolas, monospace;
@@ -539,25 +419,27 @@
         display: block;
       }
       .nhl-roster-heading h2 {
-        margin: 7px 0 0;
-        font-size: 22px;
+        margin: 6px 0 0;
+        font-size: 20px;
         font-weight: 600;
         line-height: 1.15;
         color: #dedad2;
         white-space: pre-line;
       }
       .nhl-roster-options {
-        display: flex;
-        gap: 14px;
-        width: 100%;
-      }
-      .nhl-roster-card {
         flex: 1;
         min-width: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .nhl-roster-card {
+        min-width: 0;
+        overflow: hidden;
         background: rgba(24, 25, 32, 0.65);
         border: 1px solid transparent;
         border-bottom: 2px solid #323039;
-        padding: 6px 14px 6px 6px;
+        padding: 6px 12px 6px 6px;
         display: flex;
         align-items: center;
         gap: 10px;
@@ -574,25 +456,26 @@
       .nhl-roster-card.selected {
         border-color: rgba(255, 255, 255, 0.16);
         border-bottom: 2px solid var(--card-color);
-        background: linear-gradient(100deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+        background: linear-gradient(100deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.01));
       }
       .nhl-portrait {
-        width: 78px;
-        height: 68px;
+        width: 72px;
+        height: 64px;
         flex-shrink: 0;
         display: block;
       }
       .nhl-card-text {
         display: flex;
         flex-direction: column;
-        gap: 5px;
+        gap: 4px;
         min-width: 0;
+        flex: 1;
       }
       .nhl-card-text strong {
         font-family: "JetBrains Mono", Consolas, monospace;
-        font-size: 15px;
+        font-size: 13.5px;
         font-weight: 800;
-        letter-spacing: 0.6px;
+        letter-spacing: 0.4px;
         color: #e5e1da;
         white-space: nowrap;
         overflow: hidden;
@@ -602,21 +485,27 @@
         color: var(--card-color);
       }
       .nhl-card-text span {
-        font-size: 10.5px;
+        font-size: 10px;
         color: #96949c;
-        line-height: 1.3;
+        line-height: 1.25;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .nhl-card-text small {
         font-family: "JetBrains Mono", Consolas, monospace;
         font-size: 8.5px;
-        letter-spacing: 0.9px;
+        letter-spacing: 0.7px;
         color: #6d6e77;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .nhl-roster-card.selected .nhl-card-text small {
         color: var(--card-color);
       }
       .nhl-footer {
-        padding: 14px 5.4%;
+        padding: 12px 5.4%;
         font-size: 10px;
         color: #68676f;
         display: flex;
@@ -630,19 +519,21 @@
         letter-spacing: 1.3px;
       }
 
-      /* Mobile Portrait & Landscape Responsiveness */
       @media (max-width: 760px) {
         .nhl-header {
-          height: 52px;
-          min-height: 52px;
+          height: 48px;
+          min-height: 48px;
           padding: 0 4%;
         }
         .nhl-nav {
-          display: none;
+          gap: 10px;
+        }
+        .nhl-nav-btn {
+          font-size: 11px;
         }
         .nhl-stage {
-          min-height: 360px;
-          height: 410px;
+          min-height: 320px;
+          height: 360px;
         }
         .nhl-hero-content {
           top: 7%;
@@ -651,32 +542,26 @@
           max-width: 90%;
         }
         .nhl-title {
-          font-size: clamp(24px, 7.5vw, 36px);
-          margin: 12px 0;
+          font-size: clamp(22px, 7vw, 34px);
+          margin: 10px 0;
         }
         .nhl-subtitle {
-          font-size: 17px;
+          font-size: 16px;
         }
         .nhl-description {
           font-size: 11px;
-          margin-bottom: 16px;
+          margin-bottom: 14px;
         }
-        .nhl-btn-primary {
-          height: 42px;
-          min-width: 160px;
-          font-size: 12px;
-          padding: 0 16px;
-        }
+        .nhl-btn-primary,
         .nhl-btn-secondary {
-          height: 42px;
-          font-size: 11px;
-          padding: 0 12px;
+          height: 40px;
+          font-size: 11.5px;
         }
         .nhl-roster {
           flex-direction: column;
           align-items: stretch;
-          gap: 12px;
-          padding: 16px 5%;
+          gap: 10px;
+          padding: 14px 5%;
         }
         .nhl-roster-heading {
           display: flex;
@@ -684,12 +569,12 @@
           justify-content: space-between;
         }
         .nhl-roster-heading h2 {
-          font-size: 17px;
+          font-size: 16px;
           margin: 0;
           white-space: normal;
         }
         .nhl-roster-options {
-          flex-direction: column;
+          grid-template-columns: 1fr;
           gap: 8px;
         }
         .nhl-footer span:last-child {
@@ -699,8 +584,8 @@
 
       @media (orientation: landscape) and (max-height: 520px) {
         .nhl-header {
-          height: 40px;
-          min-height: 40px;
+          height: 38px;
+          min-height: 38px;
           padding: 0 3.5%;
         }
         .nhl-brand {
@@ -711,35 +596,37 @@
           height: 20px;
           font-size: 11px;
         }
-        .nhl-settings-btn {
-          padding: 5px 10px;
-          font-size: 10px;
+        .nhl-nav {
+          gap: 14px;
+        }
+        .nhl-nav-btn {
+          font-size: 11px;
         }
         .nhl-stage {
-          min-height: 215px;
-          height: calc(100dvh - 134px);
+          min-height: 200px;
+          height: calc(100dvh - 126px);
         }
         .nhl-hero-content {
-          top: 6%;
+          top: 5%;
           left: 4%;
-          max-width: 55%;
+          max-width: 56%;
         }
         .nhl-eyebrow {
           font-size: 8.5px;
         }
         .nhl-title {
-          font-size: clamp(20px, 3.2vw, 30px);
-          margin: 6px 0 6px;
+          font-size: clamp(19px, 3vw, 28px);
+          margin: 5px 0;
         }
         .nhl-subtitle {
-          font-size: 14px;
+          font-size: 13.5px;
           margin-bottom: 4px;
           white-space: normal;
         }
         .nhl-description {
           font-size: 10px;
-          line-height: 1.35;
-          margin-bottom: 10px;
+          line-height: 1.3;
+          margin-bottom: 8px;
           display: -webkit-box;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
@@ -750,9 +637,9 @@
         }
         .nhl-btn-primary {
           height: 34px;
-          min-width: 144px;
-          padding: 0 14px;
-          font-size: 11px;
+          min-width: 138px;
+          padding: 0 12px;
+          font-size: 10.5px;
         }
         .nhl-btn-secondary {
           height: 34px;
@@ -760,40 +647,37 @@
           font-size: 10px;
         }
         .nhl-roster {
-          padding: 8px 4%;
-          gap: 14px;
-          height: 94px;
-          min-height: 94px;
+          padding: 6px 3.5%;
+          gap: 10px;
+          height: 88px;
+          min-height: 88px;
         }
         .nhl-roster-heading {
-          flex: 0 0 15%;
+          flex: 0 0 13%;
         }
         .nhl-roster-heading h2 {
-          font-size: 14px;
-          margin-top: 3px;
+          font-size: 13px;
+          margin-top: 2px;
         }
         .nhl-roster-options {
-          gap: 8px;
-        }
-        .nhl-roster-card {
-          padding: 4px 8px 4px 4px;
           gap: 6px;
         }
+        .nhl-roster-card {
+          padding: 4px 6px;
+          gap: 5px;
+        }
         .nhl-portrait {
-          width: 52px;
-          height: 46px;
+          width: 42px;
+          height: 40px;
         }
         .nhl-card-text strong {
-          font-size: 11.5px;
+          font-size: 10.5px;
         }
         .nhl-card-text span {
-          font-size: 8.5px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+          font-size: 8px;
         }
         .nhl-card-text small {
-          font-size: 7.5px;
+          display: none;
         }
         .nhl-footer {
           display: none;
@@ -803,127 +687,214 @@
     document.head.appendChild(style);
   }
 
-  function drawSpriteCell(ctx, col, row, dx, dy, dw, dh, flipX) {
+  function setBackgroundInert(locked) {
+    document.documentElement.classList.toggle('nhl-locked', locked);
+    if (document.body) {
+      document.body.classList.toggle('nhl-locked', locked);
+      Array.from(document.body.children).forEach((child) => {
+        if (child.id === 'neo-hero-landing' || child.id === 'neo-landscape-guard-overlay') return;
+        try {
+          child.inert = locked;
+        } catch {}
+      });
+    }
+  }
+
+  function drawSpriteCard(ctx, cardOrRect, dx, dy, dw, dh, flipX, fallbackCol, fallbackRow) {
     if (!sheetLoaded || !sheetImg) return;
-    const cellW = Math.floor((sheetImg.naturalWidth || 1152) / 6);
-    const cellH = Math.floor((sheetImg.naturalHeight || 768) / 4);
-    ctx.save();
-    if (flipX) {
-      ctx.translate(dx + dw, dy);
-      ctx.scale(-1, 1);
-      ctx.drawImage(sheetImg, col * cellW, row * cellH, cellW, cellH, 0, 0, dw, dh);
+    let sx, sy, sw, sh;
+    if (cardOrRect && Array.isArray(cardOrRect.spriteRect || cardOrRect)) {
+      const rect = cardOrRect.spriteRect || cardOrRect;
+      [sx, sy, sw, sh] = rect;
     } else {
-      ctx.drawImage(sheetImg, col * cellW, row * cellH, cellW, cellH, dx, dy, dw, dh);
+      const col = cardOrRect ? cardOrRect.spriteCol : fallbackCol;
+      const row = cardOrRect ? cardOrRect.spriteRow : fallbackRow;
+      sw = Math.floor((sheetImg.naturalWidth || 1152) / 6);
+      sh = Math.floor((sheetImg.naturalHeight || 768) / 4);
+      sx = col * sw;
+      sy = row * sh;
+    }
+    const aspect = Math.min(dw / sw, dh / sh);
+    const w = sw * aspect;
+    const h = sh * aspect;
+    const ox = dx + (dw - w) * 0.5;
+    const oy = dy + (dh - h) * 0.5;
+
+    ctx.save();
+    ctx.imageSmoothingEnabled = true;
+    if (flipX) {
+      ctx.translate(ox + w, oy);
+      ctx.scale(-1, 1);
+      ctx.drawImage(sheetImg, sx, sy, sw, sh, 0, 0, w, h);
+    } else {
+      ctx.drawImage(sheetImg, sx, sy, sw, sh, ox, oy, w, h);
     }
     ctx.restore();
   }
 
   function renderPortraits() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const canvases = document.querySelectorAll('#neo-hero-landing .nhl-portrait');
     canvases.forEach((cv, idx) => {
       const card = cfg.cards[idx];
       if (!card) return;
+      const cw = 72;
+      const ch = 64;
+      if (cv.width !== cw * dpr || cv.height !== ch * dpr) {
+        cv.width = cw * dpr;
+        cv.height = ch * dpr;
+      }
       const ctx = cv.getContext('2d');
-      ctx.clearRect(0, 0, cv.width, cv.height);
-      // Subtle stage pedestal
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-      ctx.beginPath();
-      ctx.ellipse(cv.width / 2, cv.height - 10, 26, 6, 0, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, cw, ch);
+      if (cfg.stageMode === 'ground') {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+        ctx.beginPath();
+        ctx.ellipse(cw / 2, ch - 8, 22, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
       if (sheetLoaded) {
-        drawSpriteCell(ctx, card.spriteCol, card.spriteRow, (cv.width - 58) / 2, (cv.height - 58) / 2 - 2, 58, 58, false);
+        drawSpriteCard(ctx, card, 7, 3, 58, 56, false);
       }
     });
   }
 
   function animateStage(canvas) {
+    if (animFrame) {
+      cancelAnimationFrame(animFrame);
+      animFrame = 0;
+    }
     const ctx = canvas.getContext('2d');
     const step = (now) => {
       const overlay = document.getElementById('neo-hero-landing');
-      if (!overlay || overlay.classList.contains('nhl-hidden')) return;
+      if (!overlay || overlay.classList.contains('nhl-hidden')) {
+        animFrame = 0;
+        return;
+      }
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const rect = canvas.getBoundingClientRect();
       const w = Math.max(320, Math.round(rect.width));
-      const h = Math.max(200, Math.round(rect.height));
-      if (canvas.width !== w || canvas.height !== h) {
-        canvas.width = w;
-        canvas.height = h;
+      const h = Math.max(180, Math.round(rect.height));
+      if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
       }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const t = now / 1000;
       ctx.clearRect(0, 0, w, h);
 
-      // Rich atmospheric background
       const grad = ctx.createLinearGradient(0, 0, 0, h);
       if (gameKey === 'pixel_drift') {
-        grad.addColorStop(0, '#131829');
-        grad.addColorStop(0.55, '#251c38');
-        grad.addColorStop(1, '#12151f');
+        grad.addColorStop(0, '#09111f');
+        grad.addColorStop(0.6, '#161b33');
+        grad.addColorStop(1, '#0b0e18');
       } else if (gameKey === 'chrono_blade') {
-        grad.addColorStop(0, '#0c1626');
-        grad.addColorStop(0.6, '#18243c');
-        grad.addColorStop(1, '#0e131d');
+        grad.addColorStop(0, '#0b1424');
+        grad.addColorStop(0.6, '#19223b');
+        grad.addColorStop(1, '#0c101a');
       } else if (gameKey === 'mecha_siege') {
-        grad.addColorStop(0, '#1f1916');
-        grad.addColorStop(0.6, '#2d231d');
-        grad.addColorStop(1, '#141214');
+        grad.addColorStop(0, '#1c1512');
+        grad.addColorStop(0.6, '#261e19');
+        grad.addColorStop(1, '#100e11');
       } else if (gameKey === 'worms_armageddon') {
         grad.addColorStop(0, '#182c44');
-        grad.addColorStop(0.6, '#2e4a62');
-        grad.addColorStop(1, '#18222e');
+        grad.addColorStop(0.6, '#2b4760');
+        grad.addColorStop(1, '#16212e');
       } else {
-        grad.addColorStop(0, '#070c1a');
-        grad.addColorStop(0.6, '#121e38');
-        grad.addColorStop(1, '#080c18');
+        grad.addColorStop(0, '#050a18');
+        grad.addColorStop(0.6, '#0d1933');
+        grad.addColorStop(1, '#060a14');
       }
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, w, h);
 
-      // Glowing Sun / Moon / Reactor Core on the right side
-      const orbX = w * 0.72;
-      const orbY = h * 0.42;
-      const orbR = Math.min(w, h) * 0.22;
-      const orbGrad = ctx.createRadialGradient(orbX, orbY, orbR * 0.1, orbX, orbY, orbR * 1.6);
+      const orbX = w * 0.74;
+      const orbY = h * 0.44;
+      const orbR = Math.min(w, h) * 0.24;
+      const orbGrad = ctx.createRadialGradient(orbX, orbY, orbR * 0.1, orbX, orbY, orbR * 1.7);
       orbGrad.addColorStop(0, cfg.accent);
       orbGrad.addColorStop(0.45, cfg.accentGlow);
       orbGrad.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = orbGrad;
       ctx.beginPath();
-      ctx.arc(orbX, orbY, orbR * 1.6, 0, Math.PI * 2);
+      ctx.arc(orbX, orbY, orbR * 1.7, 0, Math.PI * 2);
       ctx.fill();
 
-      // Perspective Grid / Horizon Floor
-      const horizonY = h * 0.76;
-      ctx.fillStyle = 'rgba(12, 15, 22, 0.85)';
-      ctx.fillRect(0, horizonY, w, h - horizonY);
-      ctx.strokeStyle = cfg.accent;
-      ctx.globalAlpha = 0.25;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(0, horizonY);
-      ctx.lineTo(w, horizonY);
-      ctx.stroke();
-      ctx.globalAlpha = 1;
+      // Perspective stage treatment matches game perspective (space/top-down vs ground horizon)
+      const horizonY = h * 0.78;
+      if (cfg.stageMode === 'space') {
+        for (let i = 0; i < 42; i++) {
+          const sx = ((i * 97 + t * (10 + (i % 5) * 6)) % (w + 20)) - 10;
+          const sy = (i * 59) % h;
+          ctx.fillStyle = i % 3 === 0 ? 'rgba(186, 230, 253, 0.75)' : 'rgba(125, 211, 252, 0.35)';
+          ctx.fillRect(w - sx, sy, i % 5 === 0 ? 2 : 1.5, i % 5 === 0 ? 2 : 1.5);
+        }
+      } else if (cfg.stageMode === 'topdown') {
+        ctx.strokeStyle = cfg.accentGlow;
+        ctx.lineWidth = 1;
+        const stepGrid = 36;
+        const gxOff = (t * 28) % stepGrid;
+        for (let gx = w * 0.42 - gxOff; gx < w; gx += stepGrid) {
+          ctx.beginPath();
+          ctx.moveTo(gx, 0);
+          ctx.lineTo(gx, h);
+          ctx.stroke();
+        }
+        for (let gy = 0; gy < h; gy += stepGrid) {
+          ctx.beginPath();
+          ctx.moveTo(w * 0.42, gy);
+          ctx.lineTo(w, gy);
+          ctx.stroke();
+        }
+      } else {
+        ctx.fillStyle = 'rgba(12, 15, 22, 0.85)';
+        ctx.fillRect(0, horizonY, w, h - horizonY);
+        ctx.strokeStyle = cfg.accent;
+        ctx.globalAlpha = 0.3;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, horizonY);
+        ctx.lineTo(w, horizonY);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
 
-      // Animated Hero Sprites on the right half of the stage
       if (sheetLoaded) {
         const card = cfg.cards[selectedIdx] || cfg.cards[0];
-        const heroSize = Math.round(Math.min(w * 0.24, h * 0.52, 196));
-        const bob1 = Math.sin(t * 3.5) * 6;
-        const bob2 = Math.cos(t * 3.2) * 5;
-        const hx1 = Math.round(w * 0.64 - heroSize / 2);
-        const hy1 = Math.round(horizonY - heroSize * 0.82 + bob1);
-        const hx2 = Math.round(w * 0.82 - heroSize / 2);
-        const hy2 = Math.round(horizonY - heroSize * 0.78 + bob2);
+        const heroSize = Math.round(Math.min(w * 0.22, h * 0.56, 196));
+        const bob1 = Math.sin(t * 3.4) * 6;
+        const bob2 = Math.cos(t * 3.1) * 5;
 
-        // Ground shadows
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
-        ctx.beginPath();
-        ctx.ellipse(hx1 + heroSize / 2, horizonY + 6, heroSize * 0.34, 10, 0, 0, Math.PI * 2);
-        ctx.ellipse(hx2 + heroSize / 2, horizonY + 6, heroSize * 0.32, 9, 0, 0, Math.PI * 2);
-        ctx.fill();
+        if (gameKey === 'cosmo_junk') {
+          const sx1 = Math.round(w * 0.65 - heroSize / 2);
+          const sy1 = Math.round(h * 0.48 - heroSize / 2 + bob1);
+          const px2 = Math.round(w * 0.85 - heroSize * 0.42);
+          const py2 = Math.round(h * 0.42 - heroSize * 0.42 + bob2);
+          drawSpriteCard(ctx, { spriteCol: 1, spriteRow: 1 }, w * 0.77, h * 0.70 + bob2 * 0.6, 56, 56, false);
+          drawSpriteCard(ctx, { spriteCol: 1, spriteRow: 0 }, sx1, sy1, heroSize, heroSize, false);
+          drawSpriteCard(ctx, { spriteCol: 2, spriteRow: 0 }, px2, py2, heroSize * 0.82, heroSize * 0.82, true);
+        } else {
+          const hx1 = Math.round(w * 0.65 - heroSize / 2);
+          const hx2 = Math.round(w * 0.85 - heroSize / 2);
+          const hy1 = cfg.stageMode === 'ground' ? Math.round(horizonY - heroSize * 0.84 + bob1) : Math.round(h * 0.50 - heroSize * 0.5 + bob1);
+          const hy2 = cfg.stageMode === 'ground' ? Math.round(horizonY - heroSize * 0.80 + bob2) : Math.round(h * 0.48 - heroSize * 0.5 + bob2);
 
-        const nextCard = cfg.cards[(selectedIdx + 1) % cfg.cards.length];
-        drawSpriteCell(ctx, card.spriteCol, card.spriteRow, hx1, hy1, heroSize, heroSize, false);
-        drawSpriteCell(ctx, nextCard.spriteCol, nextCard.spriteRow, hx2, hy2, Math.round(heroSize * 0.92), Math.round(heroSize * 0.92), true);
+          if (cfg.stageMode === 'ground') {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+            ctx.beginPath();
+            ctx.ellipse(hx1 + heroSize / 2, horizonY + 6, heroSize * 0.34, 9, 0, 0, Math.PI * 2);
+            ctx.ellipse(hx2 + heroSize / 2, horizonY + 6, heroSize * 0.32, 9, 0, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          drawSpriteCard(ctx, card, hx1, hy1, heroSize, heroSize, false);
+          const opp = cfg.opponentRect
+            ? cfg.opponentRect
+            : cfg.opponentSprite
+              ? { spriteCol: cfg.opponentSprite.col, spriteRow: cfg.opponentSprite.row }
+              : cfg.cards[(selectedIdx + 1) % cfg.cards.length];
+          drawSpriteCard(ctx, opp, hx2, hy2, Math.round(heroSize * 0.92), Math.round(heroSize * 0.92), true);
+        }
       }
 
       animFrame = requestAnimationFrame(step);
@@ -931,10 +902,24 @@
     animFrame = requestAnimationFrame(step);
   }
 
+  function showHero() {
+    const el = document.getElementById('neo-hero-landing');
+    if (el) {
+      el.classList.remove('nhl-hidden');
+      setBackgroundInert(true);
+      const stageCanvas = el.querySelector('#nhl-stage-canvas');
+      if (stageCanvas) animateStage(stageCanvas);
+    }
+  }
+
   function hideHero() {
     const el = document.getElementById('neo-hero-landing');
     if (el) el.classList.add('nhl-hidden');
-    if (animFrame) cancelAnimationFrame(animFrame);
+    setBackgroundInert(false);
+    if (animFrame) {
+      cancelAnimationFrame(animFrame);
+      animFrame = 0;
+    }
   }
 
   function applyCardSelection(idx) {
@@ -942,21 +927,19 @@
     const cards = document.querySelectorAll('#neo-hero-landing .nhl-roster-card');
     cards.forEach((c, i) => c.classList.toggle('selected', i === idx));
 
-    // Sync selection with underlying game state
     try {
       if (gameKey === 'pixel_drift') {
-        // Click prev/next car button or set selectedCarIndex
-        const prevBtn = document.getElementById('prevCarBtn');
-        const nextBtn = document.getElementById('nextCarBtn');
-        if (prevBtn && nextBtn) {
-          // Reset to 0 then advance to idx
-          for (let k = 0; k < 4; k++) prevBtn.click();
-          for (let k = 0; k < idx; k++) nextBtn.click();
+        if (window.PixelDriftHeroAPI && window.PixelDriftHeroAPI.selectCar) {
+          window.PixelDriftHeroAPI.selectCar(idx);
         }
       } else if (gameKey === 'worms_armageddon') {
         const presetId = cfg.cards[idx].id;
         const btn = document.querySelector(`.preset-btn[data-preset="${presetId}"]`);
         if (btn) btn.click();
+      } else if (gameKey === 'cosmo_junk') {
+        try {
+          window.sessionStorage.setItem('cj_preferred_role', cfg.cards[idx].id);
+        } catch {}
       }
     } catch {}
   }
@@ -966,27 +949,30 @@
     hideHero();
     try {
       if (gameKey === 'pixel_drift') {
-        const startBtn = document.getElementById('btnStartRace');
-        if (startBtn) startBtn.click();
+        if (window.PixelDriftHeroAPI) {
+          window.PixelDriftHeroAPI.selectCar(selectedIdx);
+          window.PixelDriftHeroAPI.startRace();
+        }
       } else if (gameKey === 'chrono_blade') {
-        if (card.id === 'duel_net' && window.Game && Game.openNetworkModal) {
-          Game.openNetworkModal();
-        } else if (window.Game && Game.startMode) {
-          Game.startMode(card.id === 'duel_local' ? 'duel_local' : 'campaign');
+        if (window.Game) {
+          if (card.id === 'duel_net' && Game.openNetworkModal) Game.openNetworkModal();
+          else if (Game.startMode) Game.startMode(card.id === 'duel_local' ? 'duel_local' : 'campaign');
         }
       } else if (gameKey === 'mecha_siege') {
-        if (card.id === 'armory' && window.Game && Game.switchMenuTab) {
-          Game.switchMenuTab('armory');
-        } else if (window.Game && Game.startMode) {
-          Game.startMode(card.id === 'hotseat' ? 'hotseat' : 'solo');
+        if (window.Game) {
+          if (card.id === 'armory' && Game.openArmory) Game.openArmory();
+          else if (Game.startMode) Game.startMode(card.id === 'hotseat' ? 'hotseat' : 'solo');
         }
       } else if (gameKey === 'worms_armageddon') {
         const startBtn = document.getElementById('btn-start-match');
         if (startBtn) startBtn.click();
       } else if (gameKey === 'cosmo_junk') {
-        // Find the primary "СОЗДАТЬ КОРАБЛЬ" button inside #root
-        const createBtn = document.querySelector('#root button.pxl-btn.bg-amber-400');
-        if (createBtn) createBtn.click();
+        if (window.CosmoJunkHeroAPI && window.CosmoJunkHeroAPI.startShip) {
+          window.CosmoJunkHeroAPI.startShip(card.id);
+        } else {
+          const createBtn = document.querySelector('#root button.pxl-btn.bg-amber-400');
+          if (createBtn) createBtn.click();
+        }
       }
     } catch {}
   }
@@ -995,8 +981,7 @@
     hideHero();
     try {
       if (gameKey === 'pixel_drift') {
-        const qrBtn = document.getElementById('menuQrNetBtn') || document.getElementById('btnTopQrNet');
-        if (qrBtn) qrBtn.click();
+        if (window.PixelDriftHeroAPI) window.PixelDriftHeroAPI.openNetwork();
       } else if (gameKey === 'chrono_blade') {
         if (window.Game && Game.openNetworkModal) Game.openNetworkModal();
       } else if (gameKey === 'mecha_siege') {
@@ -1005,19 +990,30 @@
         const onlineTab = document.getElementById('tab-online');
         if (onlineTab) onlineTab.click();
       } else if (gameKey === 'cosmo_junk') {
-        const deckBtn = document.getElementById('cj-btn-deck');
-        if (deckBtn) deckBtn.click();
+        if (window.CosmoJunkHeroAPI && window.CosmoJunkHeroAPI.openDeck) {
+          window.CosmoJunkHeroAPI.openDeck();
+        } else {
+          const deckBtn = document.getElementById('cj-btn-deck');
+          if (deckBtn) deckBtn.click();
+        }
       }
     } catch {}
   }
 
   function handleSetupOpen() {
-    // Dismiss the Hero Landing to reveal the game's full Garage / Setup / Armory modal underneath
     hideHero();
+    try {
+      if (gameKey === 'mecha_siege' && window.Game && Game.openArmory) {
+        Game.openArmory();
+      } else if (gameKey === 'cosmo_junk' && window.CosmoJunkHeroAPI && window.CosmoJunkHeroAPI.openLobby) {
+        window.CosmoJunkHeroAPI.openLobby();
+      }
+    } catch {}
   }
 
   function buildHeroDOM() {
-    if (hasAutoRoom || document.getElementById('neo-hero-landing')) return;
+    if (hasAutoRoom() || document.getElementById('neo-hero-landing')) return;
+    loadFonts();
     injectStyles();
     loadSheet();
 
@@ -1034,9 +1030,6 @@
           <button type="button" class="nhl-nav-btn" id="nhl-nav-setup">${cfg.setupLabel}</button>
           <button type="button" class="nhl-nav-btn" id="nhl-nav-net">${cfg.netLabel}</button>
         </nav>
-        <div class="nhl-header-actions">
-          <button type="button" class="nhl-settings-btn" id="nhl-top-setup-btn">⚙ ${cfg.setupLabel}</button>
-        </div>
       </header>
 
       <section class="nhl-stage">
@@ -1058,9 +1051,6 @@
             <button type="button" class="nhl-btn-secondary" id="nhl-btn-net">
               <span>🌐 ${cfg.netLabel}</span>
             </button>
-            <button type="button" class="nhl-btn-secondary" id="nhl-btn-setup">
-              <span>🎛 ${cfg.setupLabel}</span>
-            </button>
           </div>
         </div>
       </section>
@@ -1075,7 +1065,7 @@
             .map(
               (c, i) => `
             <button type="button" class="nhl-roster-card ${i === 0 ? 'selected' : ''}" data-idx="${i}" style="--card-color: ${c.color}">
-              <canvas class="nhl-portrait" width="78" height="68"></canvas>
+              <canvas class="nhl-portrait" width="72" height="64"></canvas>
               <span class="nhl-card-text">
                 <strong>${c.name}</strong>
                 <span>${c.role}</span>
@@ -1090,16 +1080,15 @@
 
       <footer class="nhl-footer">
         <span>Без загрузок. Без регистрации. Полный автономный Zero-Server режим.</span>
-        <span>NEO-CARTRIDGE // WORMS EDITION</span>
+        <span>NEO-CARTRIDGE // ${cfg.editionLabel}</span>
       </footer>
     `;
 
     document.body.appendChild(wrap);
+    setBackgroundInert(true);
 
     wrap.querySelector('#nhl-btn-play').addEventListener('click', handlePrimaryPlay);
     wrap.querySelector('#nhl-btn-net').addEventListener('click', handleNetworkPlay);
-    wrap.querySelector('#nhl-btn-setup').addEventListener('click', handleSetupOpen);
-    wrap.querySelector('#nhl-top-setup-btn').addEventListener('click', handleSetupOpen);
     wrap.querySelector('#nhl-nav-setup').addEventListener('click', handleSetupOpen);
     wrap.querySelector('#nhl-nav-net').addEventListener('click', handleNetworkPlay);
 
@@ -1108,6 +1097,28 @@
         const idx = parseInt(btn.getAttribute('data-idx') || '0', 10);
         applyCardSelection(idx);
       });
+    });
+
+    window.addEventListener('keydown', (e) => {
+      const hero = document.getElementById('neo-hero-landing');
+      if (!hero || hero.classList.contains('nhl-hidden')) return;
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        handlePrimaryPlay();
+      } else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const dir = e.key === 'ArrowRight' ? 1 : -1;
+        applyCardSelection((selectedIdx + dir + cfg.cards.length) % cfg.cards.length);
+      } else if (e.key === ' ') {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      }
+    }, true);
+
+    window.addEventListener('hashchange', () => {
+      if (hasAutoRoom()) hideHero();
     });
 
     const stageCanvas = wrap.querySelector('#nhl-stage-canvas');
@@ -1119,9 +1130,9 @@
     show: () => {
       const el = document.getElementById('neo-hero-landing');
       if (el) {
-        el.classList.remove('nhl-hidden');
-        const stageCanvas = el.querySelector('#nhl-stage-canvas');
-        if (stageCanvas) animateStage(stageCanvas);
+        showHero();
+      } else {
+        buildHeroDOM();
       }
     },
     hide: hideHero

@@ -55,7 +55,7 @@ export default function LandingClient() {
       <div className="crt-glow" />
       <div className="scan-sweep" />
 
-      <div className="relative z-10 mx-auto flex min-h-dvh max-w-5xl flex-col items-center px-4 py-10">
+      <div className="relative z-10 mx-auto flex min-h-dvh max-w-5xl flex-col items-center px-4 py-4 sm:py-8">
         {/* шапка */}
         <div className="flex items-center gap-3 text-[10px] tracking-[0.35em] text-cyan-300/80">
           <Rocket className="h-4 w-4" strokeWidth={2.4} />
@@ -63,12 +63,12 @@ export default function LandingClient() {
         </div>
 
         <h1
-          className="glitchy mt-8 text-center font-pixel text-4xl leading-tight text-cyan-200 sm:text-6xl"
+          className="glitchy mt-4 text-center font-pixel text-3xl leading-tight text-cyan-200 sm:mt-8 sm:text-5xl md:text-6xl"
           style={{ textShadow: "3px 3px 0 #ff3b5b66, -3px -3px 0 #22d3ee55, 0 0 32px #22d3ee44" }}
         >
           КОСМО-ХЛАМ
         </h1>
-        <p className="mt-5 max-w-xl text-center font-term text-sm text-slate-300 sm:text-base">
+        <p className="mt-3 max-w-xl text-center font-term text-xs text-slate-300 sm:mt-5 sm:text-base">
           Экипаж разваливающегося грузовика против беспощадного сектора.
           <br />
           <span className="text-amber-300">1 экран</span> — корабль.{" "}
@@ -76,7 +76,7 @@ export default function LandingClient() {
         </p>
 
         {/* CTA */}
-        <div className="mt-10 flex w-full max-w-md flex-col items-stretch gap-4">
+        <div className="mt-5 flex w-full max-w-md flex-col items-stretch gap-3 sm:mt-8 sm:gap-4">
           <button
             onClick={createRoom}
             disabled={creating}

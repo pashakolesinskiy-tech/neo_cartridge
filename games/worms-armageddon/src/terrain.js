@@ -158,13 +158,15 @@ export class Terrain {
     const img = ctx.createImageData(width, height);
     const data = img.data;
 
-    // Precompute column surface depths for crust shading
+    // Precompute column surface depths & top exposed surface Y so caves don't spawn interior grass
     const depthAbove = new Int16Array(width * height);
+    const topSurfaceY = new Int16Array(width).fill(height);
     for (let x = 0; x < width; x++) {
       let depth = 0;
       for (let y = 0; y < height; y++) {
         const idx = y * width + x;
         if (solid[idx] === 1) {
+          if (y < topSurfaceY[x]) topSurfaceY[x] = y;
           depth++;
           depthAbove[idx] = depth;
         } else {
@@ -191,17 +193,18 @@ export class Terrain {
 
         let r, g, b;
         const crustDepth = 9 + Math.round(Math.sin(x * 0.19) * 2);
+        const isExposedTop = y <= topSurfaceY[x] + crustDepth + 3;
 
-        if (d <= 2) {
+        if (isExposedTop && d <= 2) {
           [r, g, b] = theme.crustTop;
-        } else if (d <= crustDepth) {
+        } else if (isExposedTop && d <= crustDepth) {
           const t = (d - 2) / Math.max(1, crustDepth - 2);
           const c1 = theme.crustMain;
           const c2 = theme.crustShadow;
           r = c1[0] * (1 - t * 0.5) + c2[0] * (t * 0.5);
           g = c1[1] * (1 - t * 0.5) + c2[1] * (t * 0.5);
           b = c1[2] * (1 - t * 0.5) + c2[2] * (t * 0.5);
-        } else if (d <= crustDepth + 3) {
+        } else if (isExposedTop && d <= crustDepth + 3) {
           [r, g, b] = theme.crustShadow;
         } else {
           // Underground rock & soil strata

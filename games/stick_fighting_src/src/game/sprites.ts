@@ -75,7 +75,7 @@ function buildRecoloredSheet(src: HTMLImageElement, targetHue: number, satMult: 
     if (d[i + 3] < 10) continue;
     const [h, s, l] = rgbToHsl(d[i], d[i + 1], d[i + 2]);
     // Selective hue rotation strictly on blue/cyan suit, headband & vortex slash pixels
-    if (h >= 172 && h <= 258 && s >= 0.22 && l >= 0.14 && l <= 0.88) {
+    if (h >= 165 && h <= 262 && s >= 0.14 && l >= 0.12 && l <= 0.90) {
       const nextS = Math.min(1, s * satMult);
       const nextL = Math.max(0.18, Math.min(0.78, l * lightMult));
       const [nr, ng, nb] = hslToRgb(targetHue, nextS, nextL);
@@ -117,7 +117,10 @@ export function ensureSpritesLoaded() {
     };
     notifyListeners();
   };
-  fImg.src = './stick_fighting_assets/fighter_vortex.png';
+  fImg.onerror = () => {
+    notifyListeners();
+  };
+  fImg.src = './stick_fighting_assets/fighter_vortex.png?v=12';
 
   const vImg = new Image();
   vImg.decoding = 'async';
@@ -126,7 +129,10 @@ export function ensureSpritesLoaded() {
     vfxReady = true;
     notifyListeners();
   };
-  vImg.src = './stick_fighting_assets/vfx_props.png';
+  vImg.onerror = () => {
+    notifyListeners();
+  };
+  vImg.src = './stick_fighting_assets/vfx_props.png?v=12';
 }
 
 export function onSpritesReady(cb: () => void): () => void {

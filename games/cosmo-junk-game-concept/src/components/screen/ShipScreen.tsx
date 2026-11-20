@@ -38,10 +38,30 @@ export default function ShipScreen({ code }: { code: string }) {
 
   const simRef = useRef<GameSim | null>(null);
   const finalizedRef = useRef(false);
+  const countTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const finalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const roomRef = useRef<RoomPublic | null>(null);
   const botSlotsRef = useRef<BotSlot[]>([]);
   roomRef.current = room;
   botSlotsRef.current = botSlots;
+
+  useEffect(() => {
+    const onMsg = (e: MessageEvent) => {
+      if (e.data && e.data.type === "NEO_SET_MUTE") {
+        const m = Boolean(e.data.muted);
+        setMuted(m);
+        sfx.setMuted(m);
+      }
+    };
+    window.addEventListener("message", onMsg);
+    return () => {
+      window.removeEventListener("message", onMsg);
+      if (countTimerRef.current) clearInterval(countTimerRef.current);
+      if (finalTimerRef.current) clearTimeout(finalTimerRef.current);
+      sfx.stopMusic();
+      sfx.setAlarmLoop(false);
+    };
+  }, []);
 
   const api = useCallback(
     async (path: string, init?: RequestInit) => {
@@ -181,7 +201,8 @@ export default function ShipScreen({ code }: { code: string }) {
   }, [snap, ui]);
 
   const finalize = useCallback(() => {
-    setTimeout(async () => {
+    if (finalTimerRef.current) clearTimeout(finalTimerRef.current);
+    finalTimerRef.current = setTimeout(async () => {
       sfx.stopMusic();
       sfx.setAlarmLoop(false);
       const sim = simRef.current;
@@ -191,6 +212,14 @@ export default function ShipScreen({ code }: { code: string }) {
         setTimeout(() => sfx.play("go"), 250);
       } else {
         sfx.play("fail");
+      }
+      if (window.parent && window.parent !== window) {
+        try {
+          window.parent.postMessage(
+            { type: "NEO_HIGHSCORE", game: "cosmo_junk", score: Math.round(sim.result.score || 0) },
+            "*"
+          );
+        } catch {}
       }
       const humans =
         roomRef.current?.players.filter((p) => p.role !== "spectator").map((p) => p.name) ?? [];
@@ -213,6 +242,8 @@ export default function ShipScreen({ code }: { code: string }) {
   const start = async () => {
     sfx.ensure();
     sfx.play("confirm");
+    if (countTimerRef.current) clearInterval(countTimerRef.current);
+    if (finalTimerRef.current) clearTimeout(finalTimerRef.current);
     const sim = new GameSim();
     simRef.current = sim;
     finalizedRef.current = false;
@@ -230,13 +261,14 @@ export default function ShipScreen({ code }: { code: string }) {
     setUi("count");
     setCountN(3);
     let n = 3;
-    const timer = setInterval(() => {
+    countTimerRef.current = setInterval(() => {
       n -= 1;
       if (n > 0) {
         setCountN(n);
         sfx.play("count");
       } else {
-        clearInterval(timer);
+        if (countTimerRef.current) clearInterval(countTimerRef.current);
+        countTimerRef.current = null;
         sfx.play("go");
         sfx.startMusic();
         setUi("play");
@@ -248,6 +280,10 @@ export default function ShipScreen({ code }: { code: string }) {
   const reset = async () => {
     sfx.ensure();
     sfx.play("click");
+    if (countTimerRef.current) clearInterval(countTimerRef.current);
+    if (finalTimerRef.current) clearTimeout(finalTimerRef.current);
+    sfx.stopMusic();
+    sfx.setAlarmLoop(false);
     await fetch(`/api/rooms/${code}/host`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -306,16 +342,20 @@ export default function ShipScreen({ code }: { code: string }) {
         </>
       )}
 
-      <div className="absolute left-0 right-0 top-0 z-50 flex items-center justify-between p-3">
+      <div className="pointer-events-none absolute left-0 right-0 top-0 z-50 flex items-center justify-between px-2 py-1.5 sm:p-3">
         <Link
           href="/"
-          className="pointer-events-auto inline-flex items-center gap-2 border border-slate-800 bg-[#070d18]/80 px-3 py-1.5 font-pixel text-[9px] text-slate-400 hover:text-cyan-300"
+          onClick={() => {
+            sfx.stopMusic();
+            sfx.setAlarmLoop(false);
+          }}
+          className="pointer-events-auto inline-flex items-center gap-1.5 border border-slate-800 bg-[#070d18]/90 px-2.5 py-1 font-pixel text-[8px] text-slate-300 hover:text-cyan-300 sm:gap-2 sm:px-3 sm:py-1.5 sm:text-[9px]"
         >
           <Home className="h-3.5 w-3.5" /> ВЫХОД
         </Link>
         <button
           onClick={toggleMute}
-          className="pointer-events-auto inline-flex items-center gap-2 border border-slate-800 bg-[#070d18]/80 px-3 py-1.5 font-pixel text-[9px] text-slate-400 hover:text-cyan-300"
+          className="pointer-events-auto inline-flex items-center gap-1.5 border border-slate-800 bg-[#070d18]/90 px-2.5 py-1 font-pixel text-[8px] text-slate-300 hover:text-cyan-300 sm:gap-2 sm:px-3 sm:py-1.5 sm:text-[9px]"
         >
           {muted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
           {muted ? "ТИХО" : "ЗВУК"}
@@ -345,8 +385,8 @@ export default function ShipScreen({ code }: { code: string }) {
         ))}
 
       {ui !== "lobby" && (
-        <div className="relative flex min-h-dvh items-center justify-center p-2">
-          <div className="relative aspect-video w-full max-w-[1600px] overflow-hidden border-2 border-[#14202e] bg-black shadow-[0_0_80px_rgba(34,211,238,0.08)]">
+        <div className="relative flex h-dvh items-center justify-center overflow-hidden px-2 pb-1.5 pt-9 sm:p-2 sm:pt-11">
+          <div className="relative aspect-video h-auto max-h-[calc(100dvh-48px)] w-full max-w-[min(1600px,calc((100dvh-48px)*16/9))] overflow-hidden border-2 border-[#14202e] bg-black shadow-[0_0_80px_rgba(34,211,238,0.08)]">
             <GameCanvas
               simRef={simRef}
               botsRef={botsRef}

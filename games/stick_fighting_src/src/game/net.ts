@@ -112,6 +112,8 @@ function randomRoomCode(length = 6): string {
 
 // ---- Automatic Room Signaling (WebSocket + BroadcastChannel + ntfy) -------------------------
 
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
+
 type WireSignal =
   | { id: string; from: string; to: string; sig: 'join' }
   | { id: string; from: string; to: string; sig: 'offer'; sdp: string }
@@ -129,7 +131,6 @@ class RoomSignaler {
   private ntfyTimers = new Set<number>();
   private ntfyRateLimitedUntil = 0;
   private lastNtfyJoinAt = 0;
-  private viaBc = false;
   private heartbeatTimer = 0;
   private seenIds = new Set<string>();
   private closed = false;
@@ -168,7 +169,6 @@ class RoomSignaler {
     try {
       this.bc = new BroadcastChannel(`sf26-room-${this.room}`);
       this.bc.onmessage = event => {
-        this.viaBc = true;
         this.handleIncoming(event.data);
       };
     } catch { /* Ignore */ }
@@ -217,7 +217,7 @@ class RoomSignaler {
     } catch { /* Optional backup */ }
   }
 
-  send(to: string, payload: Omit<WireSignal, 'id' | 'from' | 'to'>) {
+  send(to: string, payload: DistributiveOmit<WireSignal, 'id' | 'from' | 'to'>) {
     if (this.closed) return;
     const msg: WireSignal = {
       ...payload,
@@ -239,12 +239,14 @@ class RoomSignaler {
       }
     }
 
-    // Never spam ntfy.sh with per-candidate ICE or rapid retries; delay SDP/join 700ms so BC/PeerJS settle first
-    if (msg.sig !== 'ice' && Date.now() >= this.ntfyRateLimitedUntil) {
+    // Relay non-ICE signaling (or ICE when PeerJS WS is unavailable) via ntfy.sh so cross-device connections always complete.
+    const needsNtfy = msg.sig !== 'ice' || !this.peerWsReady;
+    if (needsNtfy && Date.now() >= this.ntfyRateLimitedUntil) {
       const topic = `sf26-room-sig-${this.room.toLowerCase()}`;
+      const delay = msg.sig === 'ice' ? 150 : 1200;
       const tid = window.setTimeout(() => {
         this.ntfyTimers.delete(tid);
-        if (this.closed || this.viaBc || Date.now() < this.ntfyRateLimitedUntil) return;
+        if (this.closed || Date.now() < this.ntfyRateLimitedUntil) return;
         if (msg.sig === 'join') {
           if (Date.now() - this.lastNtfyJoinAt < 3500) return;
           this.lastNtfyJoinAt = Date.now();
@@ -257,7 +259,7 @@ class RoomSignaler {
             this.ntfyRateLimitedUntil = Date.now() + 60000;
           }
         }).catch(() => {});
-      }, 700);
+      }, delay);
       this.ntfyTimers.add(tid);
     }
   }

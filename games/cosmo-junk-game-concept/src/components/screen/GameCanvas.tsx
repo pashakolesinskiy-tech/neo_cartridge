@@ -57,7 +57,7 @@ export default function GameCanvas({
       ref={canvasRef}
       width={WORLD.w}
       height={WORLD.h}
-      className="pixelated h-full w-full object-contain"
+      className="h-full w-full object-contain"
     />
   );
 }

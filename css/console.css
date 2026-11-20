@@ -6,15 +6,12 @@
 :root {
   /* Modern Glassmorphic Cyber-Console Tokens */
   --console-chassis: rgba(13, 17, 26, 0.82);
-  --console-bezel: #07090e;
   --console-surface: rgba(20, 26, 38, 0.78);
   --console-elevated: rgba(30, 38, 56, 0.85);
   --console-border: rgba(148, 163, 184, 0.16);
   
   --crt-bg: #05070b;
   --crt-phosphor: #00ff88;
-  --crt-amber: #ffb800;
-  --crt-danger: #ff3b5c;
   --crt-cyan: #00e5ff;
 
   --text-main: #f8fafc;
@@ -36,9 +33,6 @@
   --radius-chassis: 24px;
   --radius-screen: 14px;
   --radius-btn: 10px;
-  
-  --shadow-console: 0 32px 80px -16px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  --shadow-glow: 0 0 24px rgba(0, 255, 136, 0.28);
 }
 
 body[data-active-game="stick_fighting"] {
@@ -265,9 +259,6 @@ body {
 }
 
 .console-body {
-  background: linear-gradient(165deg, rgba(17, 23, 36, 0.88) 0%, rgba(9, 12, 20, 0.92) 100%);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.11);
   border-radius: var(--radius-chassis);
   padding: 22px;
@@ -278,6 +269,27 @@ body {
   position: relative;
   overflow: hidden;
   transition: box-shadow 0.5s ease;
+}
+
+.console-body::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(165deg, rgba(17, 23, 36, 0.88) 0%, rgba(9, 12, 20, 0.92) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.console-body > * {
+  position: relative;
+  z-index: 1;
+}
+
+body.game-playing .console-body {
+  overflow: visible !important;
 }
 
 /* Screw bolts in corners */
@@ -394,11 +406,8 @@ body {
   margin-bottom: 0;
 }
 
-#game-screen {
-  width: 100%;
-  height: 100%;
-  image-rendering: pixelated;
-  display: block;
+body.game-playing #screen-settings-btn {
+  display: inline-flex !important;
 }
 
 /* CRT Scanline Overlay */
@@ -498,7 +507,8 @@ body {
 .hero-feature-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5px;
+  max-width: 56%;
 }
 
 .feature-chip {
@@ -615,13 +625,6 @@ body {
   color: #fff !important;
 }
 
-/* Control Panel Buttons */
-.panel-btn-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
 .btn-tactile {
   background: var(--console-elevated);
   border: 1px solid var(--console-border);
@@ -689,12 +692,7 @@ body {
     margin-bottom: 10px;
   }
   .slot-metrics {
-    padding: 8px 10px;
     font-size: 0.75rem;
-  }
-  .cartridge-grid {
-    grid-template-columns: 1fr;
-    gap: 10px;
   }
 }
 
@@ -702,16 +700,12 @@ body {
   .nav-badges .system-pill:nth-child(n+2) {
     display: none;
   }
-  .panel-btn-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-  }
   .btn-tactile {
     padding: 8px 6px;
     font-size: 0.6875rem;
   }
   .screen-canvas-wrapper {
-    min-height: 260px;
+    min-height: 250px;
   }
 }
 
@@ -985,8 +979,7 @@ body {
   z-index: 5;
 }
 
-.deck-slider-stage,
-.deck-hand-container {
+.deck-slider-stage {
   width: 100%;
   height: 100%;
   position: relative;
@@ -1087,10 +1080,12 @@ body {
 }
 
 /* Default initial placement before JS initializes */
-.sts-card[data-index="0"] { transform: translate3d(26px, 0px, 0) scale(1.05); z-index: 50; }
+.sts-card[data-index="0"] { transform: translate3d(22px, 0px, 0) scale(1.05); z-index: 50; }
 .sts-card[data-index="1"] { transform: translate3d(0px, 145px, 0) scale(0.89) rotateX(-6.5deg); opacity: 0.56; z-index: 40; }
 .sts-card[data-index="2"] { transform: translate3d(0px, 290px, 0) scale(0.73) rotateX(-13deg); opacity: 0.2; z-index: 30; }
 .sts-card[data-index="3"] { transform: translate3d(0px, 435px, 0) scale(0.68) rotateX(-19deg); opacity: 0.12; z-index: 20; }
+.sts-card[data-index="4"] { transform: translate3d(0px, 580px, 0) scale(0.68) rotateX(-25deg); opacity: 0; z-index: 10; }
+.sts-card[data-index="5"] { transform: translate3d(0px, 725px, 0) scale(0.68) rotateX(-31deg); opacity: 0; z-index: 5; }
 
 /* Inactive cards in hand (dimmed & responsive to hover) */
 .sts-card:not(.active) {
@@ -1312,49 +1307,6 @@ body {
   50% { opacity: 0.3; transform: scale(0.8); }
 }
 
-.sts-art-watermark,
-.sts-art-kanji {
-  position: absolute;
-  right: 4px;
-  bottom: 2px;
-  font-family: var(--font-retro);
-  font-size: 1.05rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  opacity: 0.22;
-  color: #ffffff;
-  pointer-events: none;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-/* Radar Scan Animation inside Art Window */
-.sts-art-radar {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, transparent 0%, rgba(0, 255, 136, 0.08) 50%, transparent 100%);
-  background-size: 100% 200%;
-  animation: radarScan 3s linear infinite;
-  pointer-events: none;
-  opacity: 0.5;
-}
-
-@keyframes radarScan {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100%); }
-}
-
-.sts-art-figure {
-  font-size: 2.2rem;
-  z-index: 2;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.8));
-}
-
-.stick-hero::after { content: '⚔️'; }
-.drift-hero::after { content: '🏎️'; }
-.chrono-hero::after { content: '⚡'; }
-.mecha-hero::after { content: '🤖'; }
-
 .sts-info-column {
   flex: 1;
   display: flex;
@@ -1449,8 +1401,7 @@ body {
 }
 
 /* Floating Vertical Slider Rail & Tactile Controller */
-.deck-slider-rail,
-.deck-vertical-controls {
+.deck-slider-rail {
   position: absolute;
   right: 18px;
   top: 50%;
@@ -1629,39 +1580,29 @@ body {
 
 @media (max-width: 768px) {
   .vertical-slider-viewport {
-    width: 290px;
+    width: 280px;
     height: 330px;
-    margin-left: -20px;
+    margin-left: -24px;
   }
-  .vertical-card-stack {
-    width: 260px;
-    height: 140px;
-  }
+  .vertical-card-stack,
   .sts-card {
-    width: 260px;
-    height: 140px;
+    width: 250px;
+    height: 136px;
   }
   .sts-art-window {
     width: 70px;
     height: 65px;
   }
-  .sts-art-figure {
-    font-size: 1.6rem;
-  }
-  .sts-art-kanji {
-    font-size: 1.6rem;
-  }
-  .deck-slider-rail,
-  .deck-vertical-controls {
-    right: 8px;
+  .deck-slider-rail {
+    right: 6px;
   }
   .deck-slider-channel {
-    height: 140px;
+    height: 136px;
   }
   .deck-nav-btn {
-    width: 30px;
-    height: 30px;
-    font-size: 0.75rem;
+    width: 34px;
+    height: 34px;
+    font-size: 0.78rem;
   }
 }
 
@@ -1852,15 +1793,15 @@ body {
 .dock-grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .dock-card {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 9px 10px;
+  gap: 7px;
+  padding: 8px 8px;
   border-radius: 12px;
   background: rgba(15, 21, 34, 0.72);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -1898,9 +1839,9 @@ body {
 }
 
 .dock-thumb {
-  width: 38px;
-  height: 38px;
-  border-radius: 9px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   background-color: #080c14;
   border: 1px solid rgba(255, 255, 255, 0.14);
   flex-shrink: 0;
@@ -1942,7 +1883,7 @@ body {
 
 .dock-name {
   font-family: var(--font-display);
-  font-size: 0.72rem;
+  font-size: 0.67rem;
   font-weight: 800;
   color: #f8fafc;
   white-space: nowrap;
@@ -2054,43 +1995,51 @@ body.pseudo-fullscreen .mobile-rom-strip {
 }
 
 /* Immersive Mobile Gameplay Mode */
-@media (max-width: 899px), (pointer: coarse) {
+@media (max-width: 899px), (max-height: 520px), (pointer: coarse) {
   body.game-playing {
     overflow: hidden !important;
     height: 100dvh !important;
   }
 
+  body.game-playing .top-nav,
+  body.game-playing .console-deck-bay,
+  body.game-playing .console-side-panel,
+  body.game-playing .cartridge-dock-bar {
+    display: none !important;
+  }
+
   body.game-playing #screen-housing {
-    position: fixed;
-    inset: 0;
-    z-index: 95;
-    width: 100vw;
-    height: 100dvh;
-    margin: 0;
-    border: none;
-    border-radius: 0;
-    background: #000;
-    display: flex;
-    flex-direction: column;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 95 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-width: none !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: #000 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left) !important;
   }
 
   body.game-playing #screen-housing .screen-header-bar {
-    height: 38px;
-    min-height: 38px;
+    height: 34px;
+    min-height: 34px;
     margin-bottom: 0;
-    padding: 4px 10px;
+    padding: 3px 10px;
     background: #090b10;
     border-bottom: 1px solid #1e2433;
   }
 
   body.game-playing #screen-housing .screen-canvas-wrapper {
-    flex: 1;
-    width: 100%;
-    height: 100%;
-    min-height: 0;
-    aspect-ratio: auto;
-    border-radius: 0;
+    flex: 1 !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    aspect-ratio: auto !important;
+    border-radius: 0 !important;
   }
 
   body.game-playing .mobile-rom-strip {
@@ -2210,8 +2159,8 @@ body.pseudo-fullscreen .mobile-rom-strip {
   }
 
   .screen-canvas-wrapper {
-    min-height: 300px;
-    height: clamp(290px, 43dvh, 370px);
+    min-height: 274px;
+    height: clamp(274px, 38dvh, 330px);
     aspect-ratio: auto;
   }
 
@@ -2220,31 +2169,33 @@ body.pseudo-fullscreen .mobile-rom-strip {
   }
 
   .vertical-slider-viewport {
-    width: calc(100% - 44px);
+    width: calc(100% - 48px);
     height: 100%;
-    margin-left: -34px;
+    margin-left: -38px;
   }
 
   .vertical-card-stack,
   .sts-card {
-    width: min(262px, calc(100vw - 92px));
-    height: 138px;
+    width: min(230px, calc(100vw - 118px));
+    height: 132px;
   }
 
-  .deck-slider-rail,
-  .deck-vertical-controls {
+  .deck-slider-rail {
     right: 6px;
     gap: 6px;
   }
 
+  .deck-nav-btn {
+    width: 36px;
+    height: 36px;
+  }
+
   .deck-slider-channel {
-    height: 130px;
+    height: 126px;
   }
 
   .deck-hint-bar {
-    font-size: 0.58rem;
-    padding: 0 10px;
-    bottom: 6px;
+    display: none;
   }
 }
 
@@ -2270,16 +2221,16 @@ body.pseudo-fullscreen .mobile-rom-strip {
   }
 
   .sts-art-window {
-    width: 64px;
-    height: 64px;
+    width: 60px;
+    height: 60px;
   }
 
   .sts-title-text {
-    font-size: 0.72rem;
+    font-size: 0.7rem;
   }
 
   .sts-desc-box p {
-    font-size: 0.62rem;
+    font-size: 0.6rem;
   }
 }
 
@@ -2292,92 +2243,139 @@ body.pseudo-fullscreen .mobile-rom-strip {
     font-size: 0.6rem;
   }
 
-  /* Compact 2-column menu layout in mobile landscape (e.g. 844x390) */
+  /* Compact zero-scroll 2-column menu layout in mobile landscape (e.g. 844x390) */
   .top-nav {
     padding: 4px 0 !important;
   }
+  .nav-badges .system-pill,
+  .brand-edition-badge {
+    display: none !important;
+  }
   .arcade-layout {
-    padding: 8px 0 12px !important;
+    padding: 4px 0 !important;
   }
   .console-body {
-    padding: 10px !important;
+    padding: 8px !important;
+    border-radius: 14px !important;
   }
-  .console-deck-bay {
-    padding: 6px 10px !important;
-    margin-bottom: 8px !important;
-    gap: 8px !important;
+  body:not(.game-playing) .console-deck-bay {
+    display: none !important;
   }
   .console-inner-grid {
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) !important;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr) !important;
     gap: 10px !important;
+    align-items: stretch !important;
   }
   .screen-housing {
     padding: 6px !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .screen-header-bar {
+    margin-bottom: 4px !important;
+    font-size: 0.6rem !important;
   }
   .screen-canvas-wrapper {
-    min-height: 220px !important;
-    height: clamp(220px, 60dvh, 270px) !important;
+    min-height: 188px !important;
+    height: clamp(188px, calc(100dvh - 134px), 248px) !important;
     aspect-ratio: auto !important;
   }
+  .slider-rail-backdrop {
+    display: none !important;
+  }
   .vertical-slider-viewport {
-    width: calc(100% - 38px) !important;
+    width: calc(100% - 42px) !important;
     height: 100% !important;
-    margin-left: -18px !important;
+    margin-left: -34px !important;
   }
   .vertical-card-stack,
   .sts-card {
-    width: min(260px, calc(50vw - 68px)) !important;
-    height: 124px !important;
+    width: min(232px, calc(48vw - 74px)) !important;
+    height: 112px !important;
   }
   .sts-art-window {
-    width: 60px !important;
-    height: 56px !important;
+    width: 56px !important;
+    height: 54px !important;
   }
   .sts-desc-box {
     display: none !important;
   }
+  .deck-slider-rail {
+    right: 4px !important;
+    gap: 4px !important;
+  }
+  .deck-nav-btn {
+    width: 30px !important;
+    height: 30px !important;
+  }
   .deck-slider-channel {
-    height: 110px !important;
+    height: 98px !important;
   }
   .deck-hint-bar {
     display: none !important;
   }
+  .mobile-rom-strip {
+    display: flex !important;
+    padding: 4px 2px 0 !important;
+    margin-top: 2px !important;
+    gap: 5px !important;
+  }
+  .mobile-rom-chip {
+    min-height: 28px !important;
+    padding: 4px 8px !important;
+    font-size: 0.625rem !important;
+  }
   .slot-dashboard-box {
-    padding: 10px !important;
+    padding: 8px 10px !important;
+    justify-content: flex-start !important;
+    gap: 6px !important;
   }
   .hero-inspector-banner {
-    height: 68px !important;
-    margin-bottom: 8px !important;
+    height: 54px !important;
+    margin-bottom: 2px !important;
+  }
+  .slot-header-block {
+    margin-bottom: 0 !important;
   }
   .slot-title {
-    font-size: 1rem !important;
+    font-size: 0.96rem !important;
+    margin-bottom: 2px !important;
+  }
+  .slot-genre {
+    font-size: 0.68rem !important;
   }
   .slot-desc {
-    font-size: 0.72rem !important;
-    line-height: 1.35 !important;
-    margin-bottom: 8px !important;
+    display: none !important;
+  }
+  .slot-metrics {
+    grid-template-columns: 76px 1fr !important;
+    margin-bottom: 2px !important;
+    gap: 6px !important;
+    padding: 0 !important;
+  }
+  .metric-card {
+    padding: 5px 8px !important;
+  }
+  .metric-controls-text {
+    font-size: 0.64rem !important;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  .slot-metrics {
-    margin-bottom: 8px !important;
-    gap: 6px !important;
-    padding: 0 !important;
-  }
-  .metric-card {
-    padding: 6px 8px !important;
-  }
   #menu-power-btn-wrap {
     order: 0 !important;
     margin-bottom: 0 !important;
+    margin-top: auto !important;
   }
   .btn-power-big {
-    padding: 10px 14px !important;
-    font-size: 0.8rem !important;
+    padding: 9px 12px !important;
+    font-size: 0.76rem !important;
   }
-  .mobile-rom-strip,
+  .menu-secondary-row .btn-tactile {
+    padding: 6px 8px !important;
+    font-size: 0.66rem !important;
+  }
   .cartridge-dock-bar {
     display: none !important;
   }

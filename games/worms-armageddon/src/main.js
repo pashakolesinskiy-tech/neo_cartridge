@@ -22,6 +22,8 @@ const weaponDescText = document.getElementById('weapon-desc-text');
 
 const setupOverlay = document.getElementById('setup-overlay');
 const helpModal = document.getElementById('help-modal');
+const pauseModal = document.getElementById('pause-modal');
+const btnPause = document.getElementById('btn-pause');
 const gameoverModal = document.getElementById('gameover-modal');
 
 const hudTeamDot = document.getElementById('hud-team-dot');
@@ -87,10 +89,10 @@ const setupState = {
   theme: 'meadow',
   seed: 42069,
   teamCount: 2,
-  guestName: 'Blue Platoon',
-  hostName: 'Red Brigade',
+  guestName: 'Синий взвод',
+  hostName: 'Красная бригада',
   hasSameOriginApi: false,
-  networkAddresses: [{ name: 'Current Origin', url: window.location.origin, kind: 'local' }],
+  networkAddresses: [{ name: 'Текущий сервер', url: window.location.origin, kind: 'local' }],
   teams: [
     { name: TEAM_PALETTES[0].name, control: 'human' },
     { name: TEAM_PALETTES[1].name, control: 'ai-normal' },
@@ -188,7 +190,7 @@ async function loadNetworkAddresses() {
   for (const item of setupState.networkAddresses) {
     const opt = document.createElement('option');
     opt.value = item.url;
-    const tag = item.kind === 'lan' ? 'Wi-Fi / LAN' : item.kind === 'vpn' ? 'VPN' : item.kind === 'web' ? 'WebRTC P2P' : 'Local';
+    const tag = item.kind === 'lan' ? 'Wi-Fi / LAN' : item.kind === 'vpn' ? 'VPN' : item.kind === 'web' ? 'WebRTC P2P' : 'Локальный';
     opt.textContent = `[${tag}] ${item.name} (${item.ip || item.url})`;
     onlineAddrSelect.appendChild(opt);
   }
@@ -256,15 +258,15 @@ function updateSetupControlsState() {
   document.getElementById('opt-sd').disabled = lockSettings;
 
   if (!isOnline) {
-    btnStartMatch.textContent = 'START BATTLE';
+    btnStartMatch.textContent = 'НАЧАТЬ БОЙ';
     btnStartMatch.disabled = false;
   } else if (isHostTab) {
-    btnStartMatch.textContent = 'START ONLINE BATTLE';
+    btnStartMatch.textContent = 'НАЧАТЬ СЕТЕВОЙ БОЙ';
     btnStartMatch.disabled = !(online.role === 'host' && online.peerConnected);
     btnCreateRoom.classList.toggle('hidden', online.role === 'host');
     hostRoomCard.classList.toggle('hidden', online.role !== 'host');
   } else {
-    btnStartMatch.textContent = online.role === 'guest' ? 'WAITING FOR HOST TO START...' : 'JOIN A ROOM FIRST';
+    btnStartMatch.textContent = online.role === 'guest' ? 'ЖДЁМ СТАРТ ХОСТА...' : 'СНАЧАЛА ВОЙДИТЕ В КОМНАТУ';
     btnStartMatch.disabled = true;
     btnJoinRoom.classList.toggle('hidden', online.role === 'guest');
     btnLeaveRoom.classList.toggle('hidden', online.role !== 'guest');
@@ -280,7 +282,7 @@ function setStatusBox(el, text, mode = 'info') {
 
 function copyText(text, btn, originalLabel) {
   const finish = () => {
-    btn.textContent = 'Copied!';
+    btn.textContent = 'Скопировано!';
     setTimeout(() => {
       btn.textContent = originalLabel;
     }, 1300);
@@ -351,11 +353,11 @@ btnCreateRoom.addEventListener('click', async () => {
   try {
     await online.createRoom(hostName, getLobbyState());
     game.setNetworkMode('host', 0);
-    setStatusBox(hostStatusEl, 'Waiting for Player 2 to join via code or QR...', 'info');
+    setStatusBox(hostStatusEl, 'Ожидаем игрока 2 по коду или QR...', 'info');
     refreshInviteAndQR();
     updateSetupControlsState();
   } catch (err) {
-    setStatusBox(hostStatusEl, `Failed to create room: ${err.message}`, 'error');
+    setStatusBox(hostStatusEl, `Не удалось создать комнату: ${err.message}`, 'error');
     hostRoomCard.classList.remove('hidden');
   }
 });
@@ -367,24 +369,24 @@ btnCloseRoom.addEventListener('click', () => {
 });
 
 btnCopyCode.addEventListener('click', () => {
-  if (online.roomCode) copyText(online.roomCode, btnCopyCode, 'Copy Code');
+  if (online.roomCode) copyText(online.roomCode, btnCopyCode, 'Копировать код');
 });
 
 btnCopyLink.addEventListener('click', () => {
-  if (online.roomCode) copyText(getInviteUrl(), btnCopyLink, 'Copy Link');
+  if (online.roomCode) copyText(getInviteUrl(), btnCopyLink, 'Копировать ссылку');
 });
 
 async function handleJoinRoom() {
   game.sound.unlock();
   const code = extractRoomCode(joinCodeInput.value);
   if (!code) {
-    setStatusBox(joinStatusEl, 'Please enter a valid 6-character room code.', 'error');
+    setStatusBox(joinStatusEl, 'Введите корректный 6-значный код комнаты.', 'error');
     return;
   }
   joinCodeInput.value = code;
   const guestName = onlineGuestNameInput.value.trim() || TEAM_PALETTES[1].name;
   setupState.guestName = guestName;
-  setStatusBox(joinStatusEl, `Connecting to room ${code}...`, 'info');
+  setStatusBox(joinStatusEl, `Подключение к комнате ${code}...`, 'info');
   if (!setupState.hasSameOriginApi && !online.serverUrl && window.location.protocol === 'file:') {
     await loadNetworkAddresses();
   }
@@ -396,12 +398,12 @@ async function handleJoinRoom() {
     if (res.lobbyState) applyLobbyStateToGuestUI(res.lobbyState);
     setStatusBox(
       joinStatusEl,
-      `Connected to ${setupState.hostName}'s room (${res.code})! Waiting for Host to start...`,
+      `Подключено к ${setupState.hostName} (${res.code})! Ждём старт хоста...`,
       'ready'
     );
     updateSetupControlsState();
   } catch (err) {
-    setStatusBox(joinStatusEl, `Could not join room: ${err.message}`, 'error');
+    setStatusBox(joinStatusEl, `Не удалось войти: ${err.message}`, 'error');
     updateSetupControlsState();
   }
 }
@@ -427,20 +429,20 @@ online.onMessage = (msg) => {
   switch (msg.type) {
     case 'guest_joined':
       setupState.guestName = msg.guestName || TEAM_PALETTES[1].name;
-      setStatusBox(hostStatusEl, `Player 2 connected: ${setupState.guestName}! Ready to start.`, 'ready');
+      setStatusBox(hostStatusEl, `Игрок 2 подключён: ${setupState.guestName}! Можно начинать.`, 'ready');
       syncLobbyIfHost();
       updateSetupControlsState();
       break;
     case 'guest_info':
       if (msg.guestName) {
         setupState.guestName = msg.guestName;
-        setStatusBox(hostStatusEl, `Player 2 connected: ${setupState.guestName}! Ready to start.`, 'ready');
+        setStatusBox(hostStatusEl, `Игрок 2 подключён: ${setupState.guestName}! Можно начинать.`, 'ready');
       }
       break;
     case 'guest_left':
-      setStatusBox(hostStatusEl, 'Player 2 disconnected. Waiting for reconnect...', 'error');
+      setStatusBox(hostStatusEl, 'Игрок 2 отключился. Ожидаем переподключения...', 'error');
       if (game.phase !== PHASES.SETUP && game.phase !== PHASES.GAME_OVER) {
-        game.showBanner('Player 2 disconnected!', '#ff4757', 3.0);
+        game.showBanner('Игрок 2 отключился!', '#ff4757', 3.0);
       }
       updateSetupControlsState();
       break;
@@ -452,10 +454,10 @@ online.onMessage = (msg) => {
     case 'room_closed':
       game.setNetworkMode('local', -1);
       if (game.phase === PHASES.SETUP) {
-        setStatusBox(joinStatusEl, 'Host closed the room.', 'error');
+        setStatusBox(joinStatusEl, 'Хост закрыл комнату.', 'error');
         updateSetupControlsState();
       } else {
-        returnToSetupScreen('Host closed the room.');
+        returnToSetupScreen('Хост закрыл комнату.');
       }
       break;
     case 'match_start':
@@ -512,7 +514,7 @@ online.onClose = () => {
     if (game.phase === PHASES.SETUP) {
       updateSetupControlsState();
     } else {
-      returnToSetupScreen('Disconnected from server.');
+      returnToSetupScreen('Соединение потеряно.');
     }
   }
 };
@@ -563,10 +565,10 @@ function renderTeamRoster() {
 
     const select = document.createElement('select');
     const options = [
-      { val: 'human', label: 'Human' },
-      { val: 'ai-easy', label: 'AI (Easy)' },
-      { val: 'ai-normal', label: 'AI (Normal)' },
-      { val: 'ai-hard', label: 'AI (Hard)' },
+      { val: 'human', label: 'Игрок' },
+      { val: 'ai-easy', label: 'ИИ (Лёгкий)' },
+      { val: 'ai-normal', label: 'ИИ (Средний)' },
+      { val: 'ai-hard', label: 'ИИ (Сложный)' },
     ];
     for (const o of options) {
       const opt = document.createElement('option');
@@ -692,13 +694,44 @@ function closeMobileOverlays() {
   btnMobileMenu?.classList.remove('active');
 }
 
+function syncModalBodyClass() {
+  const isOpen =
+    !weaponPanel.classList.contains('hidden') ||
+    !helpModal.classList.contains('hidden') ||
+    (pauseModal && !pauseModal.classList.contains('hidden')) ||
+    !gameoverModal.classList.contains('hidden');
+  document.body.classList.toggle('modal-open', isOpen);
+}
+
+function setPaused(paused) {
+  if (paused && (game.phase === PHASES.SETUP || game.phase === PHASES.GAME_OVER)) return;
+  if (!pauseModal) return;
+  if (paused) {
+    closeMobileOverlays();
+    weaponPanel.classList.add('hidden');
+    clearDirectionalInputs();
+    const restartBtn = document.getElementById('btn-pause-restart');
+    if (restartBtn) restartBtn.disabled = game.netRole === 'guest';
+    pauseModal.classList.remove('hidden');
+    game.paused = game.netRole === 'local';
+  } else {
+    pauseModal.classList.add('hidden');
+    game.paused = false;
+  }
+  syncModalBodyClass();
+}
+
 function enterBattleScreen() {
   document.body.classList.add('in-battle');
+  document.body.classList.remove('four-teams');
   setupOverlay.classList.add('hidden');
   gameoverModal.classList.add('hidden');
   helpModal.classList.add('hidden');
+  pauseModal?.classList.add('hidden');
   weaponPanel.classList.add('hidden');
+  game.paused = false;
   closeMobileOverlays();
+  syncModalBodyClass();
   hudTop.classList.remove('hidden');
   hudBottom.classList.remove('hidden');
   const startZoom = window.innerWidth <= 640 || window.innerHeight <= 460 ? 0.72 : 1.0;
@@ -708,11 +741,14 @@ function enterBattleScreen() {
 }
 
 function returnToSetupScreen(notice = null) {
-  document.body.classList.remove('in-battle', 'my-turn');
+  document.body.classList.remove('in-battle', 'my-turn', 'four-teams', 'modal-open');
   clearDirectionalInputs();
   gameoverModal.classList.add('hidden');
   weaponPanel.classList.add('hidden');
   helpModal.classList.add('hidden');
+  pauseModal?.classList.add('hidden');
+  game.paused = false;
+  closeMobileOverlays();
   hudTop.classList.add('hidden');
   hudBottom.classList.add('hidden');
   setupOverlay.classList.remove('hidden');
@@ -809,6 +845,7 @@ function renderWeaponGrid() {
         () => game.selectWeapon(w.id)
       );
       weaponPanel.classList.add('hidden');
+      syncModalBodyClass();
       renderWeaponGrid();
     });
     weaponGrid.appendChild(slot);
@@ -829,6 +866,7 @@ function toggleWeaponPanel(forceState = null) {
   } else {
     weaponPanel.classList.add('hidden');
   }
+  syncModalBodyClass();
 }
 
 btnMinimapToggle?.addEventListener('click', (e) => {
@@ -837,6 +875,7 @@ btnMinimapToggle?.addEventListener('click', (e) => {
   closeMobileOverlays();
   if (next) {
     weaponPanel.classList.add('hidden');
+    syncModalBodyClass();
     minimapFrame.classList.add('mobile-open');
     btnMinimapToggle.classList.add('active');
   }
@@ -848,8 +887,29 @@ btnMobileMenu?.addEventListener('click', (e) => {
   closeMobileOverlays();
   if (next) {
     weaponPanel.classList.add('hidden');
+    syncModalBodyClass();
     toolbarBtns.classList.add('mobile-open');
     btnMobileMenu.classList.add('active');
+  }
+});
+
+window.addEventListener('pointerdown', (e) => {
+  const t = e.target;
+  if (
+    toolbarBtns?.classList.contains('mobile-open') &&
+    !toolbarBtns.contains(t) &&
+    !btnMobileMenu?.contains(t)
+  ) {
+    toolbarBtns.classList.remove('mobile-open');
+    btnMobileMenu?.classList.remove('active');
+  }
+  if (
+    minimapFrame?.classList.contains('mobile-open') &&
+    !minimapFrame.contains(t) &&
+    !btnMinimapToggle?.contains(t)
+  ) {
+    minimapFrame.classList.remove('mobile-open');
+    btnMinimapToggle?.classList.remove('active');
   }
 });
 
@@ -895,22 +955,73 @@ document.getElementById('btn-center').addEventListener('click', () => {
 });
 
 const btnMute = document.getElementById('btn-mute');
+function syncMuteUi() {
+  if (btnMute) btnMute.textContent = game.sound.muted ? 'ЗВУК: ВЫКЛ' : 'ЗВУК: ВКЛ';
+}
 btnMute.addEventListener('click', () => {
   closeMobileOverlays();
   game.sound.unlock();
   game.sound.setMuted(!game.sound.muted);
-  btnMute.textContent = game.sound.muted ? 'SFX: OFF' : 'SFX: ON';
+  syncMuteUi();
+});
+
+window.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'NEO_SET_MUTE') {
+    game.sound.setMuted(Boolean(e.data.muted));
+    syncMuteUi();
+  }
+});
+
+btnPause?.addEventListener('click', () => {
+  closeMobileOverlays();
+  const isOpen = pauseModal && !pauseModal.classList.contains('hidden');
+  setPaused(!isOpen);
+});
+document.getElementById('btn-pause-resume')?.addEventListener('click', () => setPaused(false));
+document.getElementById('btn-pause-restart')?.addEventListener('click', () => {
+  if (game.netRole === 'guest') return;
+  setPaused(false);
+  launchMatch(true);
+});
+document.getElementById('btn-pause-setup')?.addEventListener('click', () => {
+  setPaused(false);
+  if (online.role !== 'none') {
+    online.closeRoom();
+    game.setNetworkMode('local', -1);
+  }
+  returnToSetupScreen();
+});
+document.getElementById('btn-pause-hero')?.addEventListener('click', () => {
+  setPaused(false);
+  if (online.role !== 'none') {
+    online.closeRoom();
+    game.setNetworkMode('local', -1);
+  }
+  returnToSetupScreen();
+  window.NeoHeroLanding?.show?.();
+});
+document.getElementById('btn-back-hero')?.addEventListener('click', () => {
+  setPaused(false);
+  if (online.role !== 'none') {
+    online.closeRoom();
+    game.setNetworkMode('local', -1);
+  }
+  returnToSetupScreen();
+  window.NeoHeroLanding?.show?.();
 });
 
 document.getElementById('btn-help').addEventListener('click', () => {
   closeMobileOverlays();
   helpModal.classList.toggle('hidden');
+  syncModalBodyClass();
 });
 document.getElementById('btn-close-help').addEventListener('click', () => {
   helpModal.classList.add('hidden');
+  syncModalBodyClass();
 });
 document.getElementById('btn-setup').addEventListener('click', () => {
   closeMobileOverlays();
+  setPaused(false);
   if (online.role !== 'none') {
     online.closeRoom();
     game.setNetworkMode('local', -1);
@@ -941,12 +1052,14 @@ function canShowTouchControls(engine) {
 function updateHud(engine) {
   if (engine.phase === PHASES.SETUP) return;
 
+  document.body.classList.toggle('four-teams', engine.teams.length > 2);
   const myTurnControls = canShowTouchControls(engine);
   const hadControls = document.body.classList.contains('my-turn');
   document.body.classList.toggle('my-turn', myTurnControls);
   if (hadControls && !myTurnControls) {
     clearDirectionalInputs();
     weaponPanel.classList.add('hidden');
+    syncModalBodyClass();
   }
 
   const team = engine.teams[engine.activeTeamIndex];
@@ -956,7 +1069,7 @@ function updateHud(engine) {
   if (team) {
     hudTeamDot.style.background = team.palette.color;
     hudTeamDot.style.color = team.palette.color;
-    hudActiveTeam.textContent = team.isAI ? `${team.name} (AI)` : team.name;
+    hudActiveTeam.textContent = team.isAI ? `${team.name} (ИИ)` : team.name;
     hudActiveWorm.textContent = worm ? `${worm.name} • ${Math.ceil(worm.hp)} HP` : '—';
 
     const ammo = team.inventory[weapon.id] ?? 0;
@@ -977,8 +1090,8 @@ function updateHud(engine) {
       if (mobileSpecialBar.dataset.mode !== 'girder') {
         mobileSpecialBar.dataset.mode = 'girder';
         mobileSpecialBar.innerHTML =
-          '<button type="button" class="hud-btn" data-special-act="girder-left">⟲ Rotate</button>' +
-          '<button type="button" class="hud-btn" data-special-act="girder-right">Rotate ⟳</button>';
+          '<button type="button" class="hud-btn" data-special-act="girder-left">⟲ Поворот</button>' +
+          '<button type="button" class="hud-btn" data-special-act="girder-right">Поворот ⟳</button>';
       }
       mobileSpecialBar.classList.remove('hidden');
     } else if (showSpecial && (weapon.id === 'airstrike' || weapon.id === 'napalm')) {
@@ -986,8 +1099,8 @@ function updateHud(engine) {
       if (mobileSpecialBar.dataset.mode !== dirMode) {
         mobileSpecialBar.dataset.mode = dirMode;
         mobileSpecialBar.innerHTML =
-          `<button type="button" class="hud-btn ${engine.airstrikeDir < 0 ? 'active' : ''}" data-special-act="plane-left">← Plane</button>` +
-          `<button type="button" class="hud-btn ${engine.airstrikeDir >= 0 ? 'active' : ''}" data-special-act="plane-right">Plane →</button>`;
+          `<button type="button" class="hud-btn ${engine.airstrikeDir < 0 ? 'active' : ''}" data-special-act="plane-left">← Самолёт</button>` +
+          `<button type="button" class="hud-btn ${engine.airstrikeDir >= 0 ? 'active' : ''}" data-special-act="plane-right">Самолёт →</button>`;
       }
       mobileSpecialBar.classList.remove('hidden');
     } else {
@@ -1016,21 +1129,21 @@ function updateHud(engine) {
 
   // Timer & phase label
   let timeDisplay = Math.ceil(engine.turnTimer);
-  let label = 'TURN';
+  let label = 'ХОД';
   if (engine.phase === PHASES.RETREAT) {
-    label = 'RETREAT';
+    label = 'ОТХОД';
     timeDisplay = Math.ceil(engine.retreatTimer);
   } else if (engine.phase === PHASES.BLOWTORCH) {
-    label = 'TORCH';
+    label = 'ГОРЕЛКА';
     timeDisplay = Math.ceil(engine.blowtorchTimer);
   } else if (engine.phase === PHASES.ROPE) {
-    label = 'ROPE';
+    label = 'ВЕРЁВКА';
     timeDisplay = '•';
   } else if (engine.phase === PHASES.DRILL) {
-    label = 'DRILL';
+    label = 'БУР';
     timeDisplay = Math.ceil(engine.drillTimer);
   } else if (engine.phase === PHASES.PROJECTILE_ACTIVE || engine.phase === PHASES.RESOLVING) {
-    label = 'ACTION';
+    label = 'ВЫСТРЕЛ';
     timeDisplay = '•';
   }
   hudPhaseLabel.textContent = label;
@@ -1041,7 +1154,7 @@ function updateHud(engine) {
   );
 
   // Wind
-  hudWindVal.textContent = engine.wind === 0 ? 'CALM' : engine.wind > 0 ? `${engine.wind} →` : `← ${Math.abs(engine.wind)}`;
+  hudWindVal.textContent = engine.wind === 0 ? 'ШТИЛЬ' : engine.wind > 0 ? `${engine.wind} →` : `← ${Math.abs(engine.wind)}`;
   const pct = Math.min(50, Math.abs(engine.wind) * 0.5);
   if (engine.wind >= 0) {
     hudWindFill.style.left = '50%';
@@ -1055,8 +1168,8 @@ function updateHud(engine) {
 
   // Online badge
   if (engine.netRole === 'host' || engine.netRole === 'guest') {
-    const roleLabel = engine.netRole === 'host' ? 'HOST' : 'GUEST';
-    const turnLabel = engine.canLocalPlayerControl() ? (window.innerWidth <= 640 ? 'Turn' : 'Your Turn') : 'Wait';
+    const roleLabel = engine.netRole === 'host' ? 'ХОСТ' : 'ГОСТЬ';
+    const turnLabel = engine.canLocalPlayerControl() ? (window.innerWidth <= 640 ? 'Ход' : 'Ваш ход') : 'Ждите';
     hudOnlineBadge.textContent =
       window.innerWidth <= 640 ? `${roleLabel} • ${turnLabel}` : `${roleLabel} • ${online.roomCode || ''} • ${turnLabel}`;
     hudOnlineBadge.classList.remove('hidden');
@@ -1102,6 +1215,8 @@ function showGameOver(engine) {
   document.body.classList.remove('my-turn');
   clearDirectionalInputs();
   weaponPanel.classList.add('hidden');
+  pauseModal?.classList.add('hidden');
+  game.paused = false;
   const titleEl = document.getElementById('gameover-title');
   const subEl = document.getElementById('gameover-subtitle');
   const statsEl = document.getElementById('gameover-stats');
@@ -1111,43 +1226,55 @@ function showGameOver(engine) {
     const winTeam = engine.teams[engine.winnerTeamIndex];
     const trophyUrl = sprites.isReady() ? sprites.getIconDataUrl('items', 'trophy', 64) : null;
     titleEl.innerHTML = trophyUrl
-      ? `<img class="victory-trophy-icon" src="${trophyUrl}" alt="" /> VICTORY!`
-      : 'VICTORY!';
+      ? `<img class="victory-trophy-icon" src="${trophyUrl}" alt="" /> ПОБЕДА!`
+      : 'ПОБЕДА!';
     titleEl.style.color = winTeam.palette.color;
-    subEl.textContent = `${winTeam.name} wins the battle in ${engine.matchStats.totalTurns} turns!`;
+    subEl.textContent = `${winTeam.name} побеждает за ${engine.matchStats.totalTurns} ход.!`;
   } else {
-    titleEl.textContent = 'DRAW!';
+    titleEl.textContent = 'НИЧЬЯ!';
     titleEl.style.color = '#ffd32a';
-    subEl.textContent = 'All worms met a watery or explosive fate!';
+    subEl.textContent = 'Все червяки ушли на дно или погибли в бою!';
   }
 
   statsEl.innerHTML = '';
+  let bestHumanScore = 0;
   for (const t of engine.teams) {
+    const remHp = Math.ceil(engine.getTeamTotalHp(t.index));
+    if (!t.isAI) {
+      const s = Math.round(t.damageDealt + t.kills * 120 + remHp + (t.index === engine.winnerTeamIndex ? 500 : 0));
+      if (s > bestHumanScore) bestHumanScore = s;
+    }
     const row = document.createElement('div');
     row.className = 'gameover-stat-row';
     row.innerHTML = `
       <span style="color:${t.palette.light}">${t.name}</span>
-      <span>Damage: ${Math.round(t.damageDealt)} • KOs: ${t.kills} • Remaining HP: ${Math.ceil(engine.getTeamTotalHp(t.index))}</span>
+      <span>Урон: ${Math.round(t.damageDealt)} • Фраги: ${t.kills} • Ост. HP: ${remHp}</span>
     `;
     statsEl.appendChild(row);
+  }
+  if (bestHumanScore > 0 && window.parent && window.parent !== window) {
+    try {
+      window.parent.postMessage({ type: 'NEO_HIGHSCORE', game: 'worms_armageddon', score: bestHumanScore }, '*');
+    } catch {}
   }
 
   const topDamager = [...engine.teams].sort((a, b) => b.damageDealt - a.damageDealt)[0];
   const awards = [
-    `Demolition Expert: ${topDamager?.name || '-'} (${Math.round(topDamager?.damageDealt || 0)} dmg)`,
-    `Biggest Hit: ${engine.matchStats.biggestHit.wormName} (${engine.matchStats.biggestHit.damage} dmg)`,
-    `Crates Collected: ${engine.matchStats.cratePickups}`,
+    `Мастер разрушений: ${topDamager?.name || '-'} (${Math.round(topDamager?.damageDealt || 0)} ур.)`,
+    `Мощный удар: ${engine.matchStats.biggestHit.wormName} (${engine.matchStats.biggestHit.damage} ур.)`,
+    `Собрано ящиков: ${engine.matchStats.cratePickups}`,
   ];
   awardsEl.innerHTML = awards.map((a) => `<span class="award-pill">${a}</span>`).join('');
 
   if (engine.netRole === 'guest') {
     btnPlayAgain.disabled = true;
-    btnPlayAgain.textContent = 'WAITING FOR HOST...';
+    btnPlayAgain.textContent = 'ЖДЁМ ХОСТА...';
   } else {
     btnPlayAgain.disabled = false;
-    btnPlayAgain.textContent = 'PLAY AGAIN (NEW MAP)';
+    btnPlayAgain.textContent = 'ИГРАТЬ СНОВА (НОВАЯ КАРТА)';
   }
   gameoverModal.classList.remove('hidden');
+  syncModalBodyClass();
 }
 
 // --- Input Handling (Keyboard + Mouse + Minimap + Touch) ---
@@ -1211,14 +1338,20 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Escape') {
     if (!helpModal.classList.contains('hidden')) {
       helpModal.classList.add('hidden');
+      syncModalBodyClass();
     } else if (!weaponPanel.classList.contains('hidden')) {
       weaponPanel.classList.add('hidden');
+      syncModalBodyClass();
+    } else if (pauseModal && !pauseModal.classList.contains('hidden')) {
+      setPaused(false);
     } else if (game.phase === PHASES.JETPACK && game.canLocalPlayerControl()) {
       sendOrRunAction({ kind: 'stop_jetpack' }, () => game.stopJetpack());
     } else if (game.phase === PHASES.ROPE && game.canLocalPlayerControl()) {
       sendOrRunAction({ kind: 'stop_rope' }, () => game.stopRope());
     } else if (game.phase === PHASES.DRILL && game.canLocalPlayerControl()) {
       sendOrRunAction({ kind: 'stop_drill' }, () => game.stopDrill());
+    } else if (game.phase !== PHASES.SETUP && game.phase !== PHASES.GAME_OVER) {
+      setPaused(true);
     }
     return;
   }
@@ -1688,16 +1821,27 @@ canvas.addEventListener('touchcancel', () => {
 });
 
 window.addEventListener('resize', () => {
+  const w = canvas.clientWidth || window.innerWidth;
+  const h = canvas.clientHeight || window.innerHeight;
+  game.camera.resize(w, h);
   if (game.phase !== PHASES.SETUP) {
+    if ((w <= 640 || h <= 460) && game.camera.targetZoom > 0.9) {
+      game.camera.targetZoom = 0.72;
+    }
     updateHud(game);
   }
 });
+
+window.addEventListener('blur', clearDirectionalInputs);
 
 // Touch controls wiring (for QR phone players)
 document.querySelectorAll('#touch-controls [data-touch]').forEach((btn) => {
   const kind = btn.dataset.touch;
   const onDown = (e) => {
     e.preventDefault();
+    try {
+      btn.setPointerCapture(e.pointerId);
+    } catch {}
     game.sound.unlock();
     if (kind === 'arsenal') {
       toggleWeaponPanel();
@@ -1739,6 +1883,7 @@ document.querySelectorAll('#touch-controls [data-touch]').forEach((btn) => {
   btn.addEventListener('pointerdown', onDown);
   btn.addEventListener('pointerup', onUp);
   btn.addEventListener('pointercancel', onUp);
+  btn.addEventListener('lostpointercapture', onUp);
 });
 
 // Minimap pan on click/drag

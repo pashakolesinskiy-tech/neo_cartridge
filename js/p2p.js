@@ -7,7 +7,7 @@
 const P2P = {
   roomCode: '',
   selectedGame: 'stick_fighting',
-  isConnected: false,
+  _copyResetTimer: null,
 
   GAME_ROUTES: {
     stick_fighting: {
@@ -132,28 +132,15 @@ const P2P = {
       App.closeModal('p2p-modal');
     }
     if (window.App && App.cartridges && App.cartridges[gameId]) {
-      const idx = App.cartridgeOrder.indexOf(gameId);
-      if (idx >= 0) {
-        App.deckIndex = idx;
-        App.currentCartridge = gameId;
-        if (App.updateDeckDisplay) App.updateDeckDisplay();
-        if (App.updateDashboardInfo) App.updateDashboardInfo();
+      if (App.isBooting && App.cancelBoot) {
+        App.cancelBoot();
       }
-      const iframeEl = document.getElementById('game-iframe');
-      if (App.isPoweredOn && iframeEl) {
-        iframeEl.src = targetUrl;
-        iframeEl.focus();
+      if (App.isPoweredOn && App.switchRunningCartridge) {
+        App.switchRunningCartridge(gameId, targetUrl);
         return;
       }
-      if (!App.isPoweredOn && !App.isBooting && App.powerOnCartridge) {
-        App.powerOnCartridge(gameId);
-        setTimeout(() => {
-          const f = document.getElementById('game-iframe');
-          if (f) {
-            f.src = targetUrl;
-            f.focus();
-          }
-        }, 1020);
+      if (App.powerOnCartridge) {
+        App.powerOnCartridge(gameId, targetUrl);
         return;
       }
     }
@@ -174,10 +161,10 @@ const P2P = {
     if (copied) {
       const copyBtn = document.getElementById('btn-copy-p2p');
       if (copyBtn) {
-        const prev = copyBtn.textContent;
+        if (this._copyResetTimer) clearTimeout(this._copyResetTimer);
         copyBtn.textContent = '✓ Скопировано';
-        setTimeout(() => {
-          copyBtn.textContent = prev || 'Копировать ссылку';
+        this._copyResetTimer = setTimeout(() => {
+          copyBtn.textContent = 'Копировать ссылку';
         }, 2000);
       }
       this.setStatusText(`Ссылка комнаты ${this.roomCode} скопирована в буфер обмена.`, 'ok');
@@ -188,7 +175,7 @@ const P2P = {
   },
 
   joinByCode() {
-    const gameId = this.getActiveGameId();
+    let gameId = this.getActiveGameId();
     const input = document.getElementById('p2p-join-input');
     const raw = input ? input.value.trim() : '';
     if (!raw) {
@@ -198,12 +185,24 @@ const P2P = {
 
     let clean = raw;
     try {
-      if (raw.includes('http://') || raw.includes('https://') || raw.includes('?')) {
+      if (raw.includes('http://') || raw.includes('https://') || raw.includes('?') || raw.includes('#/')) {
         const parsed = new URL(raw, window.location.origin);
-        const paramCode = parsed.searchParams.get('room') || parsed.searchParams.get('join');
+        const lowPath = parsed.pathname.toLowerCase();
+        for (const id of Object.keys(this.GAME_ROUTES)) {
+          if (lowPath.includes(id)) {
+            gameId = id;
+            const sel = document.getElementById('p2p-game-select');
+            if (sel) sel.value = id;
+            this.selectedGame = id;
+            break;
+          }
+        }
+        const paramCode = parsed.searchParams.get('room') || parsed.searchParams.get('join') || parsed.searchParams.get('host');
         if (paramCode) clean = paramCode;
         else if (parsed.hash && parsed.hash.includes('/play/')) {
           clean = parsed.hash.split('/play/')[1] || '';
+        } else if (parsed.hash && parsed.hash.includes('/ship/')) {
+          clean = parsed.hash.split('/ship/')[1] || '';
         }
       }
     } catch (_) {}
@@ -226,6 +225,7 @@ const P2P = {
       statusEl.classList.add('connected');
       if (span) span.textContent = 'P2P: ПОДКЛЮЧЕНО';
     } else if (state === 'hosting') {
+      statusEl.classList.add('connected');
       if (span) span.textContent = `P2P: КОД ${this.roomCode}`;
     } else {
       statusEl.classList.remove('connected');
@@ -255,9 +255,16 @@ const P2P = {
       selectEl.addEventListener('change', () => {
         this.selectedGame = selectEl.value;
         if (this.roomCode) {
+          const expectedLen = this.selectedGame === 'pixel_drift' || this.selectedGame === 'cosmo_junk' ? 4 : 6;
+          if (this.roomCode.length !== expectedLen) {
+            this.roomCode = this.generateRoomCode(this.selectedGame);
+            const codeBadge = document.getElementById('p2p-room-code-badge');
+            if (codeBadge) codeBadge.textContent = this.roomCode;
+          }
           const inviteUrl = this.buildGuestUrl(this.selectedGame, this.roomCode);
           const codeEl = document.getElementById('p2p-share-code');
           if (codeEl) codeEl.value = inviteUrl;
+          this.updateStatusUI('hosting');
           this.setStatusText(`Ссылка обновлена для ${this.GAME_ROUTES[this.selectedGame].label}.`, 'info');
         }
       });

@@ -1148,8 +1148,8 @@ body {
 }
 
 .touch-btn {
-  min-width: 44px;
-  height: 44px;
+  min-width: 48px;
+  height: 48px;
   padding: 0 10px;
   border-radius: 12px;
   border: 1.5px solid rgba(141, 164, 204, 0.72);
@@ -1165,8 +1165,8 @@ body {
 .touch-fire {
   background: linear-gradient(180deg, rgba(255, 107, 53, 0.92), rgba(214, 48, 49, 0.92));
   border-color: var(--accent-gold);
-  min-width: 62px;
-  height: 58px;
+  min-width: 64px;
+  height: 60px;
   border-radius: 16px;
   font-size: 13px;
 }
@@ -1175,6 +1175,10 @@ body {
   body.in-battle.my-turn .touch-controls {
     display: flex !important;
   }
+}
+
+body.modal-open .touch-controls {
+  display: none !important;
 }
 
 @media (max-width: 1160px) and (min-width: 921px) {
@@ -1219,7 +1223,7 @@ body {
 
   .hud-worm-name {
     font-size: 11px;
-    max-width: 145px;
+    max-width: 88px;
     overflow: hidden;
     text-overflow: ellipsis;
   }
@@ -1255,7 +1259,7 @@ body {
   #hud-jetpack-fuel,
   .mobile-special-bar {
     position: fixed;
-    top: calc(max(6px, env(safe-area-inset-top)) + 80px);
+    top: calc(max(6px, env(safe-area-inset-top)) + 90px);
     left: 50%;
     transform: translateX(-50%);
     background: rgba(14, 19, 32, 0.92);
@@ -1263,6 +1267,12 @@ body {
     border-radius: 999px;
     padding: 3px 8px;
     z-index: 16;
+  }
+
+  body.four-teams #hud-fuse-controls,
+  body.four-teams #hud-jetpack-fuel,
+  body.four-teams .mobile-special-bar {
+    top: calc(max(6px, env(safe-area-inset-top)) + 116px);
   }
 
   .hud-center {
@@ -1352,12 +1362,13 @@ body {
   }
 
   #hud-bottom {
-    top: calc(max(6px, env(safe-area-inset-top)) + 42px);
+    top: calc(max(6px, env(safe-area-inset-top)) + 52px);
     bottom: auto;
     left: 50%;
     right: auto;
     transform: translateX(-50%);
     justify-content: center;
+    max-width: calc(100vw - 12px);
   }
 
   .team-bars {
@@ -1366,6 +1377,14 @@ body {
     background: rgba(12, 17, 29, 0.72);
     border-width: 1px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: calc(100vw - 16px);
+  }
+
+  body.four-teams .team-bar-card {
+    min-width: 72px;
+    max-width: 112px;
   }
 
   .team-bar-card {
@@ -1384,13 +1403,17 @@ body {
   }
 
   .turn-banner {
-    top: calc(max(6px, env(safe-area-inset-top)) + 76px);
+    top: calc(max(6px, env(safe-area-inset-top)) + 92px);
     font-size: 13px;
     padding: 5px 14px;
     max-width: calc(100vw - 24px);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  body.four-teams .turn-banner {
+    top: calc(max(6px, env(safe-area-inset-top)) + 120px);
   }
 
   .touch-controls {
@@ -1522,11 +1545,11 @@ body {
 
 @media (max-height: 480px) {
   .touch-btn {
-    min-width: 38px;
-    height: 36px;
-    padding: 0 7px;
+    min-width: 44px;
+    height: 44px;
+    padding: 0 8px;
     font-size: 11px;
-    border-radius: 9px;
+    border-radius: 10px;
   }
 
   .touch-col {
@@ -1534,9 +1557,9 @@ body {
   }
 
   .touch-fire {
-    min-width: 54px;
-    height: 48px;
-    border-radius: 12px;
+    min-width: 56px;
+    height: 52px;
+    border-radius: 13px;
   }
 
   .weapon-panel {
@@ -1571,9 +1594,90 @@ body {
   }
 }
 
+@media (max-height: 520px) and (min-width: 680px) {
+  .setup-modal {
+    padding: 10px 14px;
+    max-height: 94dvh;
+  }
+
+  .setup-header {
+    margin-bottom: 6px;
+  }
+
+  .logo-worms,
+  .logo-armageddon {
+    font-size: 20px;
+  }
+
+  .logo-sub {
+    display: none;
+  }
+
+  .mode-tabs {
+    margin-bottom: 8px;
+  }
+
+  .setup-grid {
+    grid-template-columns: 1.08fr 0.92fr;
+    gap: 10px;
+  }
+
+  .team-row input,
+  .team-row select,
+  .options-grid select,
+  .text-input {
+    font-size: 12px;
+    padding: 5px 8px;
+  }
+
+  .theme-grid {
+    gap: 4px;
+  }
+
+  .theme-btn {
+    padding: 5px 6px;
+    font-size: 11px;
+  }
+
+  .gameover-card,
+  .modal-card {
+    padding: 12px 16px;
+    gap: 8px;
+    max-height: 94dvh;
+    overflow-y: auto;
+  }
+}
+
+.weapon-panel,
+.setup-modal,
+.modal-card {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(141, 164, 204, 0.35) rgba(8, 12, 22, 0.45);
+}
+
+.weapon-panel::-webkit-scrollbar,
+.setup-modal::-webkit-scrollbar,
+.modal-card::-webkit-scrollbar {
+  width: 6px;
+}
+
+.weapon-panel::-webkit-scrollbar-track,
+.setup-modal::-webkit-scrollbar-track,
+.modal-card::-webkit-scrollbar-track {
+  background: rgba(8, 12, 22, 0.45);
+  border-radius: 999px;
+}
+
+.weapon-panel::-webkit-scrollbar-thumb,
+.setup-modal::-webkit-scrollbar-thumb,
+.modal-card::-webkit-scrollbar-thumb {
+  background: rgba(141, 164, 204, 0.35);
+  border-radius: 999px;
+}
+
 </style>
-  <script src="../js/landscape-guard.js?v=10"></script>
-  <script src="../js/game-hero-screen.js?v=10"></script>
+  <script src="../js/landscape-guard.js?v=12"></script>
+  <script src="../js/game-hero-screen.js?v=12"></script>
 </head>
 <body>
   <div id="app">
@@ -1640,11 +1744,12 @@ body {
           <canvas id="minimap-canvas" width="200" height="100"></canvas>
         </div>
         <div class="toolbar-btns">
-          <button id="btn-arsenal" type="button" class="hud-btn" title="Weapon Arsenal (Tab)">Arsenal</button>
-          <button id="btn-center" type="button" class="hud-btn" title="Center Camera (C)">Center</button>
-          <button id="btn-mute" type="button" class="hud-btn" title="Toggle Sound">SFX: ON</button>
-          <button id="btn-help" type="button" class="hud-btn" title="Controls (H)">?</button>
-          <button id="btn-setup" type="button" class="hud-btn" title="Match Setup (Esc)">Menu</button>
+          <button id="btn-arsenal" type="button" class="hud-btn" title="Арсенал (Tab)">Арсенал</button>
+          <button id="btn-center" type="button" class="hud-btn" title="Центр камеры (C)">Центр</button>
+          <button id="btn-pause" type="button" class="hud-btn" title="Пауза (Esc)">Пауза</button>
+          <button id="btn-mute" type="button" class="hud-btn" title="Звук Вкл/Выкл">ЗВУК: ВКЛ</button>
+          <button id="btn-help" type="button" class="hud-btn" title="Управление (H)">?</button>
+          <button id="btn-setup" type="button" class="hud-btn" title="Настройка боя">Меню</button>
         </div>
       </div>
     </header>
@@ -1681,24 +1786,24 @@ body {
       </div>
       <div class="touch-actions">
         <div class="touch-sub-btns">
-          <button type="button" class="touch-btn" data-touch="jump">Jump</button>
-          <button type="button" class="touch-btn" data-touch="backflip">Flip</button>
-          <button type="button" class="touch-btn" data-touch="arsenal">Armory</button>
+          <button type="button" class="touch-btn" data-touch="jump">Прыг</button>
+          <button type="button" class="touch-btn" data-touch="backflip">Сальто</button>
+          <button type="button" class="touch-btn" data-touch="arsenal">Арсенал</button>
         </div>
-        <button type="button" class="touch-btn touch-fire" data-touch="fire">FIRE</button>
+        <button type="button" class="touch-btn touch-fire" data-touch="fire">ОГОНЬ</button>
       </div>
     </div>
 
     <!-- Weapon Arsenal Drawer -->
-    <aside id="weapon-panel" class="weapon-panel panel-bevel hidden" aria-label="Weapon Arsenal">
+    <aside id="weapon-panel" class="weapon-panel panel-bevel hidden" aria-label="Арсенал оружия">
       <div class="weapon-panel-header">
-        <h3>ARMORY</h3>
+        <h3>АРСЕНАЛ</h3>
         <button id="btn-close-weapons" type="button" class="icon-close">✕</button>
       </div>
       <div id="weapon-grid" class="weapon-grid"></div>
       <div id="weapon-desc" class="weapon-desc">
-        <strong id="weapon-desc-title">Bazooka</strong>
-        <span id="weapon-desc-text">Classic rocket launcher. Strongly affected by wind.</span>
+        <strong id="weapon-desc-title">Базука</strong>
+        <span id="weapon-desc-text">Классический гранатомёт. Зависит от ветра.</span>
       </div>
     </aside>
 
@@ -1710,12 +1815,12 @@ body {
             <span class="logo-worms">WORMS</span>
             <span class="logo-armageddon">ARMAGEDDON</span>
           </div>
-          <p class="logo-sub">2D Destructible-Terrain Turn-Based Artillery</p>
+          <p class="logo-sub">2D Пошаговая артиллерия с разрушаемым ландшафтом</p>
         </div>
 
         <div class="mode-tabs">
-          <button type="button" id="tab-local" class="mode-tab active">Local Battle</button>
-          <button type="button" id="tab-online" class="mode-tab">Online (Host / Join)</button>
+          <button type="button" id="tab-local" class="mode-tab active">Локальный бой</button>
+          <button type="button" id="tab-online" class="mode-tab">Сеть (Хост / Гость)</button>
         </div>
 
         <div class="setup-grid">
@@ -1723,17 +1828,17 @@ body {
             <!-- Local Section -->
             <div id="local-section">
               <div class="field-group">
-                <label>Quick Mode</label>
+                <label>Быстрый режим</label>
                 <div class="preset-row">
-                  <button type="button" class="preset-btn active" data-preset="1p">1P vs AI</button>
-                  <button type="button" class="preset-btn" data-preset="2p">2P Hotseat</button>
-                  <button type="button" class="preset-btn" data-preset="4p">4-Team Mayhem</button>
+                  <button type="button" class="preset-btn active" data-preset="1p">1И vs ИИ</button>
+                  <button type="button" class="preset-btn" data-preset="2p">2И На 1 экране</button>
+                  <button type="button" class="preset-btn" data-preset="4p">4 Команды</button>
                 </div>
               </div>
 
               <div class="field-group">
                 <div class="label-row">
-                  <label>Teams (<span id="team-count-label">2</span>)</label>
+                  <label>Команды (<span id="team-count-label">2</span>)</label>
                   <div class="team-count-btns">
                     <button type="button" class="small-btn" data-teams="2">2</button>
                     <button type="button" class="small-btn" data-teams="3">3</button>
@@ -1867,8 +1972,22 @@ body {
               <div><strong>34 Weapons &amp; Utilities:</strong> Bazooka, Homing, Mortar, Cluster, Banana, Holy Grenade, Shotgun, Handgun, Uzi, Sheep, Super Sheep, Mad Cows, Toxic &amp; Ice Bombs, Petrol, Ninja Rope, Drill, Magnet, Air/Napalm/Meteor Strikes &amp; more!</div>
             </div>
 
-            <button id="btn-start-match" type="button" class="start-btn">START BATTLE</button>
+            <button id="btn-start-match" type="button" class="start-btn">В БОЙ!</button>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pause Modal -->
+    <section id="pause-modal" class="modal-backdrop hidden">
+      <div class="info-modal panel-bevel gameover-card" style="max-width:340px;">
+        <div class="gameover-title" style="font-size:1.35rem; color:var(--accent-gold);">ПАУЗА</div>
+        <div class="gameover-subtitle">Сражение приостановлено</div>
+        <div class="gameover-actions" style="flex-direction:column; gap:8px;">
+          <button id="btn-pause-resume" type="button" class="start-btn">▶ ПРОДОЛЖИТЬ</button>
+          <button id="btn-pause-restart" type="button" class="hud-btn large-btn">🔄 НОВАЯ КАРТА</button>
+          <button id="btn-pause-setup" type="button" class="hud-btn large-btn">☰ НАСТРОЙКИ БОЯ</button>
+          <button id="btn-pause-hero" type="button" class="hud-btn large-btn" style="color:#48dbfb;">★ НА ГЛАВНУЮ</button>
         </div>
       </div>
     </section>
@@ -1877,20 +1996,20 @@ body {
     <section id="help-modal" class="modal-backdrop hidden">
       <div class="info-modal panel-bevel">
         <div class="weapon-panel-header">
-          <h3>CONTROLS &amp; FIELD MANUAL</h3>
+          <h3>УПРАВЛЕНИЕ И ПРАВИЛА</h3>
           <button id="btn-close-help" type="button" class="icon-close">✕</button>
         </div>
         <div class="help-grid">
-          <div class="help-item"><span>Move Left / Right</span><kbd>A / D</kbd> or <kbd>← / →</kbd></div>
-          <div class="help-item"><span>Aim Up / Down</span><kbd>W / S</kbd> or <kbd>↑ / ↓</kbd> or <kbd>Mouse</kbd></div>
-          <div class="help-item"><span>Forward Jump</span><kbd>Q</kbd> or <kbd>Enter</kbd></div>
-          <div class="help-item"><span>High Backflip</span><kbd>E</kbd> or <kbd>Backspace</kbd></div>
-          <div class="help-item"><span>Charge &amp; Fire</span>Hold &amp; Release <kbd>Space</kbd> or <kbd>Left Click</kbd></div>
-          <div class="help-item"><span>Grenade Fuse Timer</span><kbd>1</kbd> – <kbd>5</kbd> seconds</div>
-          <div class="help-item"><span>Open / Close Armory</span><kbd>Tab</kbd> or <kbd>Right Click</kbd></div>
-          <div class="help-item"><span>Rotate Girder</span><kbd>Q / E</kbd> or <kbd>Mouse Wheel</kbd></div>
-          <div class="help-item"><span>Pan / Zoom Camera</span><kbd>Right-Drag</kbd> / <kbd>Wheel</kbd> • <kbd>C</kbd> Center</div>
-          <div class="help-item"><span>Air Strike Direction</span><kbd>← / →</kbd> before clicking target</div>
+          <div class="help-item"><span>Движение влево / вправо</span><kbd>A / D</kbd> или <kbd>← / →</kbd></div>
+          <div class="help-item"><span>Прицел вверх / вниз</span><kbd>W / S</kbd> или <kbd>↑ / ↓</kbd> или <kbd>Мышь</kbd></div>
+          <div class="help-item"><span>Прыжок вперёд</span><kbd>Q</kbd> или <kbd>Enter</kbd></div>
+          <div class="help-item"><span>Высокое сальто назад</span><kbd>E</kbd> или <kbd>Backspace</kbd></div>
+          <div class="help-item"><span>Выстрел (удержание)</span><kbd>Пробел</kbd> или <kbd>ЛКМ</kbd></div>
+          <div class="help-item"><span>Таймер гранаты</span><kbd>1</kbd> – <kbd>5</kbd> сек.</div>
+          <div class="help-item"><span>Открыть Арсенал</span><kbd>Tab</kbd> или <kbd>ПКМ</kbd></div>
+          <div class="help-item"><span>Поворот балки</span><kbd>Q / E</kbd> или <kbd>Колёсико</kbd></div>
+          <div class="help-item"><span>Камера / Зум</span><kbd>ПКМ + перетащить</kbd> • <kbd>C</kbd> Центр</div>
+          <div class="help-item"><span>Направление авиаудара</span><kbd>← / →</kbd> перед кликом</div>
         </div>
       </div>
     </section>
@@ -1898,13 +2017,14 @@ body {
     <!-- Game Over Modal -->
     <section id="gameover-modal" class="modal-backdrop hidden">
       <div class="info-modal panel-bevel gameover-card">
-        <div id="gameover-title" class="gameover-title">VICTORY!</div>
-        <div id="gameover-subtitle" class="gameover-subtitle">Red Brigade reigns supreme!</div>
+        <div id="gameover-title" class="gameover-title">ПОБЕДА!</div>
+        <div id="gameover-subtitle" class="gameover-subtitle">Команда одержала верх!</div>
         <div id="gameover-stats" class="gameover-stats"></div>
         <div id="gameover-awards" class="gameover-awards"></div>
         <div class="gameover-actions">
-          <button id="btn-play-again" type="button" class="start-btn">PLAY AGAIN (NEW MAP)</button>
-          <button id="btn-back-setup" type="button" class="hud-btn large-btn">BACK TO SETUP</button>
+          <button id="btn-play-again" type="button" class="start-btn">ИГРАТЬ СНОВА</button>
+          <button id="btn-back-setup" type="button" class="hud-btn large-btn">НАСТРОЙКИ</button>
+          <button id="btn-back-hero" type="button" class="hud-btn large-btn" style="color:#48dbfb;">★ НА ГЛАВНУЮ</button>
         </div>
       </div>
     </section>
@@ -2124,7 +2244,11 @@ class SoundEngine {
   }
 
   _canPlay() {
-    return !this.muted && this.ctx && this.ctx.state === 'running';
+    if (this.muted || !this.ctx) return false;
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+    return true;
   }
 
   _buildNoiseBuffer() {
@@ -2675,13 +2799,15 @@ class Terrain {
     const img = ctx.createImageData(width, height);
     const data = img.data;
 
-    // Precompute column surface depths for crust shading
+    // Precompute column surface depths & top exposed surface Y so caves don't spawn interior grass
     const depthAbove = new Int16Array(width * height);
+    const topSurfaceY = new Int16Array(width).fill(height);
     for (let x = 0; x < width; x++) {
       let depth = 0;
       for (let y = 0; y < height; y++) {
         const idx = y * width + x;
         if (solid[idx] === 1) {
+          if (y < topSurfaceY[x]) topSurfaceY[x] = y;
           depth++;
           depthAbove[idx] = depth;
         } else {
@@ -2708,17 +2834,18 @@ class Terrain {
 
         let r, g, b;
         const crustDepth = 9 + Math.round(Math.sin(x * 0.19) * 2);
+        const isExposedTop = y <= topSurfaceY[x] + crustDepth + 3;
 
-        if (d <= 2) {
+        if (isExposedTop && d <= 2) {
           [r, g, b] = theme.crustTop;
-        } else if (d <= crustDepth) {
+        } else if (isExposedTop && d <= crustDepth) {
           const t = (d - 2) / Math.max(1, crustDepth - 2);
           const c1 = theme.crustMain;
           const c2 = theme.crustShadow;
           r = c1[0] * (1 - t * 0.5) + c2[0] * (t * 0.5);
           g = c1[1] * (1 - t * 0.5) + c2[1] * (t * 0.5);
           b = c1[2] * (1 - t * 0.5) + c2[2] * (t * 0.5);
-        } else if (d <= crustDepth + 3) {
+        } else if (isExposedTop && d <= crustDepth + 3) {
           [r, g, b] = theme.crustShadow;
         } else {
           // Underground rock & soil strata
@@ -5549,15 +5676,20 @@ class AIController {
   __exports.AIController = AIController;
 },
 './qr.js': function(__exports, __require) {
-// Zero-dependency ISO/IEC 18004 QR Code Encoder (Versions 1-5, ECC Level L, Byte mode)
+// Zero-dependency ISO/IEC 18004 QR Code Encoder (Versions 1-10, ECC Level L, Byte mode)
 
 const VERSION_SPECS = [
   null,
-  { version: 1, size: 21, dataCW: 19, ecCW: 7, align: [] },
-  { version: 2, size: 25, dataCW: 34, ecCW: 10, align: [18] },
-  { version: 3, size: 29, dataCW: 55, ecCW: 15, align: [22] },
-  { version: 4, size: 33, dataCW: 80, ecCW: 20, align: [26] },
-  { version: 5, size: 37, dataCW: 108, ecCW: 26, align: [30] },
+  { version: 1, size: 21, dataCW: 19, groups: [[1, 19, 7]], align: [], verBits: 0, countBits: 8 },
+  { version: 2, size: 25, dataCW: 34, groups: [[1, 34, 10]], align: [6, 18], verBits: 0, countBits: 8 },
+  { version: 3, size: 29, dataCW: 55, groups: [[1, 55, 15]], align: [6, 22], verBits: 0, countBits: 8 },
+  { version: 4, size: 33, dataCW: 80, groups: [[1, 80, 20]], align: [6, 26], verBits: 0, countBits: 8 },
+  { version: 5, size: 37, dataCW: 108, groups: [[1, 108, 26]], align: [6, 30], verBits: 0, countBits: 8 },
+  { version: 6, size: 41, dataCW: 136, groups: [[2, 68, 18]], align: [6, 34], verBits: 0, countBits: 8 },
+  { version: 7, size: 45, dataCW: 156, groups: [[2, 78, 20]], align: [6, 22, 38], verBits: 0x07c94, countBits: 8 },
+  { version: 8, size: 49, dataCW: 194, groups: [[2, 97, 24]], align: [6, 24, 42], verBits: 0x085bc, countBits: 8 },
+  { version: 9, size: 53, dataCW: 232, groups: [[2, 116, 30]], align: [6, 26, 46], verBits: 0x09a99, countBits: 8 },
+  { version: 10, size: 57, dataCW: 274, groups: [[2, 68, 18], [2, 69, 18]], align: [6, 28, 50], verBits: 0x0a4d3, countBits: 16 },
 ];
 
 const GF_EXP = new Uint8Array(512);
@@ -5623,7 +5755,7 @@ function computeFormatBits(maskId) {
   return ((data << 10) | bits) ^ 0x5412;
 }
 
-function encodeDataCodewords(bytes, dataCW) {
+function encodeDataCodewords(bytes, dataCW, countBits = 8) {
   const bits = [];
   const pushBits = (val, len) => {
     for (let i = len - 1; i >= 0; i--) {
@@ -5631,9 +5763,9 @@ function encodeDataCodewords(bytes, dataCW) {
     }
   };
 
-  // Byte mode indicator (0100) + 8-bit length
+  // Byte mode indicator (0100) + 8-bit or 16-bit length
   pushBits(0b0100, 4);
-  pushBits(bytes.length, 8);
+  pushBits(bytes.length, countBits);
   for (let i = 0; i < bytes.length; i++) {
     pushBits(bytes[i], 8);
   }
@@ -5703,13 +5835,31 @@ function createMatrix(spec) {
     setFunc(i, 6, dark);
   }
 
-  // Alignment pattern (Versions 2..5 have 1 center at (a, a))
+  // Alignment pattern pairs (Versions 2..10, skipping overlaps with finders)
   for (const ar of align) {
-    for (let dr = -2; dr <= 2; dr++) {
-      for (let dc = -2; dc <= 2; dc++) {
-        const dark = Math.abs(dr) === 2 || Math.abs(dc) === 2 || (dr === 0 && dc === 0);
-        setFunc(ar + dr, ar + dc, dark);
+    for (const ac of align) {
+      const nearFinder =
+        (ar <= 8 && ac <= 8) ||
+        (ar <= 8 && ac >= size - 8) ||
+        (ar >= size - 8 && ac <= 8);
+      if (nearFinder) continue;
+      for (let dr = -2; dr <= 2; dr++) {
+        for (let dc = -2; dc <= 2; dc++) {
+          const dark = Math.abs(dr) === 2 || Math.abs(dc) === 2 || (dr === 0 && dc === 0);
+          setFunc(ar + dr, ac + dc, dark);
+        }
       }
+    }
+  }
+
+  // Version info 18-bit BCH blocks (Versions 7..10)
+  if (spec.verBits) {
+    for (let i = 0; i < 18; i++) {
+      const dark = ((spec.verBits >> i) & 1) === 1;
+      const r = Math.floor(i / 3);
+      const c = size - 11 + (i % 3);
+      setFunc(r, c, dark);
+      setFunc(c, r, dark);
     }
   }
 
@@ -5913,21 +6063,42 @@ function computePenalty(modules, size) {
 function encodeQR(text) {
   const bytes = new TextEncoder().encode(String(text));
   let spec = null;
-  for (let v = 1; v <= 5; v++) {
-    if (bytes.length <= VERSION_SPECS[v].dataCW - 2) {
-      spec = VERSION_SPECS[v];
+  for (let v = 1; v < VERSION_SPECS.length; v++) {
+    const s = VERSION_SPECS[v];
+    const headerBytes = Math.ceil((4 + s.countBits) / 8);
+    if (bytes.length + headerBytes <= s.dataCW) {
+      spec = s;
       break;
     }
   }
   if (!spec) {
-    throw new Error(`QR payload too long (${bytes.length} bytes, max 106)`);
+    throw new Error(`QR payload too long (${bytes.length} bytes, max 271)`);
   }
 
-  const data = encodeDataCodewords(bytes, spec.dataCW);
-  const ec = computeReedSolomon(data, spec.ecCW);
-  const full = new Uint8Array(data.length + ec.length);
-  full.set(data, 0);
-  full.set(ec, data.length);
+  const data = encodeDataCodewords(bytes, spec.dataCW, spec.countBits);
+  const dataBlocks = [];
+  const eccBlocks = [];
+  let offset = 0;
+  let maxDataLen = 0;
+  let maxEccLen = 0;
+  for (const [count, dLen, eLen] of spec.groups) {
+    maxDataLen = Math.max(maxDataLen, dLen);
+    maxEccLen = Math.max(maxEccLen, eLen);
+    for (let b = 0; b < count; b++) {
+      const blk = data.subarray(offset, offset + dLen);
+      offset += dLen;
+      dataBlocks.push(blk);
+      eccBlocks.push(computeReedSolomon(blk, eLen));
+    }
+  }
+  const interleaved = [];
+  for (let i = 0; i < maxDataLen; i++) {
+    for (const blk of dataBlocks) if (i < blk.length) interleaved.push(blk[i]);
+  }
+  for (let i = 0; i < maxEccLen; i++) {
+    for (const blk of eccBlocks) if (i < blk.length) interleaved.push(blk[i]);
+  }
+  const full = new Uint8Array(interleaved);
 
   const matrix = createMatrix(spec);
   placeDataBits(matrix, full);
@@ -6304,11 +6475,11 @@ class WormsP2PLink {
         if (this.peerWsQueue.length < 48) this.peerWsQueue.push(env);
       }
     }
-    const needsNtfy = msg.sig === 'join' || msg.sig === 'offer' || msg.sig === 'answer';
+    const needsNtfy = msg.sig === 'join' || msg.sig === 'offer' || msg.sig === 'answer' || (msg.sig === 'ice' && !this.peerWsOpen);
     if (needsNtfy && this.ntfyTopic && Date.now() >= this.ntfyRateLimitedUntil) {
       const tid = setTimeout(() => {
         this.ntfyTimers.delete(tid);
-        if (this.closed || !this.ntfyTopic || this.open || this.viaBc || Date.now() < this.ntfyRateLimitedUntil) return;
+        if (this.closed || !this.ntfyTopic || this.open || Date.now() < this.ntfyRateLimitedUntil) return;
         if (msg.sig === 'join') {
           if (Date.now() - this.lastNtfyJoinAt < 3500) return;
           this.lastNtfyJoinAt = Date.now();
@@ -6468,7 +6639,7 @@ class WormsP2PLink {
 
   async _handleHostSig(msg, via) {
     if (msg.sig === 'join') {
-      const stale = this.pc && !this.open && Date.now() - this.createdAt > 4000;
+      const stale = this.pc && !this.open && Date.now() - this.createdAt > 12000;
       if (this.remotePeerId && this.remotePeerId !== msg.from && (this.open || !stale)) {
         if (this.open) {
           this._broadcastSig({ sig: 'full', from: this.myId, to: msg.from });
@@ -7615,7 +7786,7 @@ class Renderer {
   _drawWormBadge(ctx, w, isActive) {
     const palette = TEAM_PALETTES[w.teamIndex] || TEAM_PALETTES[0];
     ctx.save();
-    ctx.translate(w.x, w.y - 31);
+    ctx.translate(w.x, w.y - 39);
 
     if (isActive) {
       const arrowBounce = Math.sin(this.time * 6) * 3;
@@ -8380,6 +8551,7 @@ class GameEngine {
     this.onNetEvent = options.onNetEvent || null;
     this.netRole = 'local'; // 'local' | 'host' | 'guest'
     this.localTeamIndex = -1;
+    this.paused = false;
     this._hudAccum = 0;
     this._accumulator = 0;
   }
@@ -9380,6 +9552,7 @@ class GameEngine {
         this.particles.addPopup(w.x, w.y - 24, `-${applied}`, '#ff5252', 15, 1.0);
         this._emitFx({ kind: 'popup', x: w.x, y: w.y - 24, text: `-${applied}`, color: '#ff5252', size: 15, duration: 1.0 });
         this.sound.playHurt();
+        this._emitSound('hurt');
       }
     }
 
@@ -9557,6 +9730,7 @@ class GameEngine {
   }
 
   update(frameDt) {
+    if (this.paused) return;
     if (this.phase === PHASES.SETUP || this.phase === PHASES.GAME_OVER) {
       this.camera.update(frameDt);
       this.particles.update(frameDt, this.wind);
@@ -10784,6 +10958,8 @@ const weaponDescText = document.getElementById('weapon-desc-text');
 
 const setupOverlay = document.getElementById('setup-overlay');
 const helpModal = document.getElementById('help-modal');
+const pauseModal = document.getElementById('pause-modal');
+const btnPause = document.getElementById('btn-pause');
 const gameoverModal = document.getElementById('gameover-modal');
 
 const hudTeamDot = document.getElementById('hud-team-dot');
@@ -10849,10 +11025,10 @@ const setupState = {
   theme: 'meadow',
   seed: 42069,
   teamCount: 2,
-  guestName: 'Blue Platoon',
-  hostName: 'Red Brigade',
+  guestName: 'Синий взвод',
+  hostName: 'Красная бригада',
   hasSameOriginApi: false,
-  networkAddresses: [{ name: 'Current Origin', url: window.location.origin, kind: 'local' }],
+  networkAddresses: [{ name: 'Текущий сервер', url: window.location.origin, kind: 'local' }],
   teams: [
     { name: TEAM_PALETTES[0].name, control: 'human' },
     { name: TEAM_PALETTES[1].name, control: 'ai-normal' },
@@ -10950,7 +11126,7 @@ async function loadNetworkAddresses() {
   for (const item of setupState.networkAddresses) {
     const opt = document.createElement('option');
     opt.value = item.url;
-    const tag = item.kind === 'lan' ? 'Wi-Fi / LAN' : item.kind === 'vpn' ? 'VPN' : item.kind === 'web' ? 'WebRTC P2P' : 'Local';
+    const tag = item.kind === 'lan' ? 'Wi-Fi / LAN' : item.kind === 'vpn' ? 'VPN' : item.kind === 'web' ? 'WebRTC P2P' : 'Локальный';
     opt.textContent = `[${tag}] ${item.name} (${item.ip || item.url})`;
     onlineAddrSelect.appendChild(opt);
   }
@@ -11018,15 +11194,15 @@ function updateSetupControlsState() {
   document.getElementById('opt-sd').disabled = lockSettings;
 
   if (!isOnline) {
-    btnStartMatch.textContent = 'START BATTLE';
+    btnStartMatch.textContent = 'НАЧАТЬ БОЙ';
     btnStartMatch.disabled = false;
   } else if (isHostTab) {
-    btnStartMatch.textContent = 'START ONLINE BATTLE';
+    btnStartMatch.textContent = 'НАЧАТЬ СЕТЕВОЙ БОЙ';
     btnStartMatch.disabled = !(online.role === 'host' && online.peerConnected);
     btnCreateRoom.classList.toggle('hidden', online.role === 'host');
     hostRoomCard.classList.toggle('hidden', online.role !== 'host');
   } else {
-    btnStartMatch.textContent = online.role === 'guest' ? 'WAITING FOR HOST TO START...' : 'JOIN A ROOM FIRST';
+    btnStartMatch.textContent = online.role === 'guest' ? 'ЖДЁМ СТАРТ ХОСТА...' : 'СНАЧАЛА ВОЙДИТЕ В КОМНАТУ';
     btnStartMatch.disabled = true;
     btnJoinRoom.classList.toggle('hidden', online.role === 'guest');
     btnLeaveRoom.classList.toggle('hidden', online.role !== 'guest');
@@ -11042,7 +11218,7 @@ function setStatusBox(el, text, mode = 'info') {
 
 function copyText(text, btn, originalLabel) {
   const finish = () => {
-    btn.textContent = 'Copied!';
+    btn.textContent = 'Скопировано!';
     setTimeout(() => {
       btn.textContent = originalLabel;
     }, 1300);
@@ -11113,11 +11289,11 @@ btnCreateRoom.addEventListener('click', async () => {
   try {
     await online.createRoom(hostName, getLobbyState());
     game.setNetworkMode('host', 0);
-    setStatusBox(hostStatusEl, 'Waiting for Player 2 to join via code or QR...', 'info');
+    setStatusBox(hostStatusEl, 'Ожидаем игрока 2 по коду или QR...', 'info');
     refreshInviteAndQR();
     updateSetupControlsState();
   } catch (err) {
-    setStatusBox(hostStatusEl, `Failed to create room: ${err.message}`, 'error');
+    setStatusBox(hostStatusEl, `Не удалось создать комнату: ${err.message}`, 'error');
     hostRoomCard.classList.remove('hidden');
   }
 });
@@ -11129,24 +11305,24 @@ btnCloseRoom.addEventListener('click', () => {
 });
 
 btnCopyCode.addEventListener('click', () => {
-  if (online.roomCode) copyText(online.roomCode, btnCopyCode, 'Copy Code');
+  if (online.roomCode) copyText(online.roomCode, btnCopyCode, 'Копировать код');
 });
 
 btnCopyLink.addEventListener('click', () => {
-  if (online.roomCode) copyText(getInviteUrl(), btnCopyLink, 'Copy Link');
+  if (online.roomCode) copyText(getInviteUrl(), btnCopyLink, 'Копировать ссылку');
 });
 
 async function handleJoinRoom() {
   game.sound.unlock();
   const code = extractRoomCode(joinCodeInput.value);
   if (!code) {
-    setStatusBox(joinStatusEl, 'Please enter a valid 6-character room code.', 'error');
+    setStatusBox(joinStatusEl, 'Введите корректный 6-значный код комнаты.', 'error');
     return;
   }
   joinCodeInput.value = code;
   const guestName = onlineGuestNameInput.value.trim() || TEAM_PALETTES[1].name;
   setupState.guestName = guestName;
-  setStatusBox(joinStatusEl, `Connecting to room ${code}...`, 'info');
+  setStatusBox(joinStatusEl, `Подключение к комнате ${code}...`, 'info');
   if (!setupState.hasSameOriginApi && !online.serverUrl && window.location.protocol === 'file:') {
     await loadNetworkAddresses();
   }
@@ -11158,12 +11334,12 @@ async function handleJoinRoom() {
     if (res.lobbyState) applyLobbyStateToGuestUI(res.lobbyState);
     setStatusBox(
       joinStatusEl,
-      `Connected to ${setupState.hostName}'s room (${res.code})! Waiting for Host to start...`,
+      `Подключено к ${setupState.hostName} (${res.code})! Ждём старт хоста...`,
       'ready'
     );
     updateSetupControlsState();
   } catch (err) {
-    setStatusBox(joinStatusEl, `Could not join room: ${err.message}`, 'error');
+    setStatusBox(joinStatusEl, `Не удалось войти: ${err.message}`, 'error');
     updateSetupControlsState();
   }
 }
@@ -11189,20 +11365,20 @@ online.onMessage = (msg) => {
   switch (msg.type) {
     case 'guest_joined':
       setupState.guestName = msg.guestName || TEAM_PALETTES[1].name;
-      setStatusBox(hostStatusEl, `Player 2 connected: ${setupState.guestName}! Ready to start.`, 'ready');
+      setStatusBox(hostStatusEl, `Игрок 2 подключён: ${setupState.guestName}! Можно начинать.`, 'ready');
       syncLobbyIfHost();
       updateSetupControlsState();
       break;
     case 'guest_info':
       if (msg.guestName) {
         setupState.guestName = msg.guestName;
-        setStatusBox(hostStatusEl, `Player 2 connected: ${setupState.guestName}! Ready to start.`, 'ready');
+        setStatusBox(hostStatusEl, `Игрок 2 подключён: ${setupState.guestName}! Можно начинать.`, 'ready');
       }
       break;
     case 'guest_left':
-      setStatusBox(hostStatusEl, 'Player 2 disconnected. Waiting for reconnect...', 'error');
+      setStatusBox(hostStatusEl, 'Игрок 2 отключился. Ожидаем переподключения...', 'error');
       if (game.phase !== PHASES.SETUP && game.phase !== PHASES.GAME_OVER) {
-        game.showBanner('Player 2 disconnected!', '#ff4757', 3.0);
+        game.showBanner('Игрок 2 отключился!', '#ff4757', 3.0);
       }
       updateSetupControlsState();
       break;
@@ -11214,10 +11390,10 @@ online.onMessage = (msg) => {
     case 'room_closed':
       game.setNetworkMode('local', -1);
       if (game.phase === PHASES.SETUP) {
-        setStatusBox(joinStatusEl, 'Host closed the room.', 'error');
+        setStatusBox(joinStatusEl, 'Хост закрыл комнату.', 'error');
         updateSetupControlsState();
       } else {
-        returnToSetupScreen('Host closed the room.');
+        returnToSetupScreen('Хост закрыл комнату.');
       }
       break;
     case 'match_start':
@@ -11274,7 +11450,7 @@ online.onClose = () => {
     if (game.phase === PHASES.SETUP) {
       updateSetupControlsState();
     } else {
-      returnToSetupScreen('Disconnected from server.');
+      returnToSetupScreen('Соединение потеряно.');
     }
   }
 };
@@ -11325,10 +11501,10 @@ function renderTeamRoster() {
 
     const select = document.createElement('select');
     const options = [
-      { val: 'human', label: 'Human' },
-      { val: 'ai-easy', label: 'AI (Easy)' },
-      { val: 'ai-normal', label: 'AI (Normal)' },
-      { val: 'ai-hard', label: 'AI (Hard)' },
+      { val: 'human', label: 'Игрок' },
+      { val: 'ai-easy', label: 'ИИ (Лёгкий)' },
+      { val: 'ai-normal', label: 'ИИ (Средний)' },
+      { val: 'ai-hard', label: 'ИИ (Сложный)' },
     ];
     for (const o of options) {
       const opt = document.createElement('option');
@@ -11454,13 +11630,44 @@ function closeMobileOverlays() {
   btnMobileMenu?.classList.remove('active');
 }
 
+function syncModalBodyClass() {
+  const isOpen =
+    !weaponPanel.classList.contains('hidden') ||
+    !helpModal.classList.contains('hidden') ||
+    (pauseModal && !pauseModal.classList.contains('hidden')) ||
+    !gameoverModal.classList.contains('hidden');
+  document.body.classList.toggle('modal-open', isOpen);
+}
+
+function setPaused(paused) {
+  if (paused && (game.phase === PHASES.SETUP || game.phase === PHASES.GAME_OVER)) return;
+  if (!pauseModal) return;
+  if (paused) {
+    closeMobileOverlays();
+    weaponPanel.classList.add('hidden');
+    clearDirectionalInputs();
+    const restartBtn = document.getElementById('btn-pause-restart');
+    if (restartBtn) restartBtn.disabled = game.netRole === 'guest';
+    pauseModal.classList.remove('hidden');
+    game.paused = game.netRole === 'local';
+  } else {
+    pauseModal.classList.add('hidden');
+    game.paused = false;
+  }
+  syncModalBodyClass();
+}
+
 function enterBattleScreen() {
   document.body.classList.add('in-battle');
+  document.body.classList.remove('four-teams');
   setupOverlay.classList.add('hidden');
   gameoverModal.classList.add('hidden');
   helpModal.classList.add('hidden');
+  pauseModal?.classList.add('hidden');
   weaponPanel.classList.add('hidden');
+  game.paused = false;
   closeMobileOverlays();
+  syncModalBodyClass();
   hudTop.classList.remove('hidden');
   hudBottom.classList.remove('hidden');
   const startZoom = window.innerWidth <= 640 || window.innerHeight <= 460 ? 0.72 : 1.0;
@@ -11470,11 +11677,14 @@ function enterBattleScreen() {
 }
 
 function returnToSetupScreen(notice = null) {
-  document.body.classList.remove('in-battle', 'my-turn');
+  document.body.classList.remove('in-battle', 'my-turn', 'four-teams', 'modal-open');
   clearDirectionalInputs();
   gameoverModal.classList.add('hidden');
   weaponPanel.classList.add('hidden');
   helpModal.classList.add('hidden');
+  pauseModal?.classList.add('hidden');
+  game.paused = false;
+  closeMobileOverlays();
   hudTop.classList.add('hidden');
   hudBottom.classList.add('hidden');
   setupOverlay.classList.remove('hidden');
@@ -11571,6 +11781,7 @@ function renderWeaponGrid() {
         () => game.selectWeapon(w.id)
       );
       weaponPanel.classList.add('hidden');
+      syncModalBodyClass();
       renderWeaponGrid();
     });
     weaponGrid.appendChild(slot);
@@ -11591,6 +11802,7 @@ function toggleWeaponPanel(forceState = null) {
   } else {
     weaponPanel.classList.add('hidden');
   }
+  syncModalBodyClass();
 }
 
 btnMinimapToggle?.addEventListener('click', (e) => {
@@ -11599,6 +11811,7 @@ btnMinimapToggle?.addEventListener('click', (e) => {
   closeMobileOverlays();
   if (next) {
     weaponPanel.classList.add('hidden');
+    syncModalBodyClass();
     minimapFrame.classList.add('mobile-open');
     btnMinimapToggle.classList.add('active');
   }
@@ -11610,8 +11823,29 @@ btnMobileMenu?.addEventListener('click', (e) => {
   closeMobileOverlays();
   if (next) {
     weaponPanel.classList.add('hidden');
+    syncModalBodyClass();
     toolbarBtns.classList.add('mobile-open');
     btnMobileMenu.classList.add('active');
+  }
+});
+
+window.addEventListener('pointerdown', (e) => {
+  const t = e.target;
+  if (
+    toolbarBtns?.classList.contains('mobile-open') &&
+    !toolbarBtns.contains(t) &&
+    !btnMobileMenu?.contains(t)
+  ) {
+    toolbarBtns.classList.remove('mobile-open');
+    btnMobileMenu?.classList.remove('active');
+  }
+  if (
+    minimapFrame?.classList.contains('mobile-open') &&
+    !minimapFrame.contains(t) &&
+    !btnMinimapToggle?.contains(t)
+  ) {
+    minimapFrame.classList.remove('mobile-open');
+    btnMinimapToggle?.classList.remove('active');
   }
 });
 
@@ -11657,22 +11891,73 @@ document.getElementById('btn-center').addEventListener('click', () => {
 });
 
 const btnMute = document.getElementById('btn-mute');
+function syncMuteUi() {
+  if (btnMute) btnMute.textContent = game.sound.muted ? 'ЗВУК: ВЫКЛ' : 'ЗВУК: ВКЛ';
+}
 btnMute.addEventListener('click', () => {
   closeMobileOverlays();
   game.sound.unlock();
   game.sound.setMuted(!game.sound.muted);
-  btnMute.textContent = game.sound.muted ? 'SFX: OFF' : 'SFX: ON';
+  syncMuteUi();
+});
+
+window.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'NEO_SET_MUTE') {
+    game.sound.setMuted(Boolean(e.data.muted));
+    syncMuteUi();
+  }
+});
+
+btnPause?.addEventListener('click', () => {
+  closeMobileOverlays();
+  const isOpen = pauseModal && !pauseModal.classList.contains('hidden');
+  setPaused(!isOpen);
+});
+document.getElementById('btn-pause-resume')?.addEventListener('click', () => setPaused(false));
+document.getElementById('btn-pause-restart')?.addEventListener('click', () => {
+  if (game.netRole === 'guest') return;
+  setPaused(false);
+  launchMatch(true);
+});
+document.getElementById('btn-pause-setup')?.addEventListener('click', () => {
+  setPaused(false);
+  if (online.role !== 'none') {
+    online.closeRoom();
+    game.setNetworkMode('local', -1);
+  }
+  returnToSetupScreen();
+});
+document.getElementById('btn-pause-hero')?.addEventListener('click', () => {
+  setPaused(false);
+  if (online.role !== 'none') {
+    online.closeRoom();
+    game.setNetworkMode('local', -1);
+  }
+  returnToSetupScreen();
+  window.NeoHeroLanding?.show?.();
+});
+document.getElementById('btn-back-hero')?.addEventListener('click', () => {
+  setPaused(false);
+  if (online.role !== 'none') {
+    online.closeRoom();
+    game.setNetworkMode('local', -1);
+  }
+  returnToSetupScreen();
+  window.NeoHeroLanding?.show?.();
 });
 
 document.getElementById('btn-help').addEventListener('click', () => {
   closeMobileOverlays();
   helpModal.classList.toggle('hidden');
+  syncModalBodyClass();
 });
 document.getElementById('btn-close-help').addEventListener('click', () => {
   helpModal.classList.add('hidden');
+  syncModalBodyClass();
 });
 document.getElementById('btn-setup').addEventListener('click', () => {
   closeMobileOverlays();
+  setPaused(false);
   if (online.role !== 'none') {
     online.closeRoom();
     game.setNetworkMode('local', -1);
@@ -11703,12 +11988,14 @@ function canShowTouchControls(engine) {
 function updateHud(engine) {
   if (engine.phase === PHASES.SETUP) return;
 
+  document.body.classList.toggle('four-teams', engine.teams.length > 2);
   const myTurnControls = canShowTouchControls(engine);
   const hadControls = document.body.classList.contains('my-turn');
   document.body.classList.toggle('my-turn', myTurnControls);
   if (hadControls && !myTurnControls) {
     clearDirectionalInputs();
     weaponPanel.classList.add('hidden');
+    syncModalBodyClass();
   }
 
   const team = engine.teams[engine.activeTeamIndex];
@@ -11718,7 +12005,7 @@ function updateHud(engine) {
   if (team) {
     hudTeamDot.style.background = team.palette.color;
     hudTeamDot.style.color = team.palette.color;
-    hudActiveTeam.textContent = team.isAI ? `${team.name} (AI)` : team.name;
+    hudActiveTeam.textContent = team.isAI ? `${team.name} (ИИ)` : team.name;
     hudActiveWorm.textContent = worm ? `${worm.name} • ${Math.ceil(worm.hp)} HP` : '—';
 
     const ammo = team.inventory[weapon.id] ?? 0;
@@ -11739,8 +12026,8 @@ function updateHud(engine) {
       if (mobileSpecialBar.dataset.mode !== 'girder') {
         mobileSpecialBar.dataset.mode = 'girder';
         mobileSpecialBar.innerHTML =
-          '<button type="button" class="hud-btn" data-special-act="girder-left">⟲ Rotate</button>' +
-          '<button type="button" class="hud-btn" data-special-act="girder-right">Rotate ⟳</button>';
+          '<button type="button" class="hud-btn" data-special-act="girder-left">⟲ Поворот</button>' +
+          '<button type="button" class="hud-btn" data-special-act="girder-right">Поворот ⟳</button>';
       }
       mobileSpecialBar.classList.remove('hidden');
     } else if (showSpecial && (weapon.id === 'airstrike' || weapon.id === 'napalm')) {
@@ -11748,8 +12035,8 @@ function updateHud(engine) {
       if (mobileSpecialBar.dataset.mode !== dirMode) {
         mobileSpecialBar.dataset.mode = dirMode;
         mobileSpecialBar.innerHTML =
-          `<button type="button" class="hud-btn ${engine.airstrikeDir < 0 ? 'active' : ''}" data-special-act="plane-left">← Plane</button>` +
-          `<button type="button" class="hud-btn ${engine.airstrikeDir >= 0 ? 'active' : ''}" data-special-act="plane-right">Plane →</button>`;
+          `<button type="button" class="hud-btn ${engine.airstrikeDir < 0 ? 'active' : ''}" data-special-act="plane-left">← Самолёт</button>` +
+          `<button type="button" class="hud-btn ${engine.airstrikeDir >= 0 ? 'active' : ''}" data-special-act="plane-right">Самолёт →</button>`;
       }
       mobileSpecialBar.classList.remove('hidden');
     } else {
@@ -11778,21 +12065,21 @@ function updateHud(engine) {
 
   // Timer & phase label
   let timeDisplay = Math.ceil(engine.turnTimer);
-  let label = 'TURN';
+  let label = 'ХОД';
   if (engine.phase === PHASES.RETREAT) {
-    label = 'RETREAT';
+    label = 'ОТХОД';
     timeDisplay = Math.ceil(engine.retreatTimer);
   } else if (engine.phase === PHASES.BLOWTORCH) {
-    label = 'TORCH';
+    label = 'ГОРЕЛКА';
     timeDisplay = Math.ceil(engine.blowtorchTimer);
   } else if (engine.phase === PHASES.ROPE) {
-    label = 'ROPE';
+    label = 'ВЕРЁВКА';
     timeDisplay = '•';
   } else if (engine.phase === PHASES.DRILL) {
-    label = 'DRILL';
+    label = 'БУР';
     timeDisplay = Math.ceil(engine.drillTimer);
   } else if (engine.phase === PHASES.PROJECTILE_ACTIVE || engine.phase === PHASES.RESOLVING) {
-    label = 'ACTION';
+    label = 'ВЫСТРЕЛ';
     timeDisplay = '•';
   }
   hudPhaseLabel.textContent = label;
@@ -11803,7 +12090,7 @@ function updateHud(engine) {
   );
 
   // Wind
-  hudWindVal.textContent = engine.wind === 0 ? 'CALM' : engine.wind > 0 ? `${engine.wind} →` : `← ${Math.abs(engine.wind)}`;
+  hudWindVal.textContent = engine.wind === 0 ? 'ШТИЛЬ' : engine.wind > 0 ? `${engine.wind} →` : `← ${Math.abs(engine.wind)}`;
   const pct = Math.min(50, Math.abs(engine.wind) * 0.5);
   if (engine.wind >= 0) {
     hudWindFill.style.left = '50%';
@@ -11817,8 +12104,8 @@ function updateHud(engine) {
 
   // Online badge
   if (engine.netRole === 'host' || engine.netRole === 'guest') {
-    const roleLabel = engine.netRole === 'host' ? 'HOST' : 'GUEST';
-    const turnLabel = engine.canLocalPlayerControl() ? (window.innerWidth <= 640 ? 'Turn' : 'Your Turn') : 'Wait';
+    const roleLabel = engine.netRole === 'host' ? 'ХОСТ' : 'ГОСТЬ';
+    const turnLabel = engine.canLocalPlayerControl() ? (window.innerWidth <= 640 ? 'Ход' : 'Ваш ход') : 'Ждите';
     hudOnlineBadge.textContent =
       window.innerWidth <= 640 ? `${roleLabel} • ${turnLabel}` : `${roleLabel} • ${online.roomCode || ''} • ${turnLabel}`;
     hudOnlineBadge.classList.remove('hidden');
@@ -11864,6 +12151,8 @@ function showGameOver(engine) {
   document.body.classList.remove('my-turn');
   clearDirectionalInputs();
   weaponPanel.classList.add('hidden');
+  pauseModal?.classList.add('hidden');
+  game.paused = false;
   const titleEl = document.getElementById('gameover-title');
   const subEl = document.getElementById('gameover-subtitle');
   const statsEl = document.getElementById('gameover-stats');
@@ -11873,43 +12162,55 @@ function showGameOver(engine) {
     const winTeam = engine.teams[engine.winnerTeamIndex];
     const trophyUrl = sprites.isReady() ? sprites.getIconDataUrl('items', 'trophy', 64) : null;
     titleEl.innerHTML = trophyUrl
-      ? `<img class="victory-trophy-icon" src="${trophyUrl}" alt="" /> VICTORY!`
-      : 'VICTORY!';
+      ? `<img class="victory-trophy-icon" src="${trophyUrl}" alt="" /> ПОБЕДА!`
+      : 'ПОБЕДА!';
     titleEl.style.color = winTeam.palette.color;
-    subEl.textContent = `${winTeam.name} wins the battle in ${engine.matchStats.totalTurns} turns!`;
+    subEl.textContent = `${winTeam.name} побеждает за ${engine.matchStats.totalTurns} ход.!`;
   } else {
-    titleEl.textContent = 'DRAW!';
+    titleEl.textContent = 'НИЧЬЯ!';
     titleEl.style.color = '#ffd32a';
-    subEl.textContent = 'All worms met a watery or explosive fate!';
+    subEl.textContent = 'Все червяки ушли на дно или погибли в бою!';
   }
 
   statsEl.innerHTML = '';
+  let bestHumanScore = 0;
   for (const t of engine.teams) {
+    const remHp = Math.ceil(engine.getTeamTotalHp(t.index));
+    if (!t.isAI) {
+      const s = Math.round(t.damageDealt + t.kills * 120 + remHp + (t.index === engine.winnerTeamIndex ? 500 : 0));
+      if (s > bestHumanScore) bestHumanScore = s;
+    }
     const row = document.createElement('div');
     row.className = 'gameover-stat-row';
     row.innerHTML = `
       <span style="color:${t.palette.light}">${t.name}</span>
-      <span>Damage: ${Math.round(t.damageDealt)} • KOs: ${t.kills} • Remaining HP: ${Math.ceil(engine.getTeamTotalHp(t.index))}</span>
+      <span>Урон: ${Math.round(t.damageDealt)} • Фраги: ${t.kills} • Ост. HP: ${remHp}</span>
     `;
     statsEl.appendChild(row);
+  }
+  if (bestHumanScore > 0 && window.parent && window.parent !== window) {
+    try {
+      window.parent.postMessage({ type: 'NEO_HIGHSCORE', game: 'worms_armageddon', score: bestHumanScore }, '*');
+    } catch {}
   }
 
   const topDamager = [...engine.teams].sort((a, b) => b.damageDealt - a.damageDealt)[0];
   const awards = [
-    `Demolition Expert: ${topDamager?.name || '-'} (${Math.round(topDamager?.damageDealt || 0)} dmg)`,
-    `Biggest Hit: ${engine.matchStats.biggestHit.wormName} (${engine.matchStats.biggestHit.damage} dmg)`,
-    `Crates Collected: ${engine.matchStats.cratePickups}`,
+    `Мастер разрушений: ${topDamager?.name || '-'} (${Math.round(topDamager?.damageDealt || 0)} ур.)`,
+    `Мощный удар: ${engine.matchStats.biggestHit.wormName} (${engine.matchStats.biggestHit.damage} ур.)`,
+    `Собрано ящиков: ${engine.matchStats.cratePickups}`,
   ];
   awardsEl.innerHTML = awards.map((a) => `<span class="award-pill">${a}</span>`).join('');
 
   if (engine.netRole === 'guest') {
     btnPlayAgain.disabled = true;
-    btnPlayAgain.textContent = 'WAITING FOR HOST...';
+    btnPlayAgain.textContent = 'ЖДЁМ ХОСТА...';
   } else {
     btnPlayAgain.disabled = false;
-    btnPlayAgain.textContent = 'PLAY AGAIN (NEW MAP)';
+    btnPlayAgain.textContent = 'ИГРАТЬ СНОВА (НОВАЯ КАРТА)';
   }
   gameoverModal.classList.remove('hidden');
+  syncModalBodyClass();
 }
 
 // --- Input Handling (Keyboard + Mouse + Minimap + Touch) ---
@@ -11973,14 +12274,20 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Escape') {
     if (!helpModal.classList.contains('hidden')) {
       helpModal.classList.add('hidden');
+      syncModalBodyClass();
     } else if (!weaponPanel.classList.contains('hidden')) {
       weaponPanel.classList.add('hidden');
+      syncModalBodyClass();
+    } else if (pauseModal && !pauseModal.classList.contains('hidden')) {
+      setPaused(false);
     } else if (game.phase === PHASES.JETPACK && game.canLocalPlayerControl()) {
       sendOrRunAction({ kind: 'stop_jetpack' }, () => game.stopJetpack());
     } else if (game.phase === PHASES.ROPE && game.canLocalPlayerControl()) {
       sendOrRunAction({ kind: 'stop_rope' }, () => game.stopRope());
     } else if (game.phase === PHASES.DRILL && game.canLocalPlayerControl()) {
       sendOrRunAction({ kind: 'stop_drill' }, () => game.stopDrill());
+    } else if (game.phase !== PHASES.SETUP && game.phase !== PHASES.GAME_OVER) {
+      setPaused(true);
     }
     return;
   }
@@ -12450,16 +12757,27 @@ canvas.addEventListener('touchcancel', () => {
 });
 
 window.addEventListener('resize', () => {
+  const w = canvas.clientWidth || window.innerWidth;
+  const h = canvas.clientHeight || window.innerHeight;
+  game.camera.resize(w, h);
   if (game.phase !== PHASES.SETUP) {
+    if ((w <= 640 || h <= 460) && game.camera.targetZoom > 0.9) {
+      game.camera.targetZoom = 0.72;
+    }
     updateHud(game);
   }
 });
+
+window.addEventListener('blur', clearDirectionalInputs);
 
 // Touch controls wiring (for QR phone players)
 document.querySelectorAll('#touch-controls [data-touch]').forEach((btn) => {
   const kind = btn.dataset.touch;
   const onDown = (e) => {
     e.preventDefault();
+    try {
+      btn.setPointerCapture(e.pointerId);
+    } catch {}
     game.sound.unlock();
     if (kind === 'arsenal') {
       toggleWeaponPanel();
@@ -12501,6 +12819,7 @@ document.querySelectorAll('#touch-controls [data-touch]').forEach((btn) => {
   btn.addEventListener('pointerdown', onDown);
   btn.addEventListener('pointerup', onUp);
   btn.addEventListener('pointercancel', onUp);
+  btn.addEventListener('lostpointercapture', onUp);
 });
 
 // Minimap pan on click/drag

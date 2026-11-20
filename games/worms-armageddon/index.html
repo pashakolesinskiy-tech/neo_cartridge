@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Worms Armageddon — Artillery Web Edition</title>
   <link rel="stylesheet" href="styles.css" />
+  <script src="../js/landscape-guard.js?v=12"></script>
+  <script src="../js/game-hero-screen.js?v=12"></script>
 </head>
 <body>
   <div id="app">
@@ -71,11 +73,12 @@
           <canvas id="minimap-canvas" width="200" height="100"></canvas>
         </div>
         <div class="toolbar-btns">
-          <button id="btn-arsenal" type="button" class="hud-btn" title="Weapon Arsenal (Tab)">Arsenal</button>
-          <button id="btn-center" type="button" class="hud-btn" title="Center Camera (C)">Center</button>
-          <button id="btn-mute" type="button" class="hud-btn" title="Toggle Sound">SFX: ON</button>
-          <button id="btn-help" type="button" class="hud-btn" title="Controls (H)">?</button>
-          <button id="btn-setup" type="button" class="hud-btn" title="Match Setup (Esc)">Menu</button>
+          <button id="btn-arsenal" type="button" class="hud-btn" title="Арсенал (Tab)">Арсенал</button>
+          <button id="btn-center" type="button" class="hud-btn" title="Центр камеры (C)">Центр</button>
+          <button id="btn-pause" type="button" class="hud-btn" title="Пауза (Esc)">Пауза</button>
+          <button id="btn-mute" type="button" class="hud-btn" title="Звук Вкл/Выкл">ЗВУК: ВКЛ</button>
+          <button id="btn-help" type="button" class="hud-btn" title="Управление (H)">?</button>
+          <button id="btn-setup" type="button" class="hud-btn" title="Настройка боя">Меню</button>
         </div>
       </div>
     </header>
@@ -112,24 +115,24 @@
       </div>
       <div class="touch-actions">
         <div class="touch-sub-btns">
-          <button type="button" class="touch-btn" data-touch="jump">Jump</button>
-          <button type="button" class="touch-btn" data-touch="backflip">Flip</button>
-          <button type="button" class="touch-btn" data-touch="arsenal">Armory</button>
+          <button type="button" class="touch-btn" data-touch="jump">Прыг</button>
+          <button type="button" class="touch-btn" data-touch="backflip">Сальто</button>
+          <button type="button" class="touch-btn" data-touch="arsenal">Арсенал</button>
         </div>
-        <button type="button" class="touch-btn touch-fire" data-touch="fire">FIRE</button>
+        <button type="button" class="touch-btn touch-fire" data-touch="fire">ОГОНЬ</button>
       </div>
     </div>
 
     <!-- Weapon Arsenal Drawer -->
-    <aside id="weapon-panel" class="weapon-panel panel-bevel hidden" aria-label="Weapon Arsenal">
+    <aside id="weapon-panel" class="weapon-panel panel-bevel hidden" aria-label="Арсенал оружия">
       <div class="weapon-panel-header">
-        <h3>ARMORY</h3>
+        <h3>АРСЕНАЛ</h3>
         <button id="btn-close-weapons" type="button" class="icon-close">✕</button>
       </div>
       <div id="weapon-grid" class="weapon-grid"></div>
       <div id="weapon-desc" class="weapon-desc">
-        <strong id="weapon-desc-title">Bazooka</strong>
-        <span id="weapon-desc-text">Classic rocket launcher. Strongly affected by wind.</span>
+        <strong id="weapon-desc-title">Базука</strong>
+        <span id="weapon-desc-text">Классический гранатомёт. Зависит от ветра.</span>
       </div>
     </aside>
 
@@ -141,12 +144,12 @@
             <span class="logo-worms">WORMS</span>
             <span class="logo-armageddon">ARMAGEDDON</span>
           </div>
-          <p class="logo-sub">2D Destructible-Terrain Turn-Based Artillery</p>
+          <p class="logo-sub">2D Пошаговая артиллерия с разрушаемым ландшафтом</p>
         </div>
 
         <div class="mode-tabs">
-          <button type="button" id="tab-local" class="mode-tab active">Local Battle</button>
-          <button type="button" id="tab-online" class="mode-tab">Online (Host / Join)</button>
+          <button type="button" id="tab-local" class="mode-tab active">Локальный бой</button>
+          <button type="button" id="tab-online" class="mode-tab">Сеть (Хост / Гость)</button>
         </div>
 
         <div class="setup-grid">
@@ -154,17 +157,17 @@
             <!-- Local Section -->
             <div id="local-section">
               <div class="field-group">
-                <label>Quick Mode</label>
+                <label>Быстрый режим</label>
                 <div class="preset-row">
-                  <button type="button" class="preset-btn active" data-preset="1p">1P vs AI</button>
-                  <button type="button" class="preset-btn" data-preset="2p">2P Hotseat</button>
-                  <button type="button" class="preset-btn" data-preset="4p">4-Team Mayhem</button>
+                  <button type="button" class="preset-btn active" data-preset="1p">1И vs ИИ</button>
+                  <button type="button" class="preset-btn" data-preset="2p">2И На 1 экране</button>
+                  <button type="button" class="preset-btn" data-preset="4p">4 Команды</button>
                 </div>
               </div>
 
               <div class="field-group">
                 <div class="label-row">
-                  <label>Teams (<span id="team-count-label">2</span>)</label>
+                  <label>Команды (<span id="team-count-label">2</span>)</label>
                   <div class="team-count-btns">
                     <button type="button" class="small-btn" data-teams="2">2</button>
                     <button type="button" class="small-btn" data-teams="3">3</button>
@@ -298,8 +301,22 @@
               <div><strong>34 Weapons &amp; Utilities:</strong> Bazooka, Homing, Mortar, Cluster, Banana, Holy Grenade, Shotgun, Handgun, Uzi, Sheep, Super Sheep, Mad Cows, Toxic &amp; Ice Bombs, Petrol, Ninja Rope, Drill, Magnet, Air/Napalm/Meteor Strikes &amp; more!</div>
             </div>
 
-            <button id="btn-start-match" type="button" class="start-btn">START BATTLE</button>
+            <button id="btn-start-match" type="button" class="start-btn">В БОЙ!</button>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pause Modal -->
+    <section id="pause-modal" class="modal-backdrop hidden">
+      <div class="info-modal panel-bevel gameover-card" style="max-width:340px;">
+        <div class="gameover-title" style="font-size:1.35rem; color:var(--accent-gold);">ПАУЗА</div>
+        <div class="gameover-subtitle">Сражение приостановлено</div>
+        <div class="gameover-actions" style="flex-direction:column; gap:8px;">
+          <button id="btn-pause-resume" type="button" class="start-btn">▶ ПРОДОЛЖИТЬ</button>
+          <button id="btn-pause-restart" type="button" class="hud-btn large-btn">🔄 НОВАЯ КАРТА</button>
+          <button id="btn-pause-setup" type="button" class="hud-btn large-btn">☰ НАСТРОЙКИ БОЯ</button>
+          <button id="btn-pause-hero" type="button" class="hud-btn large-btn" style="color:#48dbfb;">★ НА ГЛАВНУЮ</button>
         </div>
       </div>
     </section>
@@ -308,20 +325,20 @@
     <section id="help-modal" class="modal-backdrop hidden">
       <div class="info-modal panel-bevel">
         <div class="weapon-panel-header">
-          <h3>CONTROLS &amp; FIELD MANUAL</h3>
+          <h3>УПРАВЛЕНИЕ И ПРАВИЛА</h3>
           <button id="btn-close-help" type="button" class="icon-close">✕</button>
         </div>
         <div class="help-grid">
-          <div class="help-item"><span>Move Left / Right</span><kbd>A / D</kbd> or <kbd>← / →</kbd></div>
-          <div class="help-item"><span>Aim Up / Down</span><kbd>W / S</kbd> or <kbd>↑ / ↓</kbd> or <kbd>Mouse</kbd></div>
-          <div class="help-item"><span>Forward Jump</span><kbd>Q</kbd> or <kbd>Enter</kbd></div>
-          <div class="help-item"><span>High Backflip</span><kbd>E</kbd> or <kbd>Backspace</kbd></div>
-          <div class="help-item"><span>Charge &amp; Fire</span>Hold &amp; Release <kbd>Space</kbd> or <kbd>Left Click</kbd></div>
-          <div class="help-item"><span>Grenade Fuse Timer</span><kbd>1</kbd> – <kbd>5</kbd> seconds</div>
-          <div class="help-item"><span>Open / Close Armory</span><kbd>Tab</kbd> or <kbd>Right Click</kbd></div>
-          <div class="help-item"><span>Rotate Girder</span><kbd>Q / E</kbd> or <kbd>Mouse Wheel</kbd></div>
-          <div class="help-item"><span>Pan / Zoom Camera</span><kbd>Right-Drag</kbd> / <kbd>Wheel</kbd> • <kbd>C</kbd> Center</div>
-          <div class="help-item"><span>Air Strike Direction</span><kbd>← / →</kbd> before clicking target</div>
+          <div class="help-item"><span>Движение влево / вправо</span><kbd>A / D</kbd> или <kbd>← / →</kbd></div>
+          <div class="help-item"><span>Прицел вверх / вниз</span><kbd>W / S</kbd> или <kbd>↑ / ↓</kbd> или <kbd>Мышь</kbd></div>
+          <div class="help-item"><span>Прыжок вперёд</span><kbd>Q</kbd> или <kbd>Enter</kbd></div>
+          <div class="help-item"><span>Высокое сальто назад</span><kbd>E</kbd> или <kbd>Backspace</kbd></div>
+          <div class="help-item"><span>Выстрел (удержание)</span><kbd>Пробел</kbd> или <kbd>ЛКМ</kbd></div>
+          <div class="help-item"><span>Таймер гранаты</span><kbd>1</kbd> – <kbd>5</kbd> сек.</div>
+          <div class="help-item"><span>Открыть Арсенал</span><kbd>Tab</kbd> или <kbd>ПКМ</kbd></div>
+          <div class="help-item"><span>Поворот балки</span><kbd>Q / E</kbd> или <kbd>Колёсико</kbd></div>
+          <div class="help-item"><span>Камера / Зум</span><kbd>ПКМ + перетащить</kbd> • <kbd>C</kbd> Центр</div>
+          <div class="help-item"><span>Направление авиаудара</span><kbd>← / →</kbd> перед кликом</div>
         </div>
       </div>
     </section>
@@ -329,13 +346,14 @@
     <!-- Game Over Modal -->
     <section id="gameover-modal" class="modal-backdrop hidden">
       <div class="info-modal panel-bevel gameover-card">
-        <div id="gameover-title" class="gameover-title">VICTORY!</div>
-        <div id="gameover-subtitle" class="gameover-subtitle">Red Brigade reigns supreme!</div>
+        <div id="gameover-title" class="gameover-title">ПОБЕДА!</div>
+        <div id="gameover-subtitle" class="gameover-subtitle">Команда одержала верх!</div>
         <div id="gameover-stats" class="gameover-stats"></div>
         <div id="gameover-awards" class="gameover-awards"></div>
         <div class="gameover-actions">
-          <button id="btn-play-again" type="button" class="start-btn">PLAY AGAIN (NEW MAP)</button>
-          <button id="btn-back-setup" type="button" class="hud-btn large-btn">BACK TO SETUP</button>
+          <button id="btn-play-again" type="button" class="start-btn">ИГРАТЬ СНОВА</button>
+          <button id="btn-back-setup" type="button" class="hud-btn large-btn">НАСТРОЙКИ</button>
+          <button id="btn-back-hero" type="button" class="hud-btn large-btn" style="color:#48dbfb;">★ НА ГЛАВНУЮ</button>
         </div>
       </div>
     </section>

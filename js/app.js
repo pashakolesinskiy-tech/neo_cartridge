@@ -1,6 +1,6 @@
 /**
  * NEO-CARTRIDGE // Главный контроллер ретро-консоли (App Orchestrator)
- * Slay-the-Spire Vertical Card Slider, Physical Slot Insertion/Ejection, CRT Shader & P2P
+ * Vertical Card Slider, Physical Slot Insertion/Ejection, CRT Shader, Audio/Score Bridge & P2P
  */
 
 const App = {
@@ -9,7 +9,8 @@ const App = {
   cartridgeOrder: ['stick_fighting', 'pixel_drift', 'chrono_blade', 'mecha_siege', 'worms_armageddon', 'cosmo_junk'],
   isPoweredOn: false,
   isBooting: false,
-  isPaused: false,
+  bootTimer: null,
+  ejectTimer: null,
 
   // Slider State
   isDraggingDeck: false,
@@ -23,7 +24,7 @@ const App = {
     stick_fighting: {
       id: "stick_fighting",
       name: "STICK_FIGHTING",
-      genre: "2D Pixel Fighter (Phaser 3)",
+      genre: "2D Pixel Fighter",
       type: "iframe",
       src: "games/stick_fighting.html",
       preloaded: false,
@@ -40,7 +41,7 @@ const App = {
       preloaded: false,
       sizeKb: 0,
       desc: "Аркадные кольцевые гонки с физикой скольжения, дымом из-под колес, Web Audio синтезом звука мотора, прокачкой болидов и P2P/Room мультиплеером без сервера.",
-      controls: "WASD / Стрелки — Газ/Тормоз/Руль, ПРОБЕЛ — Ручник (Drift), R — Сброс трассы"
+      controls: "WASD / Стрелки — Руль/Газ/Тормоз, ПРОБЕЛ — Дрифт/Нитро, M/O — Масло, R — Сброс"
     },
     chrono_blade: {
       id: "chrono_blade",
@@ -50,8 +51,8 @@ const App = {
       src: "games/chrono_blade.html",
       preloaded: false,
       sizeKb: 0,
-      desc: "Высокоскоростной кибер-стикман слэшер в духе Xiao Xiao: отражение пуль катаной, рывки сквозь врагов, замедление времени (Bullet-Time), прокачка кибер-чипов и мультиплеер (Hot-Seat / WebRTC P2P).",
-      controls: "WASD / Стрелки — Бег, J / Z / Пробел — Удар (Авто-прицел!), K / X — Рывок, L / C / Q — Замедление | Сенсорный джойстик на мобилках"
+      desc: "Высокоскоростной кибер-стикман слэшер: отражение пуль катаной, рывки сквозь врагов, замедление времени (Bullet-Time), прокачка кибер-чипов и дуэль Hot-Seat / P2P.",
+      controls: "WASD / Стрелки — Бег, ЛКМ / J / Space — Удар, K / X — Рывок, Shift / Q — Время"
     },
     mecha_siege: {
       id: "mecha_siege",
@@ -61,8 +62,8 @@ const App = {
       src: "games/mecha_siege.html",
       preloaded: false,
       sizeKb: 0,
-      desc: "Тактический дизельпанк Tower Defense в 16-битном стиле: 5 типов мехо-турелей с апгрейдами, волны шагоходов и танков, орбитальное супер-оружие и Кооператив 2P (Hot-Seat / WebRTC P2P) без сервера.",
-      controls: "WASD / Стрелки — Выбор слота, 1-5 / J-I — Быстрая стройка, Пробел — Апгрейд, Q/E/R — Супер-оружие | Сенсорный трей на смартфонах"
+      desc: "Тактический дизельпанк Tower Defense: 5 типов турелей с ветками апгрейдов, волны шагоходов и боссов, орбитальное супер-оружие и кооператив 2P без сервера.",
+      controls: "WASD / Стрелки — Выбор слота, 1-5 — Стройка, Пробел — Апгрейд, Q/E/R — Залп"
     },
     worms_armageddon: {
       id: "worms_armageddon",
@@ -72,29 +73,44 @@ const App = {
       src: "games/worms_armageddon.html",
       preloaded: false,
       sizeKb: 0,
-      desc: "Полноценная пошаговая артиллерия в духе Worms Armageddon! Разрушаемый рельеф (4 биома), 34 вида оружия со спрайтами (Базука, Миномёт, Святая Граната, Овца, Супер-овца, Бешеные коровы, Напалм, Метеорит, Верёвка ниндзя, Дрель, Яд, Лёд и др.), баллистический ИИ, Hot-Seat до 4 команд и онлайн-комнаты по коду или QR.",
-      controls: "←/→ Ходьба, ↑/↓ Прицел, Q Прыжок, E Кувырок, Space/Клик Заряд и огонь, Tab/ПКМ Арсенал | На телефоне: тач-пульт и мультитач"
+      desc: "Полноценная пошаговая артиллерия с разрушаемым миром: 4 биома, 34 вида оружия (Базука, Святая Граната, Овца, Напалм, Верёвка), баллистический ИИ, Hot-Seat до 4 команд и P2P.",
+      controls: "←/→ Ходьба, ↑/↓ Прицел, Q Прыжок, E Кувырок, Space/Клик Заряд, Tab/ПКМ Арсенал"
     },
     cosmo_junk: {
       id: "cosmo_junk",
       name: "COSMO JUNK",
-      genre: "Co-op Space Arena (Zero-Server + Crew Deck)",
+      genre: "Co-op Space Arena (4-Role Crew)",
       type: "iframe",
       src: "games/cosmo_junk.html",
       preloaded: false,
       sizeKb: 0,
-      desc: "Кооперативная космическая арена: комнаты по коду, 4 роли экипажа (Пилот, Инженер, Стрелок, Штурман) с автозаменой ИИ-ботами, встроенный пульт управления прямо на экране и Зал Славы. Работает полностью автономно в браузере без внешнего сервера.",
-      controls: "Создать корабль | Кнопка «🎮 ПУЛЬТ ЭКИПАЖА» сверху открывает встроенный пульт роли (P1–P4) | «↗ 2-Й ЭКРАН» — пульт в соседней вкладке"
+      desc: "Кооперативная космическая арена: комнаты по коду, 4 роли экипажа (Пилот, Инженер, Канонир, Штурман) с умными ИИ-ботами, встроенный пульт прямо на экране и Зал Славы.",
+      controls: "Создать корабль | «🎮 ПУЛЬТ ЭКИПАЖА» — встроенный пульт (P1–P4) | QR для телефонов"
     }
   },
 
   init() {
     Storage.init();
-    Sound.init();
     P2P.init();
+
+    // Восстановить сохранённые настройки CRT и звука
+    const screenHousing = document.getElementById('screen-housing');
+    if (screenHousing) {
+      screenHousing.classList.toggle('crt-active', Storage.data.settings.crtFilter !== false);
+    }
+    Sound.setMuted(Storage.data.settings.soundEnabled === false, false);
 
     this.setupDeckEvents();
     this.setupKeyboardShortcuts();
+    this.setupGameBridge();
+    Storage.setupDropZone();
+
+    const iframeEl = document.getElementById('game-iframe');
+    if (iframeEl) {
+      iframeEl.addEventListener('load', () => {
+        Sound.syncIframeMute();
+      });
+    }
 
     const backdrop = document.getElementById('console-backdrop');
     if (backdrop) {
@@ -105,7 +121,7 @@ const App = {
 
     const hintSpan = document.querySelector('.deck-hint-bar span');
     if (hintSpan && (window.innerWidth <= 899 || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0))) {
-      hintSpan.textContent = 'Свайп вверх/вниз или кнопки ниже • Тап по карте — запуск';
+      hintSpan.textContent = 'Свайп вверх/вниз или чипы ниже • Тап по карте — запуск';
     }
 
     const gameParam = new URLSearchParams(window.location.search).get('game');
@@ -120,23 +136,50 @@ const App = {
       }
     });
 
-    // Фоновая предзагрузка всех ROM-картриджей в память
     this.initPreloader();
-
-    // Начальный запуск в режиме меню (консоль выключена, слайдер активен)
     this.updateDeckDisplay();
     this.updateDashboardInfo();
     this.updateSettingsUI();
     this.renderAchievementsModal();
   },
 
+  setupGameBridge() {
+    window.addEventListener('message', (event) => {
+      const msg = event && event.data;
+      if (!msg || typeof msg !== 'object') return;
+
+      if (msg.type === 'NEO_HIGHSCORE') {
+        const gameId = String(msg.game || this.currentCartridge || '');
+        const score = Math.floor(Number(msg.score) || 0);
+        if (this.cartridges[gameId] && score > 0) {
+          const isNewRecord = Storage.updateHighscore(gameId, score);
+          if (gameId === this.currentCartridge) {
+            const recordEl = document.getElementById('slot-game-record');
+            if (recordEl) recordEl.textContent = Storage.getHighscore(gameId);
+          }
+          if (isNewRecord && !document.body.classList.contains('game-playing')) {
+            Storage.showAchievementToast({
+              icon: '🏆',
+              tag: '// НОВЫЙ РЕКОРД',
+              title: `${this.cartridges[gameId].name}`,
+              desc: `Лучший счёт: ${score}`
+            });
+          }
+        }
+      } else if (msg.type === 'NEO_EXIT_GAME') {
+        this.powerOffConsole(true);
+      } else if (msg.type === 'NEO_REQUEST_MUTE_STATE') {
+        Sound.syncIframeMute();
+      }
+    });
+  },
+
   setupDeckEvents() {
-    const stage = document.getElementById('deck-stage') || document.getElementById('vertical-card-stack');
+    const stage = document.getElementById('deck-stage');
     const channel = document.getElementById('deck-slider-channel');
     const thumb = document.getElementById('deck-slider-thumb');
     if (!stage) return;
 
-    // --- 1. DRAGGING THE CARDS VIEWPORT (Live 1:1 Motion with Touch & Mouse) ---
     const onDragStart = (clientY) => {
       if (this.isPoweredOn || this.isBooting) return;
       this.isDraggingDeck = true;
@@ -164,14 +207,12 @@ const App = {
       document.body.classList.remove('is-deck-dragging');
 
       const dt = Math.max(1, Date.now() - this.dragStartTime);
-      const velocity = this.dragDeltaY / dt; // px per ms
+      const velocity = this.dragDeltaY / dt;
 
       let targetIndex = this.deckIndex;
       if (this.dragDeltaY < -35 || velocity < -0.32) {
-        // Dragged up -> advance down to next card
         targetIndex = Math.min(this.cartridgeOrder.length - 1, this.deckIndex + 1);
       } else if (this.dragDeltaY > 35 || velocity > 0.32) {
-        // Dragged down -> advance up to prev card
         targetIndex = Math.max(0, this.deckIndex - 1);
       }
 
@@ -179,7 +220,6 @@ const App = {
       this.setDeckIndex(targetIndex);
     };
 
-    // Touch events for card dragging
     stage.addEventListener('touchstart', (e) => {
       if (e.target.closest('#deck-slider-rail')) return;
       onDragStart(e.touches[0].clientY);
@@ -195,8 +235,10 @@ const App = {
     window.addEventListener('touchend', () => {
       if (this.isDraggingDeck) onDragEnd();
     });
+    window.addEventListener('touchcancel', () => {
+      if (this.isDraggingDeck) onDragEnd();
+    });
 
-    // Mouse events for card dragging
     stage.addEventListener('mousedown', (e) => {
       if (e.button !== 0) return;
       if (e.target.closest('#deck-slider-rail')) return;
@@ -204,16 +246,13 @@ const App = {
     });
 
     window.addEventListener('mousemove', (e) => {
-      if (this.isDraggingDeck) {
-        onDragMove(e.clientY);
-      }
+      if (this.isDraggingDeck) onDragMove(e.clientY);
     });
 
     window.addEventListener('mouseup', () => {
       if (this.isDraggingDeck) onDragEnd();
     });
 
-    // --- 2. SLIDER CHANNEL / THUMB DRAGGING & CLICKING ---
     if (channel) {
       const handleChannelClick = (e) => {
         if (this.isPoweredOn || this.isBooting) return;
@@ -257,7 +296,7 @@ const App = {
           Sound.playCarouselTick();
           this.updateDashboardInfo();
         }
-        this.updateDeckDisplay(false);
+        this.updateDeckDisplay(true);
       };
 
       window.addEventListener('mousemove', (e) => {
@@ -275,15 +314,15 @@ const App = {
         if (this.isDraggingThumb) {
           this.isDraggingThumb = false;
           document.body.classList.remove('is-thumb-dragging');
-          this.updateDeckDisplay();
+          this.updateDeckDisplay(false);
         }
       };
 
       window.addEventListener('mouseup', onThumbEnd);
       window.addEventListener('touchend', onThumbEnd);
+      window.addEventListener('touchcancel', onThumbEnd);
     }
 
-    // --- 3. MOUSE WHEEL SCROLLING ---
     let wheelDebounce = 0;
     stage.addEventListener('wheel', (e) => {
       if (this.isPoweredOn || this.isBooting) return;
@@ -297,43 +336,37 @@ const App = {
 
   setupKeyboardShortcuts() {
     document.addEventListener('keydown', (e) => {
-      // Закрытие модалок по Escape
       const activeModal = document.querySelector('.console-modal.open');
       if (e.key === 'Escape') {
         if (activeModal) {
           this.closeModal(activeModal.id);
           return;
         }
-        // Если игра запущена — выключить/извлечь картридж
-        if (this.isPoweredOn && !this.isBooting) {
-          this.powerOffConsole();
+        if (this.isPoweredOn || this.isBooting) {
+          this.powerOffConsole(true);
           return;
         }
       }
 
-      // Навигация по вертикальному слайдеру карт (только когда консоль в режиме меню)
       if (!this.isPoweredOn && !this.isBooting && !activeModal) {
+        const ae = document.activeElement;
+        const tag = ae && ae.tagName ? ae.tagName.toUpperCase() : '';
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'OPTION') {
+          return;
+        }
+        const isInteractive = tag === 'BUTTON' || tag === 'A';
+
         if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W' || e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
           e.preventDefault();
           this.rotateDeck(-1);
         } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S' || e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
           e.preventDefault();
           this.rotateDeck(1);
-        } else if (e.key === 'Enter' || e.key === ' ') {
+        } else if ((e.key === 'Enter' || e.key === ' ') && !isInteractive) {
           e.preventDefault();
           this.powerOnCartridge();
-        } else if (e.key === '1') {
-          this.setDeckIndex(0);
-        } else if (e.key === '2') {
-          this.setDeckIndex(1);
-        } else if (e.key === '3') {
-          this.setDeckIndex(2);
-        } else if (e.key === '4') {
-          this.setDeckIndex(3);
-        } else if (e.key === '5') {
-          this.setDeckIndex(4);
-        } else if (e.key === '6') {
-          this.setDeckIndex(5);
+        } else if (e.key >= '1' && e.key <= '6') {
+          this.setDeckIndex(parseInt(e.key, 10) - 1);
         }
       }
     });
@@ -362,7 +395,6 @@ const App = {
     Sound.playCarouselTick();
     this.updateDeckDisplay();
     this.updateDashboardInfo();
-    this.warmupActiveIframe();
   },
 
   onCardClick(index) {
@@ -372,30 +404,38 @@ const App = {
       return;
     }
     if (index === this.deckIndex) {
-      // Клик по уже активной (центрированной) карте — вставляет в слот и включает консоль!
       this.powerOnCartridge();
     } else {
-      // Клик по другой карте — плавно сдвигает слайдер к ней!
       this.setDeckIndex(index);
     }
+  },
+
+  onDockClick(index) {
+    const gameId = this.cartridgeOrder[index];
+    if (!gameId) return;
+    if (this.isPoweredOn || this.isBooting) {
+      this.selectCartridge(gameId);
+      return;
+    }
+    this.onCardClick(index);
   },
 
   updateDeckDisplay(isLiveDrag = false) {
     const cards = document.querySelectorAll('.sts-card');
     const totalCards = this.cartridgeOrder.length;
     const vw = window.innerWidth;
-    const spacing = vw <= 480 ? 112 : (vw <= 768 ? 124 : 145);
-    const baseScale = vw <= 420 ? 0.98 : (vw <= 600 ? 1.0 : 1.05);
+    const vh = window.innerHeight;
+    const isShortLand = vh <= 500 && vw > vh;
+    const spacing = isShortLand ? 96 : (vw <= 480 ? 110 : (vw <= 768 ? 120 : 145));
+    const baseScale = isShortLand ? 0.96 : (vw <= 420 ? 0.96 : (vw <= 600 ? 0.98 : 1.05));
 
-    // Текущий непрерывный прогресс слайдера
     let currentProgress = this.deckIndex;
     if (isLiveDrag && this.isDraggingDeck) {
-      currentProgress = this.deckIndex - (this.dragDeltaY / spacing);
-      // Мягкое сопротивление на краях диапазона (rubber-band)
+      currentProgress = this.deckIndex - this.dragDeltaY / spacing;
       if (currentProgress < 0) {
         currentProgress = currentProgress * 0.28;
       } else if (currentProgress > totalCards - 1) {
-        currentProgress = (totalCards - 1) + (currentProgress - (totalCards - 1)) * 0.28;
+        currentProgress = totalCards - 1 + (currentProgress - (totalCards - 1)) * 0.28;
       }
     }
 
@@ -404,7 +444,6 @@ const App = {
       const offset = idx - currentProgress;
       const absOffset = Math.abs(offset);
 
-      // Физика вертикального 3D слайдера
       const posY = offset * spacing;
       const scale = Math.max(0.68, baseScale - absOffset * 0.16);
       const rotX = -offset * 6.5;
@@ -412,7 +451,7 @@ const App = {
       const opacity = Math.max(0.12, 1.0 - absOffset * 0.44);
       const zIndex = Math.round(50 - absOffset * 10);
       const isCenter = absOffset < 0.35;
-      const posX = vw <= 600 ? 0 : (isCenter ? 26 : 0);
+      const posX = vw <= 640 || isShortLand ? 0 : (isCenter ? 22 : 0);
 
       if (isLiveDrag) {
         card.style.transition = 'none';
@@ -426,13 +465,12 @@ const App = {
       card.classList.toggle('active', isCenter);
     });
 
-    // Позиция бегунка слайдера на рельсе справа
     const thumb = document.getElementById('deck-slider-thumb');
     const channel = document.getElementById('deck-slider-channel');
     if (thumb && channel) {
       const clampedProg = Math.max(0, Math.min(totalCards - 1, currentProgress));
       const percent = (clampedProg / (totalCards - 1)) * 100;
-      if (isLiveDrag) {
+      if (isLiveDrag || this.isDraggingThumb) {
         thumb.style.transition = 'none';
       } else {
         thumb.style.transition = 'top 0.35s cubic-bezier(0.18, 0.9, 0.25, 1.15)';
@@ -440,14 +478,12 @@ const App = {
       thumb.style.top = `${percent}%`;
     }
 
-    // Пагинация точками / засечками на рельсе
     const roundedIndex = Math.max(0, Math.min(totalCards - 1, Math.round(currentProgress)));
-    document.querySelectorAll('#deck-dots .dot, #carousel-dots .dot').forEach((dot) => {
+    document.querySelectorAll('#deck-dots .dot').forEach((dot) => {
       const dIdx = parseInt(dot.dataset.index, 10);
       dot.classList.toggle('active', dIdx === roundedIndex);
     });
 
-    // Синхронизация мобильной ленты быстрого выбора
     const strip = document.getElementById('mobile-rom-strip');
     document.querySelectorAll('.mobile-rom-chip').forEach((chip) => {
       const cIdx = parseInt(chip.dataset.index, 10);
@@ -463,8 +499,7 @@ const App = {
       }
     });
 
-    // Подсветка картриджей в док-панели
-    document.querySelectorAll('.dock-card').forEach(item => {
+    document.querySelectorAll('.dock-card').forEach((item) => {
       item.classList.toggle('active', item.dataset.game === this.cartridgeOrder[roundedIndex]);
     });
   },
@@ -490,9 +525,6 @@ const App = {
     if (romPillEl) romPillEl.textContent = `ROM #0${this.deckIndex + 1}`;
   },
 
-  // =========================================================================
-  // ROM PRELOADER ENGINE (Фоновая предзагрузка и кэширование игр)
-  // =========================================================================
   initPreloader() {
     this.cartridgeOrder.forEach((gameId, idx) => {
       const cart = this.cartridges[gameId];
@@ -506,29 +538,24 @@ const App = {
         if (textSpan) textSpan.textContent = 'LOADING...';
       }
 
-      // Асинхронный fetch с force-cache для прогрева дискового/оперативного кэша браузера
       fetch(cart.src, { cache: 'force-cache' })
-        .then(res => {
+        .then((res) => {
           if (!res.ok) throw new Error('Fetch status ' + res.status);
           return res.text();
         })
-        .then(content => {
+        .then((content) => {
           cart.preloaded = true;
           cart.sizeKb = Math.round(content.length / 1024);
-          this.updateCartridgePreloadUI(gameId, idx);
+          this.updateCartridgePreloadUI(idx);
         })
         .catch(() => {
-          // Fallback если локальный file:// протокол блокирует fetch (CORS)
           cart.preloaded = true;
-          this.updateCartridgePreloadUI(gameId, idx);
+          this.updateCartridgePreloadUI(idx);
         });
     });
-
-    // Предварительный прогрев скрытого iframe для текущего активного картриджа
-    this.warmupActiveIframe();
   },
 
-  updateCartridgePreloadUI(gameId, idx) {
+  updateCartridgePreloadUI(idx) {
     const badge = document.getElementById(`preload-badge-${idx}`);
     if (badge) {
       badge.classList.remove('loading');
@@ -543,44 +570,16 @@ const App = {
     }
   },
 
-  warmupActiveIframe() {
-    const iframeEl = document.getElementById('game-iframe');
-    const cart = this.cartridges[this.currentCartridge];
-    if (iframeEl && cart && !this.isPoweredOn && !this.isBooting) {
-      if (!iframeEl.src || !iframeEl.src.endsWith(cart.src)) {
-        iframeEl.src = cart.src;
-      }
-    }
+  _unlockCartridgeAchievement(gameId) {
+    if (gameId === 'stick_fighting') Storage.unlock("STICK_WARRIOR");
+    else if (gameId === 'pixel_drift') Storage.unlock("DRIFT_KING");
+    else if (gameId === 'chrono_blade') Storage.unlock("CHRONO_MASTER");
+    else if (gameId === 'mecha_siege') Storage.unlock("MECHA_COMMANDER");
+    else if (gameId === 'worms_armageddon') Storage.unlock("WORM_ARMAGEDDON");
+    else if (gameId === 'cosmo_junk') Storage.unlock("COSMO_JUNKER");
   },
 
-  // =========================================================================
-  // НАСТОЯЩИЙ ЗАПУСК ПРИСТАВКИ: ВСТАВКА КАРТРИДЖА, ВКЛЮЧЕНИЕ ПИТАНИЯ, CRT И BIOS
-  // =========================================================================
-  powerOnCartridge(gameId) {
-    if (this.isBooting || this.isPoweredOn) return;
-
-    if (gameId && this.cartridgeOrder.includes(gameId)) {
-      this.deckIndex = this.cartridgeOrder.indexOf(gameId);
-      this.currentCartridge = gameId;
-      this.updateDeckDisplay();
-      this.updateDashboardInfo();
-    }
-
-    const cart = this.cartridges[this.currentCartridge];
-    if (!cart) return;
-
-    this.isBooting = true;
-    document.body.classList.add('game-playing');
-    if (window.PWA) PWA.hideInstallBanner();
-    if (window.NeoLandscapeGuard) {
-      NeoLandscapeGuard.tryLockLandscape();
-      NeoLandscapeGuard.evaluate();
-    }
-
-    // 1. Звук механической вставки картриджа в слот (двухфазный щелчок)
-    Sound.playCartridgeInsert();
-
-    // 2. Визуальная анимация посадки картриджа в слот на панели консоли
+  _applySlotVisuals(cart) {
     const insertedCart = document.getElementById('deck-inserted-cartridge');
     const emptySlotLabel = document.getElementById('deck-slot-empty-label');
     const insertedRom = document.getElementById('inserted-cart-rom');
@@ -598,7 +597,50 @@ const App = {
       readyTag.style.color = 'var(--crt-phosphor)';
     }
 
-    // 3. Щелчок тумблера питания POWER и зажигание светодиода
+    const screenStatusLabel = document.getElementById('screen-status-label');
+    const slotTagLabel = document.getElementById('slot-tag-label');
+    if (screenStatusLabel) screenStatusLabel.textContent = `// ACTIVE: ${cart.name}`;
+    if (slotTagLabel) slotTagLabel.textContent = '// КАРТРИДЖ В СЛОТЕ: АКТИВЕН';
+  },
+
+  cancelBoot() {
+    if (this.bootTimer) {
+      clearTimeout(this.bootTimer);
+      this.bootTimer = null;
+    }
+    this.isBooting = false;
+    const screenWrapper = document.getElementById('screen-canvas-wrapper');
+    const biosScreen = document.getElementById('bios-boot-screen');
+    if (screenWrapper) screenWrapper.classList.remove('crt-turning-on');
+    if (biosScreen) biosScreen.style.display = 'none';
+  },
+
+  powerOnCartridge(gameId, customSrc) {
+    if (this.isBooting || this.isPoweredOn) return;
+
+    if (gameId && this.cartridgeOrder.includes(gameId)) {
+      this.deckIndex = this.cartridgeOrder.indexOf(gameId);
+      this.currentCartridge = gameId;
+      this.updateDeckDisplay();
+      this.updateDashboardInfo();
+    }
+
+    const cart = this.cartridges[this.currentCartridge];
+    if (!cart) return;
+    const targetSrc = customSrc || cart.src;
+
+    this.isBooting = true;
+    Sound.pauseBGMForGame();
+    document.body.classList.add('game-playing');
+    if (window.PWA) PWA.hideInstallBanner();
+    if (window.NeoLandscapeGuard) {
+      NeoLandscapeGuard.tryLockLandscape();
+      NeoLandscapeGuard.evaluate();
+    }
+
+    Sound.playCartridgeInsert();
+    this._applySlotVisuals(cart);
+
     const powerBtn = document.getElementById('btn-console-power');
     const powerLed = document.getElementById('console-power-led');
     const powerText = document.getElementById('console-power-text');
@@ -617,7 +659,6 @@ const App = {
     }
     Sound.playPowerClick();
 
-    // 4. Запуск ЭЛТ-развертки (CRT horizontal expand) и BIOS экрана
     const screenWrapper = document.getElementById('screen-canvas-wrapper');
     const biosScreen = document.getElementById('bios-boot-screen');
     const biosRomName = document.getElementById('bios-rom-name');
@@ -626,53 +667,37 @@ const App = {
     if (biosScreen) biosScreen.style.display = 'flex';
     if (biosRomName) biosRomName.textContent = `MOUNTING ROM #0${this.deckIndex + 1} [${cart.id.toUpperCase()}]...`;
 
-    // 5. Ностальгический 16-битный chime запуска
     Sound.playBootJingle();
 
-    // 6. Плавный переход от BIOS к запущенной игре
-    setTimeout(() => {
+    this.bootTimer = setTimeout(() => {
+      this.bootTimer = null;
       if (screenWrapper) screenWrapper.classList.remove('crt-turning-on');
       if (biosScreen) biosScreen.style.display = 'none';
 
-      // Скрыть колоду карт и отобразить фрейм с игрой
-      const deckView = document.getElementById('deck-view') || document.getElementById('carousel-view');
+      const deckView = document.getElementById('deck-view');
       const iframeEl = document.getElementById('game-iframe');
 
       if (deckView) deckView.style.display = 'none';
       if (window.Previews) Previews.pause();
       if (iframeEl) {
         iframeEl.style.display = 'block';
-        if (!iframeEl.src || !iframeEl.src.endsWith(cart.src)) {
-          iframeEl.src = cart.src;
-        }
+        iframeEl.src = targetSrc;
         iframeEl.focus();
       }
 
-      // Переключение состояния кнопок в панели консоли
       const menuPowerWrap = document.getElementById('menu-power-btn-wrap');
       const gameControlsWrap = document.getElementById('game-active-controls-wrap');
       const screenRestartBtn = document.getElementById('screen-restart-btn');
       const screenFullscreenBtn = document.getElementById('screen-fullscreen-btn');
       const screenPowerOffBtn = document.getElementById('screen-poweroff-btn');
-      const screenStatusLabel = document.getElementById('screen-status-label');
-      const slotTagLabel = document.getElementById('slot-tag-label');
 
       if (menuPowerWrap) menuPowerWrap.style.display = 'none';
       if (gameControlsWrap) gameControlsWrap.style.display = 'flex';
       if (screenRestartBtn) screenRestartBtn.style.display = 'inline-flex';
       if (screenFullscreenBtn) screenFullscreenBtn.style.display = 'inline-flex';
       if (screenPowerOffBtn) screenPowerOffBtn.style.display = 'inline-flex';
-      if (screenStatusLabel) screenStatusLabel.textContent = `// ACTIVE: ${cart.name}`;
-      if (slotTagLabel) slotTagLabel.textContent = '// КАРТРИДЖ В СЛОТЕ: АКТИВЕН';
 
-      // Ачивки и статистика
-      if (cart.id === 'stick_fighting') Storage.unlock("STICK_WARRIOR");
-      else if (cart.id === 'pixel_drift') Storage.unlock("DRIFT_KING");
-      else if (cart.id === 'chrono_blade') Storage.unlock("CHRONO_MASTER");
-      else if (cart.id === 'mecha_siege') Storage.unlock("MECHA_COMMANDER");
-      else if (cart.id === 'worms_armageddon') Storage.unlock("WORM_ARMAGEDDON");
-      else if (cart.id === 'cosmo_junk') Storage.unlock("COSMO_JUNKER");
-
+      this._unlockCartridgeAchievement(cart.id);
       Storage.data.gamesPlayed++;
       Storage.save();
 
@@ -681,21 +706,50 @@ const App = {
     }, 950);
   },
 
-  // =========================================================================
-  // ВЫКЛЮЧЕНИЕ ПРИСТАВКИ И ИЗВЛЕЧЕНИЕ КАРТРИДЖА (CRT СХЛОПЫВАНИЕ + ВЫБРОС РОМА)
-  // =========================================================================
-  powerOffConsole() {
-    if (!this.isPoweredOn || this.isBooting) return;
+  switchRunningCartridge(gameId, customSrc) {
+    if (!this.cartridgeOrder.includes(gameId)) return;
+    if (this.isBooting) this.cancelBoot();
+    if (!this.isPoweredOn) {
+      this.powerOnCartridge(gameId, customSrc);
+      return;
+    }
 
-    // 1. Щелчок выключения питания и спад высокого напряжения кинескопа
+    this.deckIndex = this.cartridgeOrder.indexOf(gameId);
+    this.currentCartridge = gameId;
+    this.updateDeckDisplay();
+    this.updateDashboardInfo();
+
+    const cart = this.cartridges[gameId];
+    if (!cart) return;
+    this._applySlotVisuals(cart);
+    this._unlockCartridgeAchievement(cart.id);
+
+    const iframeEl = document.getElementById('game-iframe');
+    if (iframeEl) {
+      iframeEl.src = customSrc || cart.src;
+      iframeEl.focus();
+    }
+    Sound.playCartridgeInsert();
+  },
+
+  powerOffConsole(force = false) {
+    if (!this.isPoweredOn && !this.isBooting) return;
+    if (this.isBooting && !force) return;
+
+    if (this.isBooting) {
+      this.cancelBoot();
+    }
+    if (this.ejectTimer) {
+      clearTimeout(this.ejectTimer);
+      this.ejectTimer = null;
+    }
+
     Sound.playPowerClick();
     Sound.playPowerOff();
 
-    // 2. Эффект схлопывания кинескопа ЭЛТ в точку (CRT horizontal collapse to dot)
     const screenWrapper = document.getElementById('screen-canvas-wrapper');
-    if (screenWrapper) screenWrapper.classList.add('crt-turning-off');
+    if (screenWrapper && !force) screenWrapper.classList.add('crt-turning-off');
 
-    // 3. Выключение тумблера питания и индикатора
     const powerBtn = document.getElementById('btn-console-power');
     const powerLed = document.getElementById('console-power-led');
     const powerText = document.getElementById('console-power-text');
@@ -713,8 +767,8 @@ const App = {
       powerText.style.color = 'var(--text-dim)';
     }
 
-    // 4. Пружинный выброс картриджа из слота
-    setTimeout(() => {
+    const completeEject = () => {
+      this.ejectTimer = null;
       Sound.playCartridgeEject();
 
       const insertedCart = document.getElementById('deck-inserted-cartridge');
@@ -728,20 +782,17 @@ const App = {
         readyTag.style.color = 'var(--crt-phosphor)';
       }
 
-      // Выключение фрейма с игрой (останавливает фоновую музыку и CPU игры)
       const iframeEl = document.getElementById('game-iframe');
       if (iframeEl) {
         iframeEl.src = 'about:blank';
         iframeEl.style.display = 'none';
       }
 
-      // Возврат экрана выбора карт
-      const deckView = document.getElementById('deck-view') || document.getElementById('carousel-view');
+      const deckView = document.getElementById('deck-view');
       if (deckView) deckView.style.display = 'flex';
       if (window.Previews) Previews.resume();
       if (screenWrapper) screenWrapper.classList.remove('crt-turning-off');
 
-      // Переключение кнопок панели
       const menuPowerWrap = document.getElementById('menu-power-btn-wrap');
       const gameControlsWrap = document.getElementById('game-active-controls-wrap');
       const screenRestartBtn = document.getElementById('screen-restart-btn');
@@ -756,46 +807,48 @@ const App = {
       if (screenFullscreenBtn) screenFullscreenBtn.style.display = 'none';
       if (screenPowerOffBtn) screenPowerOffBtn.style.display = 'none';
       if (screenStatusLabel) screenStatusLabel.textContent = '// MATRIX DISPLAY 60FPS';
-      if (slotTagLabel) slotTagLabel.textContent = '// ВЫБОР РОМ-КАРТРИДЖА';
+      if (slotTagLabel) slotTagLabel.textContent = '// КАРТРИДЖ В ФОКУСЕ';
 
       document.body.classList.remove('game-playing', 'pseudo-fullscreen');
       if (window.NeoLandscapeGuard) NeoLandscapeGuard.evaluate();
       this.isPoweredOn = false;
+      this.isBooting = false;
       this.updateDeckDisplay();
       this.updateDashboardInfo();
-      setTimeout(() => this.warmupActiveIframe(), 300);
-    }, 320);
+      Sound.resumeBGMFromGame();
+    };
+
+    if (force) {
+      completeEject();
+    } else {
+      this.ejectTimer = setTimeout(completeEject, 320);
+    }
   },
 
   ejectCartridge() {
-    this.powerOffConsole();
+    this.powerOffConsole(true);
   },
 
   togglePower() {
-    if (this.isPoweredOn) {
-      this.powerOffConsole();
+    if (this.isPoweredOn || this.isBooting) {
+      this.powerOffConsole(true);
     } else {
       this.powerOnCartridge();
     }
   },
 
   selectCartridge(gameId) {
-    if (this.cartridgeOrder.includes(gameId)) {
-      if (!this.isPoweredOn) {
-        this.setDeckIndex(this.cartridgeOrder.indexOf(gameId));
-      } else {
-        // Если приставка уже включена, смена картриджа перезапускает с новым ромом
-        this.powerOffConsole();
-        setTimeout(() => {
-          this.powerOnCartridge(gameId);
-        }, 380);
-      }
+    if (!this.cartridgeOrder.includes(gameId)) return;
+    if (!this.isPoweredOn && !this.isBooting) {
+      this.setDeckIndex(this.cartridgeOrder.indexOf(gameId));
+    } else {
+      this.switchRunningCartridge(gameId);
     }
   },
 
   restartGame() {
     Sound.playClick();
-    if (!this.isPoweredOn) {
+    if (!this.isPoweredOn && !this.isBooting) {
       this.powerOnCartridge();
       return;
     }
@@ -838,15 +891,11 @@ const App = {
 
   toggleCRT() {
     const screenWrap = document.getElementById('screen-housing');
-    const indicator = document.getElementById('crt-status-indicator');
     if (screenWrap) {
       const active = screenWrap.classList.toggle('crt-active');
       Storage.data.settings.crtFilter = active;
       Storage.save();
       Sound.playClick();
-      if (indicator) {
-        indicator.textContent = active ? 'CRT FILTER: ACTIVE' : 'CRT FILTER: OFF';
-      }
       this.updateSettingsUI();
       if (active) Storage.unlock("CRT_PURIST");
     }
@@ -864,7 +913,6 @@ const App = {
   },
 
   updateSettingsUI() {
-    // CRT toggle
     const screenWrap = document.getElementById('screen-housing');
     const isCRT = screenWrap ? screenWrap.classList.contains('crt-active') : true;
     const btnCrt = document.getElementById('btn-setting-crt');
@@ -872,15 +920,13 @@ const App = {
     if (btnCrt) btnCrt.classList.toggle('active', isCRT);
     if (labelCrt) labelCrt.textContent = isCRT ? 'ВКЛ' : 'ВЫКЛ';
 
-    // BGM toggle
-    const isBGM = Sound.isBGMPlaying || false;
+    const isBGM = !!Sound.musicRunning;
     const btnBgm = document.getElementById('btn-setting-bgm');
     const labelBgm = document.getElementById('label-setting-bgm');
     if (btnBgm) btnBgm.classList.toggle('active', isBGM);
     if (labelBgm) labelBgm.textContent = isBGM ? 'ВКЛ' : 'ВЫКЛ';
 
-    // Mute toggle
-    const isMuted = Sound.isMuted || false;
+    const isMuted = !!Sound.muted;
     const btnMute = document.getElementById('btn-setting-mute');
     const labelMute = document.getElementById('label-setting-mute');
     if (btnMute) btnMute.classList.toggle('active', !isMuted);
@@ -889,8 +935,15 @@ const App = {
 
   openModal(modalId) {
     Sound.playClick();
+    const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+    if (fsEl) {
+      const exitFn = document.exitFullscreen || document.webkitExitFullscreen;
+      if (exitFn) exitFn.call(document).catch(() => {});
+    }
     if (modalId === 'settings-modal') {
       this.updateSettingsUI();
+    } else if (modalId === 'achieve-modal') {
+      this.renderAchievementsModal();
     }
     const modal = document.getElementById(modalId);
     const backdrop = document.getElementById('console-backdrop');
@@ -916,7 +969,7 @@ const App = {
     const list = document.getElementById('achievements-grid');
     if (!list) return;
 
-    list.innerHTML = Storage.achievementsList.map(a => {
+    list.innerHTML = Storage.achievementsList.map((a) => {
       const unlocked = !!Storage.data.achievements[a.id];
       return `
         <div class="achieve-card ${unlocked ? 'unlocked' : 'locked'}">

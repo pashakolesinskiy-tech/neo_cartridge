@@ -1,12 +1,17 @@
-// Zero-dependency ISO/IEC 18004 QR Code Encoder (Versions 1-5, ECC Level L, Byte mode)
+// Zero-dependency ISO/IEC 18004 QR Code Encoder (Versions 1-10, ECC Level L, Byte mode)
 
 const VERSION_SPECS = [
   null,
-  { version: 1, size: 21, dataCW: 19, ecCW: 7, align: [] },
-  { version: 2, size: 25, dataCW: 34, ecCW: 10, align: [18] },
-  { version: 3, size: 29, dataCW: 55, ecCW: 15, align: [22] },
-  { version: 4, size: 33, dataCW: 80, ecCW: 20, align: [26] },
-  { version: 5, size: 37, dataCW: 108, ecCW: 26, align: [30] },
+  { version: 1, size: 21, dataCW: 19, groups: [[1, 19, 7]], align: [], verBits: 0, countBits: 8 },
+  { version: 2, size: 25, dataCW: 34, groups: [[1, 34, 10]], align: [6, 18], verBits: 0, countBits: 8 },
+  { version: 3, size: 29, dataCW: 55, groups: [[1, 55, 15]], align: [6, 22], verBits: 0, countBits: 8 },
+  { version: 4, size: 33, dataCW: 80, groups: [[1, 80, 20]], align: [6, 26], verBits: 0, countBits: 8 },
+  { version: 5, size: 37, dataCW: 108, groups: [[1, 108, 26]], align: [6, 30], verBits: 0, countBits: 8 },
+  { version: 6, size: 41, dataCW: 136, groups: [[2, 68, 18]], align: [6, 34], verBits: 0, countBits: 8 },
+  { version: 7, size: 45, dataCW: 156, groups: [[2, 78, 20]], align: [6, 22, 38], verBits: 0x07c94, countBits: 8 },
+  { version: 8, size: 49, dataCW: 194, groups: [[2, 97, 24]], align: [6, 24, 42], verBits: 0x085bc, countBits: 8 },
+  { version: 9, size: 53, dataCW: 232, groups: [[2, 116, 30]], align: [6, 26, 46], verBits: 0x09a99, countBits: 8 },
+  { version: 10, size: 57, dataCW: 274, groups: [[2, 68, 18], [2, 69, 18]], align: [6, 28, 50], verBits: 0x0a4d3, countBits: 16 },
 ];
 
 const GF_EXP = new Uint8Array(512);
@@ -72,7 +77,7 @@ export function computeFormatBits(maskId) {
   return ((data << 10) | bits) ^ 0x5412;
 }
 
-function encodeDataCodewords(bytes, dataCW) {
+function encodeDataCodewords(bytes, dataCW, countBits = 8) {
   const bits = [];
   const pushBits = (val, len) => {
     for (let i = len - 1; i >= 0; i--) {
@@ -80,9 +85,9 @@ function encodeDataCodewords(bytes, dataCW) {
     }
   };
 
-  // Byte mode indicator (0100) + 8-bit length
+  // Byte mode indicator (0100) + 8-bit or 16-bit length
   pushBits(0b0100, 4);
-  pushBits(bytes.length, 8);
+  pushBits(bytes.length, countBits);
   for (let i = 0; i < bytes.length; i++) {
     pushBits(bytes[i], 8);
   }
@@ -152,13 +157,31 @@ function createMatrix(spec) {
     setFunc(i, 6, dark);
   }
 
-  // Alignment pattern (Versions 2..5 have 1 center at (a, a))
+  // Alignment pattern pairs (Versions 2..10, skipping overlaps with finders)
   for (const ar of align) {
-    for (let dr = -2; dr <= 2; dr++) {
-      for (let dc = -2; dc <= 2; dc++) {
-        const dark = Math.abs(dr) === 2 || Math.abs(dc) === 2 || (dr === 0 && dc === 0);
-        setFunc(ar + dr, ar + dc, dark);
+    for (const ac of align) {
+      const nearFinder =
+        (ar <= 8 && ac <= 8) ||
+        (ar <= 8 && ac >= size - 8) ||
+        (ar >= size - 8 && ac <= 8);
+      if (nearFinder) continue;
+      for (let dr = -2; dr <= 2; dr++) {
+        for (let dc = -2; dc <= 2; dc++) {
+          const dark = Math.abs(dr) === 2 || Math.abs(dc) === 2 || (dr === 0 && dc === 0);
+          setFunc(ar + dr, ac + dc, dark);
+        }
       }
+    }
+  }
+
+  // Version info 18-bit BCH blocks (Versions 7..10)
+  if (spec.verBits) {
+    for (let i = 0; i < 18; i++) {
+      const dark = ((spec.verBits >> i) & 1) === 1;
+      const r = Math.floor(i / 3);
+      const c = size - 11 + (i % 3);
+      setFunc(r, c, dark);
+      setFunc(c, r, dark);
     }
   }
 
@@ -362,21 +385,42 @@ function computePenalty(modules, size) {
 export function encodeQR(text) {
   const bytes = new TextEncoder().encode(String(text));
   let spec = null;
-  for (let v = 1; v <= 5; v++) {
-    if (bytes.length <= VERSION_SPECS[v].dataCW - 2) {
-      spec = VERSION_SPECS[v];
+  for (let v = 1; v < VERSION_SPECS.length; v++) {
+    const s = VERSION_SPECS[v];
+    const headerBytes = Math.ceil((4 + s.countBits) / 8);
+    if (bytes.length + headerBytes <= s.dataCW) {
+      spec = s;
       break;
     }
   }
   if (!spec) {
-    throw new Error(`QR payload too long (${bytes.length} bytes, max 106)`);
+    throw new Error(`QR payload too long (${bytes.length} bytes, max 271)`);
   }
 
-  const data = encodeDataCodewords(bytes, spec.dataCW);
-  const ec = computeReedSolomon(data, spec.ecCW);
-  const full = new Uint8Array(data.length + ec.length);
-  full.set(data, 0);
-  full.set(ec, data.length);
+  const data = encodeDataCodewords(bytes, spec.dataCW, spec.countBits);
+  const dataBlocks = [];
+  const eccBlocks = [];
+  let offset = 0;
+  let maxDataLen = 0;
+  let maxEccLen = 0;
+  for (const [count, dLen, eLen] of spec.groups) {
+    maxDataLen = Math.max(maxDataLen, dLen);
+    maxEccLen = Math.max(maxEccLen, eLen);
+    for (let b = 0; b < count; b++) {
+      const blk = data.subarray(offset, offset + dLen);
+      offset += dLen;
+      dataBlocks.push(blk);
+      eccBlocks.push(computeReedSolomon(blk, eLen));
+    }
+  }
+  const interleaved = [];
+  for (let i = 0; i < maxDataLen; i++) {
+    for (const blk of dataBlocks) if (i < blk.length) interleaved.push(blk[i]);
+  }
+  for (let i = 0; i < maxEccLen; i++) {
+    for (const blk of eccBlocks) if (i < blk.length) interleaved.push(blk[i]);
+  }
+  const full = new Uint8Array(interleaved);
 
   const matrix = createMatrix(spec);
   placeDataBits(matrix, full);

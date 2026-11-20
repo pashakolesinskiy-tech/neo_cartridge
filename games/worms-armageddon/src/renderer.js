@@ -695,7 +695,7 @@ export class Renderer {
   _drawWormBadge(ctx, w, isActive) {
     const palette = TEAM_PALETTES[w.teamIndex] || TEAM_PALETTES[0];
     ctx.save();
-    ctx.translate(w.x, w.y - 31);
+    ctx.translate(w.x, w.y - 39);
 
     if (isActive) {
       const arrowBounce = Math.sin(this.time * 6) * 3;
