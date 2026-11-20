@@ -28,7 +28,7 @@ export const FIGHTERS: Record<FighterId, FighterDefinition> = {
   vortex: {
     id: 'vortex', name: 'Вихрь', role: 'Баланс и точность',
     description: 'Держит темп. Наказывает за ошибки. Всегда готов к следующему удару.',
-    color: '#ff8558', light: '#ffc28a', dark: '#8b3b2d',
+    color: '#36cfff', light: '#a4ecff', dark: '#175c7a',
     speed: 212, damage: 1, timing: 1, size: 1,
     special: 'Вихревой удар', specialDescription: 'Рывок вперёд с мощным вращающимся ударом.',
     specialDamage: 18, specialRange: 148,
@@ -36,7 +36,7 @@ export const FIGHTERS: Record<FighterId, FighterDefinition> = {
   spark: {
     id: 'spark', name: 'Искра', role: 'Скорость и напор',
     description: 'Быстрее мысли. Легче ветра. Собирает длинные комбинации.',
-    color: '#b49bff', light: '#e3d5ff', dark: '#59448d',
+    color: '#ffcb3d', light: '#fff0a8', dark: '#8f5a12',
     speed: 263, damage: 0.88, timing: 0.86, size: 0.95,
     special: 'Разряд', specialDescription: 'Дальний электрический удар и короткое уклонение.',
     specialDamage: 16, specialRange: 194,
@@ -44,7 +44,7 @@ export const FIGHTERS: Record<FighterId, FighterDefinition> = {
   titan: {
     id: 'titan', name: 'Титан', role: 'Сила и характер',
     description: 'Не спешит. Не отступает. Каждый удар имеет вес.',
-    color: '#6ccfd5', light: '#b4f5eb', dark: '#30616e',
+    color: '#ff4d5a', light: '#ffb3b8', dark: '#8c1d2c',
     speed: 164, damage: 1.22, timing: 1.12, size: 1.12,
     special: 'Разлом', specialDescription: 'Удар по земле, подбрасывающий соперника.',
     specialDamage: 20, specialRange: 164,

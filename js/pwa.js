@@ -5,7 +5,7 @@
  */
 
 const PWA = {
-  CACHE_NAME: 'neo-cartridge-pwa-v5',
+  CACHE_NAME: 'neo-cartridge-pwa-v6',
   DISMISS_KEY: 'neo_pwa_banner_dismissed',
   OFFLINE_READY_KEY: 'neo_pwa_offline_ready',
   deferredPrompt: null,
@@ -322,6 +322,8 @@ const PWA = {
       './js/storage.js',
       './js/pwa.js',
       './games/stick_fighting.html',
+      './games/stick_fighting_assets/fighter_vortex.png',
+      './games/stick_fighting_assets/vfx_props.png',
       './games/pixel_drift.html',
       './games/chrono_blade.html',
       './games/mecha_siege.html',

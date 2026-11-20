@@ -1,5 +1,6 @@
 import { GameAudio } from './audio';
 import { drawArena, drawFighter } from './art';
+import { drawSpriteCell, ensureSpritesLoaded, getVfxSheet } from './sprites';
 import { ClientInput, InputController } from './input';
 import {
   ACTIONS, ATTACK_IDS, FIGHTER_IDS, HOLD_ACTIONS, PHASES, POSES,
@@ -43,6 +44,7 @@ interface Fighter {
 
 interface Particle { x: number; y: number; vx: number; vy: number; life: number; maxLife: number; color: string; size: number }
 interface FloatingText { x: number; y: number; text: string; life: number; color: string }
+interface SpriteFx { col: number; row: number; x: number; y: number; life: number; maxLife: number; size: number; flip: boolean }
 
 const CHAIN: Record<AttackId, AttackId[]> = {
   jab: ['jab', 'heavy', 'kick', 'special'],
@@ -110,12 +112,14 @@ export class FightEngine {
   private aiBlock = false;
   private particles: Particle[] = [];
   private floating: FloatingText[] = [];
+  private spriteFx: SpriteFx[] = [];
   private onSnapshot: (snapshot: Snapshot) => void;
 
   constructor(settings: Settings, onSnapshot: (snapshot: Snapshot) => void) {
     this.settings = settings;
     this.audio = new GameAudio(settings);
     this.onSnapshot = onSnapshot;
+    ensureSpritesLoaded();
     this.fighters = [makeFighter('vortex', 653, 1), makeFighter('titan', 824, -1)];
   }
 
@@ -138,7 +142,7 @@ export class FightEngine {
     this.config = { ...config };
     this.phase = 'menu'; this.paused = false; this.clearInput();
     this.fighters = [makeFighter(config.player, 653, 1), makeFighter(config.enemy, 824, -1)];
-    this.particles = []; this.floating = []; this.winner = null; this.roundWinner = null;
+    this.particles = []; this.floating = []; this.spriteFx = []; this.winner = null; this.roundWinner = null;
     this.emit();
   }
 
@@ -148,7 +152,7 @@ export class FightEngine {
     this.now = 0; this.timer = 60; this.round = 1; this.phaseTime = 0;
     this.phase = 'countdown'; this.countdown = '3'; this.paused = false;
     this.winner = null; this.roundWinner = null; this.message = '';
-    this.hitstop = 0; this.shakeTime = 0; this.particles = []; this.floating = [];
+    this.hitstop = 0; this.shakeTime = 0; this.particles = []; this.floating = []; this.spriteFx = [];
     this.aiTimer = 0.4; this.aiDirection = 0; this.aiBlock = false;
     this.tick = 0; this.outbox = [];
     if (this.role === 'host') this.matchId++;
@@ -203,7 +207,7 @@ export class FightEngine {
     this.now = 0; this.timer = 60; this.round = 1; this.phaseTime = 0;
     this.phase = 'countdown'; this.countdown = '3'; this.paused = false;
     this.winner = null; this.roundWinner = null; this.message = '';
-    this.hitstop = 0; this.hitstopView = false; this.shakeTime = 0; this.particles = []; this.floating = [];
+    this.hitstop = 0; this.hitstopView = false; this.shakeTime = 0; this.particles = []; this.floating = []; this.spriteFx = [];
     this.stateQueue = []; this.lastStateSeq = -1; this.lastStateAt = performance.now(); this.hudKey = '';
     this.clientInput.clear();
     this.emit();
@@ -441,6 +445,9 @@ export class FightEngine {
   }
 
   private spawnDust(x: number, y: number, count: number) {
+    if (this.spriteFx.length < 36) {
+      this.spriteFx.push({ col: 5, row: 0, x: x * 2, y: y * 2 - 14, life: 0.24, maxLife: 0.24, size: 78, flip: Math.random() > 0.5 });
+    }
     if (this.particles.length > 600) return;
     for (let i = 0; i < count; i++) {
       const life = 0.2 + Math.random() * 0.18;
@@ -454,6 +461,19 @@ export class FightEngine {
   }
 
   private spawnImpact(x: number, y: number, color: string, heavy: boolean) {
+    if (this.spriteFx.length < 36) {
+      const isBlock = color === '#84dce5';
+      this.spriteFx.push({
+        col: isBlock ? 3 : heavy ? 0 : 4,
+        row: isBlock ? 1 : 0,
+        x: x * 2,
+        y: y * 2,
+        life: heavy ? 0.24 : 0.18,
+        maxLife: heavy ? 0.24 : 0.18,
+        size: isBlock ? 92 : heavy ? 124 : 90,
+        flip: Math.random() > 0.5,
+      });
+    }
     if (this.particles.length > 600) return;
     for (let i = 0; i < (heavy ? 21 : 13); i++) {
       const angle = Math.random() * Math.PI * 2;
@@ -572,7 +592,7 @@ export class FightEngine {
     this.timer = 60; this.phaseTime = 0; this.phase = 'countdown'; this.countdown = '3';
     this.message = ''; this.roundWinner = null; this.hitstop = 0;
     this.aiTimer = 0.4; this.aiDirection = 0; this.aiBlock = false;
-    this.floating = []; this.particles = []; this.clearInput();
+    this.floating = []; this.particles = []; this.spriteFx = []; this.clearInput();
     this.sfx('count'); this.emit();
   }
 
@@ -582,6 +602,8 @@ export class FightEngine {
     this.particles = this.particles.filter(p => p.life > 0);
     this.floating.forEach(text => { text.life -= dt; text.y -= dt * 18; });
     this.floating = this.floating.filter(text => text.life > 0);
+    this.spriteFx.forEach(fx => { fx.life -= dt; });
+    this.spriteFx = this.spriteFx.filter(fx => fx.life > 0);
   }
 
   step(dt: number) {
@@ -701,26 +723,40 @@ export class FightEngine {
   }
 
   draw(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = '#171b24'; ctx.fillRect(0, 0, 480, 270);
+    ctx.fillStyle = '#171b24'; ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     ctx.save();
-    if (!this.paused && this.settings.shake && this.shakeTime > 0) ctx.translate(Math.round((Math.random() - 0.5) * this.shakePower * 2), Math.round((Math.random() - 0.5) * this.shakePower));
+    if (!this.paused && this.settings.shake && this.shakeTime > 0) {
+      ctx.translate(Math.round((Math.random() - 0.5) * this.shakePower * 4), Math.round((Math.random() - 0.5) * this.shakePower * 2));
+    }
     const [first, second] = this.role === 'client' ? this.netVisuals : [this.visual(this.fighters[0], 0), this.visual(this.fighters[1], 1)];
     const focus = this.phase === 'menu' ? Math.sin(this.visualTime * 0.14) * 0.35 : ((first.x + second.x) / 2 - 480) / 480;
     drawArena(ctx, this.config.arena, this.visualTime, focus);
-    const scale = this.phase === 'menu' ? 1.65 : 1.15;
-    drawFighter(ctx, second, this.visualTime, scale);
-    drawFighter(ctx, first, this.visualTime, scale);
+    const scale = this.phase === 'menu' ? 1.48 : 1.15;
+    drawFighter(ctx, second, this.visualTime, scale, true);
+    drawFighter(ctx, first, this.visualTime, scale, true);
+
+    const vfx = getVfxSheet();
+    if (vfx) {
+      for (const fx of this.spriteFx) {
+        const progress = 1 - fx.life / fx.maxLife;
+        const popScale = 0.8 + Math.sin(progress * Math.PI) * 0.32;
+        const s = Math.round(fx.size * popScale);
+        ctx.globalAlpha = Math.min(1, (fx.life / fx.maxLife) * 1.4);
+        drawSpriteCell(ctx, vfx, fx.col, fx.row, Math.round(fx.x - s / 2), Math.round(fx.y - s / 2), s, s, fx.flip);
+      }
+    }
+
     for (const particle of this.particles) {
       ctx.globalAlpha = Math.min(1, particle.life / particle.maxLife * 1.5);
       ctx.fillStyle = particle.color;
-      ctx.fillRect(Math.round(particle.x), Math.round(particle.y), particle.size, particle.size);
+      ctx.fillRect(Math.round(particle.x * 2), Math.round(particle.y * 2), particle.size * 2, particle.size * 2);
     }
-    ctx.textAlign = 'center'; ctx.font = 'bold 11px monospace'; ctx.lineWidth = 3;
+    ctx.textAlign = 'center'; ctx.font = 'bold 22px monospace'; ctx.lineWidth = 6;
     for (const text of this.floating) {
       ctx.globalAlpha = Math.min(1, text.life * 4);
       ctx.strokeStyle = '#172029'; ctx.fillStyle = text.color;
-      ctx.strokeText(text.text, Math.round(text.x), Math.round(text.y));
-      ctx.fillText(text.text, Math.round(text.x), Math.round(text.y));
+      ctx.strokeText(text.text, Math.round(text.x * 2), Math.round(text.y * 2));
+      ctx.fillText(text.text, Math.round(text.x * 2), Math.round(text.y * 2));
     }
     ctx.globalAlpha = 1;
     ctx.restore();

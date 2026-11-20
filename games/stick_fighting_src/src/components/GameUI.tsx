@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode, type PointerEvent } from 'react';
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Shield, Zap, X } from 'lucide-react';
 import { drawArenaPreview, drawFighter } from '../game/art';
+import { onSpritesReady } from '../game/sprites';
 import { FIGHTERS, type Action, type ArenaId, type FighterId, type FighterSnapshot, type Snapshot } from '../game/types';
 
 const FONT: Record<string, string[]> = {
@@ -51,24 +52,34 @@ export function FighterPortrait({ id, animated = true, className = '' }: { id: F
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
-    canvas.width = 128; canvas.height = 112;
+    canvas.width = 220; canvas.height = 192;
     const ctx = canvas.getContext('2d')!;
     let frame = 0;
     const paint = (time: number) => {
-      ctx.clearRect(0, 0, 128, 112);
-      ctx.fillStyle = '#090e1880'; ctx.fillRect(37, 102, 61, 4);
-      drawFighter(ctx, { id, x: 128, y: 206, facing: 1, pose: 'idle' }, time / 1000, 1.4);
+      ctx.clearRect(0, 0, 220, 192);
+      ctx.fillStyle = '#090e1880'; ctx.fillRect(58, 174, 104, 7);
+      drawFighter(ctx, { id, x: 110, y: 176, facing: 1, pose: 'idle' }, time / 1000, 1.18, true);
       if (animated) frame = requestAnimationFrame(paint);
     };
+    const unsubscribe = onSpritesReady(() => paint(performance.now()));
     paint(0);
-    return () => cancelAnimationFrame(frame);
+    return () => {
+      unsubscribe();
+      cancelAnimationFrame(frame);
+    };
   }, [id, animated]);
-  return <canvas ref={ref} className={`fighter-portrait ${className}`} aria-label={`Пиксельный боец ${FIGHTERS[id].name}`} role="img" />;
+  return <canvas ref={ref} className={`fighter-portrait ${className}`} aria-label={`Боец ${FIGHTERS[id].name}`} role="img" />;
 }
 
 export function ArenaThumbnail({ id }: { id: ArenaId }) {
   const ref = useRef<HTMLCanvasElement>(null);
-  useEffect(() => { if (ref.current) drawArenaPreview(ref.current, id); }, [id]);
+  useEffect(() => {
+    if (!ref.current) return;
+    drawArenaPreview(ref.current, id);
+    return onSpritesReady(() => {
+      if (ref.current) drawArenaPreview(ref.current, id);
+    });
+  }, [id]);
   return <canvas ref={ref} className="arena-thumbnail" aria-hidden="true" />;
 }
 

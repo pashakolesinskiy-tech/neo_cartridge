@@ -1,9 +1,11 @@
+import { drawSpriteCell, ensureSpritesLoaded, getFighterSheet, getVfxSheet, isSpritesReady } from './sprites';
 import { FIGHTERS, GROUND, type ArenaId, type FighterVisual } from './types';
 
 const W = 480;
 const H = 270;
 const cache = new Map<ArenaId, HTMLCanvasElement[]>();
 let fighterBuffer: { canvas: HTMLCanvasElement; context: CanvasRenderingContext2D } | null = null;
+let arenaBuffer: { canvas: HTMLCanvasElement; context: CanvasRenderingContext2D } | null = null;
 type Point = [number, number];
 
 function random(seed: number) {
@@ -243,7 +245,15 @@ function createLayers(arena: ArenaId) {
   return layers;
 }
 
-export function drawArena(ctx: CanvasRenderingContext2D, arena: ArenaId, time = 0, focus = 0) {
+export function drawArena(mainCtx: CanvasRenderingContext2D, arena: ArenaId, time = 0, focus = 0) {
+  ensureSpritesLoaded();
+  if (!arenaBuffer) {
+    const canvas = document.createElement('canvas');
+    canvas.width = W;
+    canvas.height = H;
+    arenaBuffer = { canvas, context: canvas.getContext('2d')! };
+  }
+  const ctx = arenaBuffer.context;
   ctx.imageSmoothingEnabled = false;
   const layers = cache.get(arena) ?? createLayers(arena);
   ctx.clearRect(0, 0, W, H);
@@ -278,6 +288,39 @@ export function drawArena(ctx: CanvasRenderingContext2D, arena: ArenaId, time = 
   } else {
     for (let i = 0; i < 17; i++) rectangle(ctx, (i * 37 + time * 13) % 490, (i * 23 + time * 49) % 223, 1, 3, '#817691');
   }
+
+  mainCtx.save();
+  mainCtx.imageSmoothingEnabled = false;
+  mainCtx.clearRect(0, 0, mainCtx.canvas.width, mainCtx.canvas.height);
+  mainCtx.drawImage(arenaBuffer.canvas, 0, 0, mainCtx.canvas.width, mainCtx.canvas.height);
+
+  // Overlay crisp HD Worms-style foreground arena props when sprite sheet is loaded
+  const vfx = getVfxSheet();
+  if (vfx) {
+    const sx = mainCtx.canvas.width / 960;
+    const groundY = 450 * sx;
+    const parallax = focus * 14 * sx;
+    const placeProp = (col: number, row: number, x960: number, size960: number, flip = false) => {
+      const s = Math.round(size960 * sx);
+      const px = Math.round(x960 * sx + parallax);
+      const py = Math.round(groundY - s * 0.94);
+      drawSpriteCell(mainCtx, vfx, col, row, px - s / 2, py, s, s, flip);
+    };
+    if (arena === 'sunset') {
+      placeProp(0, 2, 74, 72);
+      placeProp(1, 2, 588, 62);
+      placeProp(2, 2, 878, 108);
+    } else if (arena === 'forest') {
+      placeProp(5, 2, 78, 86);
+      placeProp(2, 2, 495, 84);
+      placeProp(5, 2, 882, 86, true);
+    } else {
+      placeProp(4, 2, 72, 76);
+      placeProp(0, 2, 138, 64, true);
+      placeProp(3, 2, 876, 106);
+    }
+  }
+  mainCtx.restore();
 }
 
 function pixelLine(ctx: CanvasRenderingContext2D, a: Point, b: Point, width: number, color: string) {
@@ -295,13 +338,146 @@ function limb(ctx: CanvasRenderingContext2D, a: Point, b: Point, c: Point, color
   pixelLine(ctx, b, c, width, color);
 }
 
-export function drawFighter(mainCtx: CanvasRenderingContext2D, fighter: FighterVisual, time: number, scale = 1.15) {
+const IDLE_FRAMES = [0, 1, 2, 4, 5, 2];
+
+function selectSpriteCell(fighter: FighterVisual, time: number): { col: number; row: number; squashY?: number } {
+  switch (fighter.pose) {
+    case 'ko':
+      return { col: 2, row: 3 };
+    case 'victory':
+      return { col: 3, row: 3 };
+    case 'hurt':
+      return fighter.y < GROUND - 8 ? { col: 1, row: 3 } : { col: 0, row: 3 };
+    case 'block':
+      return { col: 5, row: 2 };
+    case 'crouch':
+      return { col: 5, row: 2, squashY: 0.82 };
+    case 'jump':
+      return { col: 2, row: 1 };
+    case 'walk':
+      return { col: Math.floor(time * 12) % 6, row: 1 };
+    case 'attack': {
+      switch (fighter.attack) {
+        case 'jab':
+          return { col: 0, row: 2 };
+        case 'heavy':
+        case 'dash':
+          return { col: 1, row: 2 };
+        case 'kick':
+        case 'heavyKick':
+        case 'airKick':
+          return { col: 2, row: 2 };
+        case 'sweep':
+          return { col: 3, row: 2 };
+        case 'uppercut':
+          return { col: 4, row: 2 };
+        case 'special':
+          if (fighter.id === 'spark') return { col: 5, row: 3 };
+          if (fighter.id === 'titan') return { col: 4, row: 3 };
+          return { col: 4, row: 2 };
+        default:
+          return { col: 0, row: 2 };
+      }
+    }
+    case 'idle':
+    default: {
+      const idx = Math.floor(time * 7.5) % IDLE_FRAMES.length;
+      return { col: IDLE_FRAMES[idx], row: 0 };
+    }
+  }
+}
+
+export function drawFighter(
+  mainCtx: CanvasRenderingContext2D,
+  fighter: FighterVisual,
+  time: number,
+  scale = 1.15,
+  hiRes = mainCtx.canvas.width >= 600
+) {
+  ensureSpritesLoaded();
   const def = FIGHTERS[fighter.id];
-  const x = Math.round(fighter.x / 2);
-  const y = Math.round(fighter.y / 2);
+
+  if (isSpritesReady()) {
+    const sheet = getFighterSheet(fighter.id, false);
+    if (sheet) {
+      const px = hiRes ? Math.round(fighter.x) : Math.round(fighter.x / 2);
+      const py = hiRes ? Math.round(fighter.y) : Math.round(fighter.y / 2);
+      const groundY = hiRes ? GROUND : GROUND / 2;
+      const cell = selectSpriteCell(fighter, time);
+      const unitScale = hiRes ? scale : scale * 0.5;
+      const drawW = Math.round(138 * unitScale * def.size);
+      const drawH = Math.round(drawW * (cell.squashY ?? 1));
+      const dx = Math.round(px - drawW / 2);
+      const dy = Math.round(py - drawH * (184 / 192));
+      const flip = fighter.facing < 0;
+
+      mainCtx.save();
+      // Draw soft oval ground shadow on full battlefield canvas
+      if (mainCtx.canvas.height >= 360) {
+        const sRx = Math.round((fighter.pose === 'ko' ? 56 : 42) * def.size);
+        const sRy = 9;
+        mainCtx.fillStyle = 'rgba(10, 15, 24, 0.34)';
+        mainCtx.beginPath();
+        mainCtx.ellipse(px, groundY + 3, sRx, sRy, 0, 0, Math.PI * 2);
+        mainCtx.fill();
+      }
+
+      mainCtx.globalAlpha = fighter.invulnerable && Math.floor(time * 17) % 2 === 0 ? 0.62 : 1;
+      drawSpriteCell(mainCtx, sheet, cell.col, cell.row, dx, dy, drawW, drawH, flip);
+
+      if ((fighter.hitFlash ?? 0) > 0.07) {
+        const flashSheet = getFighterSheet(fighter.id, true);
+        if (flashSheet) {
+          mainCtx.globalAlpha = 0.7;
+          drawSpriteCell(mainCtx, flashSheet, cell.col, cell.row, dx, dy, drawW, drawH, flip);
+        }
+      }
+
+      // Draw crisp Worms VFX overlays attached to moves (shield, dash streaks, KO stars, specials)
+      const vfx = getVfxSheet();
+      if (vfx) {
+        mainCtx.globalAlpha = 1;
+        const vSize = Math.round(104 * unitScale * def.size);
+        if (fighter.pose === 'block' && (fighter.blockFlash ?? 0) > 0) {
+          drawSpriteCell(mainCtx, vfx, 3, 1, Math.round(px + fighter.facing * 24 * unitScale - vSize / 2), Math.round(py - drawH * 0.56 - vSize / 2), vSize, vSize, flip);
+        }
+        if (fighter.pose === 'ko') {
+          const starsW = Math.round(86 * unitScale);
+          const bob = Math.round(Math.sin(time * 6) * 4 * unitScale);
+          drawSpriteCell(mainCtx, vfx, 5, 1, Math.round(px - starsW / 2), Math.round(py - drawH * 0.85 + bob), starsW, starsW, false);
+        }
+        const e = fighter.extension ?? 0;
+        if (fighter.pose === 'attack' && fighter.attack === 'dash' && e > 0.15) {
+          drawSpriteCell(mainCtx, vfx, 4, 1, Math.round(px - fighter.facing * 42 * unitScale - vSize / 2), Math.round(py - drawH * 0.48 - vSize / 2), vSize, vSize, flip);
+        }
+        if (fighter.pose === 'attack' && fighter.attack === 'special' && e > 0.32) {
+          const fxX = Math.round(px + fighter.facing * (48 + e * 38) * unitScale);
+          const fxY = Math.round(py - drawH * 0.42);
+          if (fighter.id === 'spark') {
+            drawSpriteCell(mainCtx, vfx, 1, 0, Math.round(fxX - vSize * 0.55), Math.round(fxY - vSize * 0.7), Math.round(vSize * 1.1), Math.round(vSize * 1.1), flip);
+            drawSpriteCell(mainCtx, vfx, 1, 1, Math.round(fxX - vSize * 0.45), Math.round(fxY - vSize * 0.45), Math.round(vSize * 0.9), Math.round(vSize * 0.9), flip);
+          } else if (fighter.id === 'titan') {
+            drawSpriteCell(mainCtx, vfx, 3, 0, Math.round(fxX - vSize * 0.65), Math.round(groundY - vSize * 0.95), Math.round(vSize * 1.3), Math.round(vSize * 1.1), flip);
+            drawSpriteCell(mainCtx, vfx, 2, 1, Math.round(fxX - vSize * 0.6), Math.round(groundY - vSize * 0.68), Math.round(vSize * 1.2), Math.round(vSize * 0.8), flip);
+          } else {
+            drawSpriteCell(mainCtx, vfx, 2, 0, Math.round(fxX - vSize * 0.55), Math.round(fxY - vSize * 0.55), Math.round(vSize * 1.1), Math.round(vSize * 1.1), flip);
+            drawSpriteCell(mainCtx, vfx, 0, 1, Math.round(fxX - vSize * 0.45), Math.round(fxY - vSize * 0.45), Math.round(vSize * 0.9), Math.round(vSize * 0.9), flip);
+          }
+        }
+      }
+
+      mainCtx.restore();
+      return;
+    }
+  }
+
+  // Fallback procedural stickman renderer while sprite sheet is loading
+  const x = hiRes ? Math.round(fighter.x / 2) : Math.round(fighter.x / 2);
+  const y = hiRes ? Math.round(fighter.y / 2) : Math.round(fighter.y / 2);
   const t = time;
   const shadowSize = fighter.pose === 'ko' ? 30 : 23;
   mainCtx.save();
+  if (hiRes) mainCtx.scale(2, 2);
   mainCtx.globalAlpha = 0.3;
   rectangle(mainCtx, x - shadowSize, GROUND / 2 - 2, shadowSize * 2, 4, '#101720');
   rectangle(mainCtx, x - shadowSize + 5, GROUND / 2 + 2, shadowSize * 2 - 10, 2, '#101720');

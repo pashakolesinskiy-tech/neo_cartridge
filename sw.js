@@ -1,4 +1,4 @@
-const CACHE_NAME = 'neo-cartridge-pwa-v5';
+const CACHE_NAME = 'neo-cartridge-pwa-v6';
 
 const CORE_ASSETS = [
   './',
@@ -22,6 +22,8 @@ const CORE_ASSETS = [
 
 const OFFLINE_GAME_ASSETS = [
   './games/stick_fighting.html',
+  './games/stick_fighting_assets/fighter_vortex.png',
+  './games/stick_fighting_assets/vfx_props.png',
   './games/pixel_drift.html',
   './games/chrono_blade.html',
   './games/mecha_siege.html',

@@ -10,9 +10,9 @@ class ArenaScene extends Phaser.Scene {
   constructor(engine: FightEngine) { super('Arena'); this.engine = engine; }
 
   create() {
-    this.texture = this.textures.createCanvas('pixel-world', 480, 270);
+    this.texture = this.textures.createCanvas('pixel-world', WORLD_WIDTH, WORLD_HEIGHT);
     if (!this.texture) return;
-    this.texture.context.imageSmoothingEnabled = false;
+    this.texture.context.imageSmoothingEnabled = true;
     this.add.image(0, 0, 'pixel-world').setOrigin(0).setDisplaySize(WORLD_WIDTH, WORLD_HEIGHT);
     this.engine.draw(this.texture.context);
     this.engine.emit();
@@ -25,7 +25,10 @@ class ArenaScene extends Phaser.Scene {
       this.engine.step(1 / 60);
       this.accumulator -= 1 / 60;
     }
-    if (this.texture) this.engine.draw(this.texture.context);
+    if (this.texture) {
+      this.engine.draw(this.texture.context);
+      this.texture.refresh();
+    }
   }
 }
 
@@ -37,9 +40,9 @@ export function createGame(parent: HTMLElement, settings: Settings, onSnapshot: 
     width: WORLD_WIDTH,
     height: WORLD_HEIGHT,
     backgroundColor: '#171b24',
-    pixelArt: true,
+    pixelArt: false,
     roundPixels: true,
-    antialias: false,
+    antialias: true,
     audio: { noAudio: true },
     input: { keyboard: false, mouse: false, touch: false },
     fps: { target: 60, smoothStep: false },
