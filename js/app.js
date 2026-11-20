@@ -971,6 +971,8 @@ const App = {
   }
 };
 
+window.App = App;
+
 document.addEventListener('DOMContentLoaded', () => {
   App.init();
 });
