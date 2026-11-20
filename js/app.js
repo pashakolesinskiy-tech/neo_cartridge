@@ -487,9 +487,9 @@ const App = {
       }
     });
 
-    // Подсветка картриджей на нижней полке
-    document.querySelectorAll('.cartridge-item').forEach(item => {
-      item.classList.toggle('active', item.dataset.game === this.cartridgeOrder[this.deckIndex]);
+    // Подсветка картриджей на нижней полке и в док-панели
+    document.querySelectorAll('.cartridge-item, .dock-card').forEach(item => {
+      item.classList.toggle('active', item.dataset.game === this.cartridgeOrder[roundedIndex]);
     });
   },
 
@@ -501,17 +501,21 @@ const App = {
     const cart = this.cartridges[this.currentCartridge];
     if (!cart) return;
 
+    document.body.setAttribute('data-active-game', this.currentCartridge);
+
     const titleEl = document.getElementById('slot-game-title');
     const genreEl = document.getElementById('slot-game-genre');
     const descEl = document.getElementById('slot-game-desc');
     const controlsEl = document.getElementById('slot-game-controls');
     const recordEl = document.getElementById('slot-game-record');
+    const romPillEl = document.getElementById('hero-rom-pill');
 
     if (titleEl) titleEl.textContent = cart.name;
     if (genreEl) genreEl.textContent = cart.genre;
     if (descEl) descEl.textContent = cart.desc;
     if (controlsEl) controlsEl.textContent = cart.controls;
     if (recordEl) recordEl.textContent = Storage.getHighscore(this.currentCartridge);
+    if (romPillEl) romPillEl.textContent = `ROM #0${this.deckIndex + 1}`;
   },
 
   // =========================================================================

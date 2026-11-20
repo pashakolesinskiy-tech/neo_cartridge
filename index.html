@@ -19,16 +19,24 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/console.css?v=6">
-  <link rel="stylesheet" href="css/components.css?v=6">
+  <link rel="stylesheet" href="css/console.css?v=8">
+  <link rel="stylesheet" href="css/components.css?v=8">
 </head>
-<body>
+<body data-active-game="stick_fighting">
+
+  <!-- Ambient Aurora Background Glows -->
+  <div class="ambient-aurora" aria-hidden="true">
+    <div class="aurora-orb orb-1"></div>
+    <div class="aurora-orb orb-2"></div>
+    <div class="aurora-grid"></div>
+  </div>
 
   <!-- Top System Bar -->
   <header class="top-nav" role="banner">
     <div class="container nav-row">
       <div class="brand-wrap">
-        <img src="assets/logo.svg" alt="NEO-CARTRIDGE // ZERO" style="height: 38px; width: auto;">
+        <img src="assets/logo.svg" alt="NEO-CARTRIDGE // ZERO" class="brand-logo">
+        <span class="brand-edition-badge">NEXT-GEN ARCADE OS</span>
       </div>
 
       <div class="nav-badges">
@@ -40,10 +48,16 @@
           <span class="dot" style="background:var(--accent-gold); box-shadow:0 0 6px var(--accent-gold);"></span>
           <span>P2P: WEBRTC ГОТОВ</span>
         </div>
-        <button id="btn-pwa-install" class="btn-tactile btn-pwa-install" style="display:none; padding:4px 10px; font-size:0.6875rem;" onclick="PWA.promptInstall()" title="Установить NEO-CARTRIDGE как приложение">
+        <button class="btn-tactile btn-nav-glass" onclick="if (window.P2P && P2P.syncSelectedGameFromConsole) P2P.syncSelectedGameFromConsole(); App.openModal('p2p-modal');" title="Создать или войти в онлайн-комнату P2P">
+          <span>🌐 ОНЛАЙН P2P</span>
+        </button>
+        <button class="btn-tactile btn-nav-glass hide-xs" onclick="App.openModal('achieve-modal')" title="Зал трофеев и достижений">
+          <span>🏆 ТРОФЕИ</span>
+        </button>
+        <button id="btn-pwa-install" class="btn-tactile btn-pwa-install" style="display:none; padding:5px 11px; font-size:0.6875rem;" onclick="PWA.promptInstall()" title="Установить NEO-CARTRIDGE как приложение">
           <span>📲 УСТАНОВИТЬ</span>
         </button>
-        <button class="btn-tactile" style="padding:4px 10px; font-size:0.6875rem; color:var(--crt-cyan); border-color:var(--console-border);" onclick="App.openModal('settings-modal')" title="Открыть настройки консоли">
+        <button class="btn-tactile btn-nav-settings" onclick="App.openModal('settings-modal')" title="Открыть настройки консоли">
           <span>⚙️ НАСТРОЙКИ</span>
         </button>
       </div>
@@ -403,37 +417,60 @@
           <!-- Console Dashboard & Cartridge Management -->
           <div class="console-side-panel">
             <div class="slot-dashboard-box">
-              <div id="slot-tag-label" class="slot-tag">// КАРТРИДЖ В ФОКУСЕ</div>
-              <h2 id="slot-game-title" class="slot-title">STICK_FIGHTING</h2>
-              <div id="slot-game-genre" class="slot-genre">2D Pixel Fighter (Phaser 3)</div>
+              <!-- Live Hero Artwork Showcase Banner -->
+              <div class="hero-inspector-banner">
+                <canvas id="hero-inspector-canvas" width="380" height="116" class="hero-inspector-canvas"></canvas>
+                <div class="hero-inspector-overlay">
+                  <div class="hero-top-badges">
+                    <span id="slot-tag-label" class="slot-tag">// КАРТРИДЖ В ФОКУСЕ</span>
+                    <span id="hero-rom-pill" class="hero-rom-pill">ROM #01</span>
+                  </div>
+                  <div class="hero-feature-chips">
+                    <span class="feature-chip">⚡ 60 FPS</span>
+                    <span class="feature-chip">🌐 P2P ONLINE</span>
+                    <span class="feature-chip">🎨 WORMS ART</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="slot-header-block">
+                <h2 id="slot-game-title" class="slot-title">STICK_FIGHTING</h2>
+                <div id="slot-game-genre" class="slot-genre">2D Pixel Fighter (Phaser 3)</div>
+              </div>
+
               <p id="slot-game-desc" class="slot-desc">
                 Полноразмерный 2D файтинг: 3 бойца (Вихрь, Искра, Титан), 3 живые арены, комбо-система и WebRTC мультиплеер без сервера. Играйте против ИИ или с другом по сети!
               </p>
 
               <div class="slot-metrics">
-                <div>
-                  <div style="font-size:0.6875rem; color:var(--text-muted);">РЕКОРД КАРТРИДЖА</div>
+                <div class="metric-card">
+                  <div class="metric-label">🏆 РЕКОРД</div>
                   <div id="slot-game-record" class="score-val">0</div>
                 </div>
-                <div style="text-align:right;">
-                  <div style="font-size:0.6875rem; color:var(--text-muted);">УПРАВЛЕНИЕ</div>
-                  <div id="slot-game-controls" style="font-size:0.75rem; color:var(--text-main);">Стрелки — Движение, J/K/U/I — Удары, O — Спецприем</div>
+                <div class="metric-card metric-controls">
+                  <div class="metric-label">🎮 УПРАВЛЕНИЕ</div>
+                  <div id="slot-game-controls" class="metric-controls-text">Стрелки — Движение, J/K/U/I — Удары, O — Спецприем</div>
                 </div>
               </div>
 
               <!-- Primary Action in Menu Mode -->
-              <div id="menu-power-btn-wrap" style="margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;">
+              <div id="menu-power-btn-wrap" class="menu-actions-stack">
                 <button id="btn-main-power" class="btn-tactile btn-power-big" onclick="App.powerOnCartridge()">
                   <span class="power-icon">▶</span>
-                  <span>ВСТАВИТЬ И ВКЛЮЧИТЬ [ENTER]</span>
+                  <span>ЗАПУСТИТЬ КАРТРИДЖ [ENTER]</span>
                 </button>
-                <button class="btn-tactile btn-settings-main" onclick="App.openModal('settings-modal')">
-                  <span>⚙️ НАСТРОЙКИ КОНСОЛИ</span>
-                </button>
+                <div class="menu-secondary-row">
+                  <button class="btn-tactile btn-p2p-quick" onclick="if (window.P2P && P2P.syncSelectedGameFromConsole) P2P.syncSelectedGameFromConsole(); App.openModal('p2p-modal');">
+                    <span>🌐 ОНЛАЙН P2P</span>
+                  </button>
+                  <button class="btn-tactile btn-settings-main" onclick="App.openModal('settings-modal')">
+                    <span>⚙️ НАСТРОЙКИ</span>
+                  </button>
+                </div>
               </div>
 
               <!-- Quick Toggles when Game is Active -->
-              <div id="game-active-controls-wrap" style="display:none; margin-bottom: 12px; flex-direction: column; gap: 8px;">
+              <div id="game-active-controls-wrap" style="display:none; margin-bottom: 4px; flex-direction: column; gap: 8px;">
                 <div style="display:flex; gap:8px;">
                   <button class="btn-tactile btn-danger-action" style="flex:1;" onclick="App.powerOffConsole()">
                     <span>⏻ ВЫКЛЮЧИТЬ (ESC)</span>
@@ -453,6 +490,64 @@
               </div>
 
             </div>
+          </div>
+        </div>
+
+        <!-- Modern Visual 6-Cartridge Quick Dock -->
+        <div class="cartridge-dock-bar" id="cartridge-dock-bar" aria-label="Библиотека картриджей">
+          <div class="dock-header">
+            <span class="dock-title">// БИБЛИОТЕКА КАРТРИДЖЕЙ (6 ROM-МОДУЛЕЙ)</span>
+            <span class="dock-sub">Клик — выбор • Повторный клик или Enter — запуск</span>
+          </div>
+          <div class="dock-grid">
+            <button type="button" class="dock-card active" data-index="0" data-game="stick_fighting" onclick="App.onCardClick(0)">
+              <span class="dock-rom-num">01</span>
+              <span class="dock-thumb thumb-stick"></span>
+              <span class="dock-meta">
+                <span class="dock-name">STICK FIGHTING</span>
+                <span class="dock-genre">2D Fighter • P2P</span>
+              </span>
+            </button>
+            <button type="button" class="dock-card" data-index="1" data-game="pixel_drift" onclick="App.onCardClick(1)">
+              <span class="dock-rom-num">02</span>
+              <span class="dock-thumb thumb-drift"></span>
+              <span class="dock-meta">
+                <span class="dock-name">PIXEL DRIFT GP</span>
+                <span class="dock-genre">Arcade Drift • 4P</span>
+              </span>
+            </button>
+            <button type="button" class="dock-card" data-index="2" data-game="chrono_blade" onclick="App.onCardClick(2)">
+              <span class="dock-rom-num">03</span>
+              <span class="dock-thumb thumb-chrono"></span>
+              <span class="dock-meta">
+                <span class="dock-name">CHRONO BLADE</span>
+                <span class="dock-genre">Cyber Slasher • Co-op</span>
+              </span>
+            </button>
+            <button type="button" class="dock-card" data-index="3" data-game="mecha_siege" onclick="App.onCardClick(3)">
+              <span class="dock-rom-num">04</span>
+              <span class="dock-thumb thumb-mecha"></span>
+              <span class="dock-meta">
+                <span class="dock-name">MECHA SIEGE</span>
+                <span class="dock-genre">Dieselpunk TD • 2P</span>
+              </span>
+            </button>
+            <button type="button" class="dock-card" data-index="4" data-game="worms_armageddon" onclick="App.onCardClick(4)">
+              <span class="dock-rom-num">05</span>
+              <span class="dock-thumb thumb-worms"></span>
+              <span class="dock-meta">
+                <span class="dock-name">WORMS ARMAGEDDON</span>
+                <span class="dock-genre">34 Weapons • Online</span>
+              </span>
+            </button>
+            <button type="button" class="dock-card" data-index="5" data-game="cosmo_junk" onclick="App.onCardClick(5)">
+              <span class="dock-rom-num">06</span>
+              <span class="dock-thumb thumb-cosmo"></span>
+              <span class="dock-meta">
+                <span class="dock-name">COSMO JUNK</span>
+                <span class="dock-genre">4-Role Space Co-op</span>
+              </span>
+            </button>
           </div>
         </div>
 
@@ -743,13 +838,13 @@
   </div>
 
   <!-- Core Scripts -->
-  <script src="js/audio.js"></script>
-  <script src="js/storage.js"></script>
-  <script src="js/editor.js"></script>
-  <script src="js/webrtc-room.js?v=6"></script>
-  <script src="js/p2p.js?v=6"></script>
-  <script src="js/previews.js"></script>
-  <script src="js/pwa.js?v=6"></script>
-  <script src="js/app.js?v=6"></script>
+  <script src="js/audio.js?v=8"></script>
+  <script src="js/storage.js?v=8"></script>
+  <script src="js/editor.js?v=8"></script>
+  <script src="js/webrtc-room.js?v=8"></script>
+  <script src="js/p2p.js?v=8"></script>
+  <script src="js/previews.js?v=8"></script>
+  <script src="js/pwa.js?v=8"></script>
+  <script src="js/app.js?v=8"></script>
 </body>
 </html>

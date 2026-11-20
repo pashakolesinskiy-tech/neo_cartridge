@@ -9,8 +9,26 @@ const Previews = {
   canvases: {},
   contexts: {},
   states: {},
+  heroCanvas: null,
+  heroCtx: null,
+  sheets: {},
 
   init() {
+    const sheetMap = {
+      stick: 'games/stick_fighting_assets/fighter_vortex.png',
+      stickVfx: 'games/stick_fighting_assets/vfx_props.png',
+      drift: 'games/sprites/pixel_drift_sheet.png',
+      chrono: 'games/sprites/chrono_blade_sheet.png',
+      mecha: 'games/sprites/mecha_siege_sheet.png',
+      worms: 'games/worms-armageddon/assets/worms-sheet.png',
+      cosmo: 'games/sprites/cosmo_junk_sheet.png'
+    };
+    Object.keys(sheetMap).forEach((k) => {
+      const img = new Image();
+      img.src = sheetMap[k];
+      this.sheets[k] = img;
+    });
+
     ['stick_fighting', 'pixel_drift', 'chrono_blade', 'mecha_siege', 'worms_armageddon', 'cosmo_junk'].forEach((gameId, idx) => {
       const canvas = document.getElementById(`preview-canvas-${idx}`);
       if (canvas) {
@@ -20,7 +38,33 @@ const Previews = {
       }
     });
 
+    this.heroCanvas = document.getElementById('hero-inspector-canvas');
+    if (this.heroCanvas) {
+      this.heroCtx = this.heroCanvas.getContext('2d');
+    }
+
     this.start();
+  },
+
+  isSheetReady(key) {
+    const img = this.sheets[key];
+    return !!(img && img.complete && img.naturalWidth > 0);
+  },
+
+  drawCell(ctx, key, col, row, x, y, w, h, rot = 0, flipX = false, alpha = 1) {
+    if (!this.isSheetReady(key)) return false;
+    const img = this.sheets[key];
+    const cw = img.naturalWidth / 6;
+    const ch = img.naturalHeight / 4;
+    ctx.save();
+    ctx.translate(x, y);
+    if (rot) ctx.rotate(rot);
+    if (flipX) ctx.scale(-1, 1);
+    if (alpha !== 1) ctx.globalAlpha *= alpha;
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(img, col * cw, row * ch, cw, ch, -w * 0.5, -h * 0.5, w, h);
+    ctx.restore();
+    return true;
   },
 
   start() {
@@ -155,6 +199,79 @@ const Previews = {
       else if (gameId === 'worms_armageddon') this.renderWormsArmageddon(ctx, w, h, dt);
       else if (gameId === 'cosmo_junk') this.renderCosmoJunk(ctx, w, h, dt);
     });
+
+    if (this.heroCtx && this.heroCanvas) {
+      this.renderHeroBanner(this.heroCtx, this.heroCanvas.width, this.heroCanvas.height);
+    }
+  },
+
+  renderHeroBanner(ctx, w, h) {
+    const active = (window.App && App.currentCartridge) || 'stick_fighting';
+    const t = performance.now() * 0.0025;
+    ctx.clearRect(0, 0, w, h);
+
+    // Sleek dark radial backdrop
+    const grad = ctx.createLinearGradient(0, 0, w, h);
+    const palettes = {
+      stick_fighting: ['#1f0710', '#0b1326', '#ff3b5c'],
+      pixel_drift: ['#041a24', '#0e1328', '#06b6d4'],
+      chrono_blade: ['#17072b', '#081526', '#a855f7'],
+      mecha_siege: ['#221305', '#101420', '#f59e0b'],
+      worms_armageddon: ['#052115', '#0b1829', '#10b981'],
+      cosmo_junk: ['#06132b', '#130b29', '#3b82f6']
+    };
+    const pal = palettes[active] || palettes.stick_fighting;
+    grad.addColorStop(0, pal[0]);
+    grad.addColorStop(1, pal[1]);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+
+    // Subtle animated grid lines
+    ctx.strokeStyle = 'rgba(255,255,255,0.045)';
+    ctx.lineWidth = 1;
+    const gxOff = (t * 18) % 24;
+    for (let x = -gxOff; x < w; x += 24) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+    }
+    for (let y = 0; y < h; y += 24) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+    }
+
+    // Glowing floor horizon
+    const glow = ctx.createRadialGradient(w * 0.72, h * 0.55, 6, w * 0.72, h * 0.55, 110);
+    glow.addColorStop(0, pal[2] + '55');
+    glow.addColorStop(1, 'transparent');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, w, h);
+
+    const bob = Math.sin(t * 2.2) * 3;
+    if (active === 'stick_fighting') {
+      this.drawCell(ctx, 'stickVfx', 1, 2, w * 0.52, h * 0.52, 54, 54, 0, false, 0.85);
+      this.drawCell(ctx, 'stick', Math.floor(t * 3) % 4, 2, w * 0.68, h * 0.56 + bob, 86, 86, 0, false, 1);
+      this.drawCell(ctx, 'stick', 4, 2, w * 0.86, h * 0.54 - bob, 84, 84, 0, true, 1);
+    } else if (active === 'pixel_drift') {
+      this.drawCell(ctx, 'drift', 0, 1, w * 0.50, h * 0.65, 58, 58, 0, false, 0.9);
+      this.drawCell(ctx, 'drift', 2, 1, w * 0.61, h * 0.55 + bob, 40, 40, 0, false, 0.95);
+      this.drawCell(ctx, 'drift', 2, 0, w * 0.73, h * 0.55 + bob, 92, 92, -0.08, false, 1);
+      this.drawCell(ctx, 'drift', 4, 0, w * 0.89, h * 0.62 - bob, 82, 82, -0.12, false, 0.95);
+    } else if (active === 'chrono_blade') {
+      this.drawCell(ctx, 'chrono', 3, 0, w * 0.62, h * 0.56 + bob, 86, 86, 0, false, 1);
+      this.drawCell(ctx, 'chrono', 0, 3, w * 0.74, h * 0.54 + bob, 72, 72, 0, false, 0.95);
+      this.drawCell(ctx, 'chrono', 0, 2, w * 0.88, h * 0.56 - bob, 88, 88, 0, true, 1);
+    } else if (active === 'mecha_siege') {
+      this.drawCell(ctx, 'mecha', 5, 0, w * 0.54, h * 0.56, 74, 74, t * 0.4, false, 0.95);
+      this.drawCell(ctx, 'mecha', 0, 0, w * 0.70, h * 0.56 + bob, 74, 74, 0, false, 1);
+      this.drawCell(ctx, 'mecha', 2, 2, w * 0.88, h * 0.56 - bob, 86, 86, Math.PI, false, 1);
+    } else if (active === 'worms_armageddon') {
+      if (this.isSheetReady('worms')) {
+        const img = this.sheets.worms;
+        ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, w * 0.55, h * 0.14 + bob, 145, 92);
+      }
+    } else if (active === 'cosmo_junk') {
+      this.drawCell(ctx, 'cosmo', 4, 0, w * 0.53, h * 0.55, 76, 76, 0, false, 0.9);
+      this.drawCell(ctx, 'cosmo', 1, 0, w * 0.72, h * 0.54 + bob, 92, 92, 0, false, 1);
+      this.drawCell(ctx, 'cosmo', 2, 0, w * 0.90, h * 0.56 - bob, 72, 72, 0, false, 1);
+    }
   },
 
   // =========================================================================
@@ -250,11 +367,18 @@ const Previews = {
       s.combo = 0;
     }
 
-    // Draw P1 (Cyan Fighter)
-    this.drawStickman(ctx, p1X, 92, p1Pose, '#00f3ff', 1);
-
-    // Draw P2 (Red Fighter)
-    this.drawStickman(ctx, p2X, 92, p2Pose, '#ff3366', -1);
+    // Draw P1 (Cyan Fighter) & P2 (Red Fighter) with Worms-style sprites if ready
+    if (this.isSheetReady('stick')) {
+      const p1Col = p1Pose === 'punch' ? 0 : p1Pose === 'kick' ? 2 : p1Pose === 'sweep' ? 3 : p1Pose === 'block' ? 5 : (Math.floor(s.tick * 0.3) % 4);
+      const p1Row = (p1Pose === 'punch' || p1Pose === 'kick' || p1Pose === 'sweep' || p1Pose === 'block') ? 2 : 1;
+      const p2Col = p2Pose === 'punch' ? 1 : p2Pose === 'flinch' ? 0 : p2Pose === 'fall' ? 2 : 0;
+      const p2Row = p2Pose === 'punch' ? 2 : (p2Pose === 'flinch' || p2Pose === 'fall') ? 3 : 0;
+      this.drawCell(ctx, 'stick', p1Col, p1Row, p1X, 72, 46, 46, 0, false, 1);
+      this.drawCell(ctx, 'stick', p2Col, p2Row, p2X, 72, 46, 46, 0, true, 1);
+    } else {
+      this.drawStickman(ctx, p1X, 92, p1Pose, '#00f3ff', 1);
+      this.drawStickman(ctx, p2X, 92, p2Pose, '#ff3366', -1);
+    }
 
     // Render Sparks
     this.renderSparks(ctx, s.sparks);
@@ -547,32 +671,41 @@ const Previews = {
       ctx.fill();
     }
 
-    // Draw Drift Car
-    ctx.save();
-    ctx.translate(roadX, roadY);
-    ctx.rotate(driftAngle);
+    // Draw Drift Car (Worms-style sprite if ready)
+    if (this.isSheetReady('drift')) {
+      this.drawCell(ctx, 'drift', 2, 0, roadX, roadY, 34, 34, driftAngle, false, 1);
+      const t2 = t - 1.35;
+      const r2X = 80 + Math.cos(t2) * 52;
+      const r2Y = 65 + Math.sin(t2) * 36;
+      const tan2 = Math.atan2(Math.cos(t2) * 36, -Math.sin(t2) * 52) + Math.PI + 0.4;
+      this.drawCell(ctx, 'drift', 4, 0, r2X, r2Y, 32, 32, tan2, false, 1);
+    } else {
+      ctx.save();
+      ctx.translate(roadX, roadY);
+      ctx.rotate(driftAngle);
 
-    // Car Body (Sports Coupe)
-    ctx.fillStyle = '#06b6d4'; // Cyan primary
-    ctx.fillRect(-7, -4, 14, 8);
-    // Roof / Windshield
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(-3, -3, 6, 6);
-    // Rear spoiler
-    ctx.fillStyle = '#0284c7';
-    ctx.fillRect(-8, -4, 2, 8);
-    // Wheels
-    ctx.fillStyle = '#000';
-    ctx.fillRect(-5, -5, 3, 2);
-    ctx.fillRect(3, -5, 3, 2);
-    ctx.fillRect(-5, 3, 3, 2);
-    ctx.fillRect(3, 3, 3, 2);
-    // Headlights
-    ctx.fillStyle = '#fef08a';
-    ctx.fillRect(6, -3.5, 1.5, 2);
-    ctx.fillRect(6, 1.5, 1.5, 2);
+      // Car Body (Sports Coupe)
+      ctx.fillStyle = '#06b6d4'; // Cyan primary
+      ctx.fillRect(-7, -4, 14, 8);
+      // Roof / Windshield
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(-3, -3, 6, 6);
+      // Rear spoiler
+      ctx.fillStyle = '#0284c7';
+      ctx.fillRect(-8, -4, 2, 8);
+      // Wheels
+      ctx.fillStyle = '#000';
+      ctx.fillRect(-5, -5, 3, 2);
+      ctx.fillRect(3, -5, 3, 2);
+      ctx.fillRect(-5, 3, 3, 2);
+      ctx.fillRect(3, 3, 3, 2);
+      // Headlights
+      ctx.fillStyle = '#fef08a';
+      ctx.fillRect(6, -3.5, 1.5, 2);
+      ctx.fillRect(6, 1.5, 1.5, 2);
 
-    ctx.restore();
+      ctx.restore();
+    }
 
     // HUD: Drift Score
     ctx.fillStyle = '#38bdf8';
@@ -620,6 +753,32 @@ const Previews = {
     const droneAlive = cycle < 105;
     const droneX = 125;
     const droneY = 68 + Math.sin(s.tick * 0.1) * 4;
+
+    if (this.isSheetReady('chrono')) {
+      if (droneAlive) {
+        this.drawCell(ctx, 'chrono', cycle >= 30 && cycle < 65 ? 1 : 0, 1, droneX, droneY, 36, 36, 0, true, 1);
+        if (cycle >= 30 && cycle < 85) {
+          const bulletProgress = (cycle - 30) / 55;
+          const bx = droneX - bulletProgress * 70;
+          const by = droneY + (90 - droneY) * bulletProgress * 0.5;
+          this.drawCell(ctx, 'chrono', 2, 3, bx, by, 18, 18, Math.PI, false, 1);
+        }
+      } else {
+        this.drawCell(ctx, 'chrono', 5, 1, droneX, droneY + 6, 36, 36, 0, false, 1);
+      }
+      const nCol = pose === 'slash' ? 3 : pose === 'sheath' ? 0 : (Math.floor(s.tick * 0.4) % 2 === 0 ? 1 : 2);
+      this.drawCell(ctx, 'chrono', nCol, 0, ninjaX, 73, 44, 44, 0, false, 1);
+      if (pose === 'slash') {
+        this.drawCell(ctx, 'chrono', 0, 3, ninjaX + 16, 70, 38, 38, 0, false, 0.95);
+      }
+      this.renderSparks(ctx, s.sparks);
+      if (s.bulletTime) {
+        ctx.fillStyle = '#a855f7';
+        ctx.font = '8px monospace';
+        ctx.fillText('BULLET-TIME', 8, 18);
+      }
+      return;
+    }
 
     if (droneAlive) {
       // Floating Drone
@@ -813,6 +972,34 @@ const Previews = {
     const cycle = Math.floor(s.tick) % 140;
     let walkerX = 150 - cycle * 0.85;
     let walkerAlive = cycle < 110;
+
+    if (this.isSheetReady('mecha')) {
+      this.drawCell(ctx, 'mecha', 3, 0, teslaX, teslaY, 30, 30, 0, false, 1);
+      const walkerY = 72;
+      const angleToWalker = Math.atan2(walkerY - gatlingY, walkerX - gatlingX);
+      this.drawCell(ctx, 'mecha', 0, 0, gatlingX, gatlingY, 30, 30, walkerAlive ? angleToWalker : 0, false, 1);
+      if (walkerAlive) {
+        this.drawCell(ctx, 'mecha', 1, 1, walkerX, walkerY, 38, 38, Math.PI, false, 1);
+        if (Math.floor(s.tick) % 4 === 0) {
+          this.drawCell(ctx, 'mecha', 4, 3, gatlingX + 14, gatlingY, 18, 18, angleToWalker, false, 0.95);
+        }
+        if (cycle > 45 && cycle < 75) {
+          ctx.strokeStyle = '#00f3ff';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(teslaX, teslaY);
+          ctx.lineTo((teslaX + walkerX) * 0.5, (teslaY + walkerY) * 0.5 + (Math.random() - 0.5) * 10);
+          ctx.lineTo(walkerX, walkerY);
+          ctx.stroke();
+        }
+      } else {
+        this.drawCell(ctx, 'mecha', 0, 3, walkerX, 72, 40, 40, 0, false, Math.max(0, 1 - (cycle - 110) / 30));
+      }
+      ctx.fillStyle = '#f59e0b';
+      ctx.font = '8px monospace';
+      ctx.fillText('WAVE 04 // 60FPS', 10, 18);
+      return;
+    }
 
     if (walkerAlive) {
       const walkerY = 72;
@@ -1402,6 +1589,22 @@ const Previews = {
       ctx.fillRect(-1, -1, 3, 3);
       ctx.restore();
     });
+
+    // 4.5. If Cosmo Junk Worms-style sprite sheet is ready, render ship, pirate & asteroids
+    if (this.isSheetReady('cosmo')) {
+      s.debris.forEach((d, idx) => {
+        this.drawCell(ctx, 'cosmo', idx % 3, 1, d.x, d.y, d.r * 3.2, d.r * 3.2, d.spin, false, 1);
+      });
+      const shipX2 = 42 + Math.sin(t * 0.5) * 8;
+      const shipY2 = 72 + Math.cos(t * 0.9) * 10;
+      this.drawCell(ctx, 'cosmo', 1, 0, shipX2, shipY2, 56, 56, 0, false, 1);
+      const pirX = 122 + Math.cos(t * 0.7) * 10;
+      const pirY = 54 + Math.sin(t * 1.1) * 12;
+      this.drawCell(ctx, 'cosmo', 2, 0, pirX, pirY, 42, 42, 0, false, 1);
+      const bx = ((t * 45) % 70);
+      this.drawCell(ctx, 'cosmo', 5, 0, pirX - bx, pirY, 18, 18, 0, false, 0.95);
+      return;
+    }
 
     // 5. Player ship
     const shipX = s.shipX + Math.sin(t * 0.6) * 10;
