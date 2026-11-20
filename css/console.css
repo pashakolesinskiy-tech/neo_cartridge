@@ -43,6 +43,7 @@
 }
 
 html {
+  color-scheme: dark;
   overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
 }
@@ -158,18 +159,20 @@ body {
 /* Grid split: Screen Housing + Side Panel */
 .console-inner-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 24px;
 }
 
 @media (min-width: 900px) {
   .console-inner-grid {
-    grid-template-columns: 1.55fr 1fr;
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
   }
 }
 
 /* Screen Housing & CRT Shader */
 .screen-housing {
+  min-width: 0;
+  max-width: 100%;
   background: var(--console-bezel);
   border: 3px solid #1a1e28;
   border-radius: var(--radius-screen);
@@ -349,12 +352,16 @@ body {
 
 /* Side Management Dashboard */
 .console-side-panel {
+  min-width: 0;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
 .slot-dashboard-box {
+  min-width: 0;
+  max-width: 100%;
   background: var(--console-surface);
   border: 1px solid var(--console-border);
   border-radius: var(--radius-screen);
@@ -396,11 +403,17 @@ body {
   border-radius: var(--radius-btn);
   padding: 10px 12px;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
   font-family: var(--font-retro);
   font-size: 0.8125rem;
   margin-bottom: 14px;
+}
+
+.slot-metrics > div {
+  min-width: 0;
 }
 
 .slot-metrics .score-val {
@@ -1774,6 +1787,10 @@ body.pseudo-fullscreen .mobile-rom-strip {
     display: flex;
     align-items: center;
     gap: 6px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;

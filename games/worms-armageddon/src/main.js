@@ -144,7 +144,15 @@ function refreshInviteAndQR() {
 
 async function loadNetworkAddresses() {
   let loaded = false;
-  if (window.location.protocol !== 'file:') {
+  const proto = window.location.protocol;
+  const host = window.location.hostname || '';
+  const isLocalHost =
+    proto === 'file:' ||
+    host === 'localhost' ||
+    host === '127.0.0.1' ||
+    /^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[0-1])\.)/.test(host);
+
+  if (isLocalHost && proto !== 'file:') {
     try {
       const res = await fetch('/api/network-info', { cache: 'no-store' });
       if (res.ok) {
@@ -161,8 +169,8 @@ async function loadNetworkAddresses() {
     }
   }
 
-  if (!loaded) {
-    const probeHost = window.location.hostname || '127.0.0.1';
+  if (!loaded && isLocalHost && proto !== 'https:') {
+    const probeHost = host || '127.0.0.1';
     const candidateOrigin = `http://${probeHost}:4174`;
     try {
       const res = await fetch(`${candidateOrigin}/api/network-info`, { cache: 'no-store' });
@@ -179,10 +187,14 @@ async function loadNetworkAddresses() {
     }
   }
 
-  if (!loaded && window.location.protocol === 'file:') {
+  if (!loaded && proto === 'file:') {
     online.serverUrl = 'http://127.0.0.1:4174';
     setupState.networkAddresses = [
       { name: 'Local Worms Server', ip: '127.0.0.1', url: 'http://127.0.0.1:4174', kind: 'local' },
+    ];
+  } else if (!loaded && !isLocalHost) {
+    setupState.networkAddresses = [
+      { name: 'Web (HTTPS)', ip: window.location.host, url: window.location.origin, kind: 'web' },
     ];
   }
 
@@ -190,7 +202,7 @@ async function loadNetworkAddresses() {
   for (const item of setupState.networkAddresses) {
     const opt = document.createElement('option');
     opt.value = item.url;
-    const tag = item.kind === 'lan' ? 'Wi-Fi / LAN' : item.kind === 'vpn' ? 'VPN' : 'Local';
+    const tag = item.kind === 'lan' ? 'Wi-Fi / LAN' : item.kind === 'vpn' ? 'VPN' : item.kind === 'web' ? 'WebRTC P2P' : 'Local';
     opt.textContent = `[${tag}] ${item.name} (${item.ip || item.url})`;
     onlineAddrSelect.appendChild(opt);
   }

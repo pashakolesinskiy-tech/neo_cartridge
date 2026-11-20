@@ -1,4 +1,4 @@
-const CACHE_NAME = 'neo-cartridge-pwa-v1';
+const CACHE_NAME = 'neo-cartridge-pwa-v2';
 
 const CORE_ASSETS = [
   './',

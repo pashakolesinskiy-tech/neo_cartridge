@@ -16,6 +16,7 @@
         --cj-alarm: #ff3b5b;
       }
       html, body {
+        color-scheme: dark;
         margin: 0;
         padding: 0;
         background: var(--cj-void);
@@ -319,12 +320,32 @@
         const PLAYER_TIMEOUT = 9000;
         const CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 
+        function normalizeCrewList(arr) {
+          if (!Array.isArray(arr)) return [];
+          return arr
+            .map((c) => (typeof c === "string" ? c : c && c.name ? String(c.name) : ""))
+            .filter(Boolean);
+        }
+
+        function migrateLbRows(rows) {
+          return rows.map((row) => {
+            if (!row || typeof row !== "object") return row;
+            try {
+              const parsed = typeof row.crew === "string" ? JSON.parse(row.crew) : row.crew;
+              const normalized = normalizeCrewList(parsed);
+              return { ...row, crew: JSON.stringify(normalized) };
+            } catch {
+              return row;
+            }
+          });
+        }
+
         const defaultLeaderboard = [
           {
             id: "seed-1",
             createdAt: Date.now() - 86400000 * 3,
             shipName: "РЖАВЫЙ ПЕПЕЛАЦ",
-            crew: JSON.stringify([{ name: "ГАЙКА", role: "pilot" }, { name: "ШПЛИНТ", role: "gunner" }]),
+            crew: JSON.stringify(["ГАЙКА", "ШПЛИНТ"]),
             score: 1840,
             rankCode: "S",
             rankTitle: "ГЕРОИ ПОЯСА КОЙПЕРА",
@@ -340,7 +361,7 @@
             id: "seed-2",
             createdAt: Date.now() - 86400000 * 2,
             shipName: "КОПЧЁНЫЙ САМОВАР",
-            crew: JSON.stringify([{ name: "ПОРШЕНЬ", role: "pilot" }, { name: "ЗАКЛЁПКА", role: "engineer" }]),
+            crew: JSON.stringify(["ПОРШЕНЬ", "ЗАКЛЁПКА"]),
             score: 1420,
             rankCode: "A",
             rankTitle: "СТАРШИЕ МУСОРЩИКИ",
@@ -356,7 +377,7 @@
             id: "seed-3",
             createdAt: Date.now() - 86400000,
             shipName: "БЕЗУМНЫЙ БАКЛАН",
-            crew: JSON.stringify([{ name: "ФИТИЛЬ", role: "navigator" }]),
+            crew: JSON.stringify(["ФИТИЛЬ"]),
             score: 960,
             rankCode: "B",
             rankTitle: "КОСМИЧЕСКИЕ БРОДЯГИ",
@@ -390,6 +411,8 @@
             } catch {}
             if (!Array.isArray(savedLb) || savedLb.length === 0) {
               savedLb = defaultLeaderboard;
+            } else {
+              savedLb = migrateLbRows(savedLb);
             }
             const bus = {
               rooms: savedRooms,
@@ -675,7 +698,7 @@
               id: uid(),
               createdAt: Date.now(),
               shipName: String(shipName || (room && room.shipName) || "БЕЗЫМЯННЫЙ КОРЫТО").slice(0, 40),
-              crew: JSON.stringify(Array.isArray(crew) ? crew.slice(0, 8) : []),
+              crew: JSON.stringify(normalizeCrewList(crew).slice(0, 8)),
               score: Math.round(result.score),
               rankCode: String(result.rankCode || "?").slice(0, 4),
               rankTitle: String(result.rankTitle || "").slice(0, 40),
