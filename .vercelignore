@@ -1,7 +1,13 @@
 **/node_modules
 **/.next
 games/stick_fighting_src
-games/worms-armageddon
+games/worms-armageddon/src
+games/worms-armageddon/test
+games/worms-armageddon/server.mjs
+games/worms-armageddon/build-cartridge.mjs
+games/worms-armageddon/package.json
+games/worms-armageddon/index.html
+games/worms-armageddon/styles.css
 games/worms_2008_extracted
 games/worms_decompiled
 games/cosmo-junk-game-concept/src
