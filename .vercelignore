@@ -1,0 +1,17 @@
+**/node_modules
+**/.next
+games/stick_fighting_src
+games/worms-armageddon
+games/worms_2008_extracted
+games/worms_decompiled
+games/cosmo-junk-game-concept/src
+games/cosmo-junk-game-concept/drizzle
+games/cosmo-junk-game-concept/scripts
+games/cosmo-junk-game-concept/standalone/src
+games/cosmo-junk-game-concept/standalone/server.js
+games/cosmo-junk-game-concept/standalone/build.mjs
+games/cosmo-junk-game-concept/package.json
+games/cosmo-junk-game-concept/package-lock.json
+games/cosmo-junk-game-concept/next.config.ts
+games/cosmo-junk-game-concept/Dockerfile
+games/cosmo-junk-game-concept/docker-compose.yml
