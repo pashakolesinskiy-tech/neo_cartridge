@@ -15,8 +15,20 @@ const KEYMAP: Record<string, Action> = {
   KeyJ: 'jab', KeyK: 'heavy', KeyU: 'kick', KeyI: 'heavyKick', Space: 'block', KeyO: 'special',
 };
 
+function isTouchOrMobileViewport(): boolean {
+  if (typeof window === 'undefined') return false;
+  return (
+    window.matchMedia('(pointer: coarse)').matches ||
+    'ontouchstart' in window ||
+    navigator.maxTouchPoints > 0 ||
+    window.innerWidth <= 920 ||
+    window.innerHeight <= 520
+  );
+}
+
 function readSettings(): Settings {
-  const defaults: Settings = { volume: 0.65, muted: false, shake: true, touch: window.matchMedia('(pointer: coarse)').matches };
+  const autoTouch = isTouchOrMobileViewport();
+  const defaults: Settings = { volume: 0.65, muted: false, shake: true, touch: autoTouch };
   try {
     const saved = JSON.parse(localStorage.getItem('stickfighting-settings-v1') ?? 'null');
     if (!saved || typeof saved !== 'object') return defaults;
@@ -24,7 +36,7 @@ function readSettings(): Settings {
       volume: typeof saved.volume === 'number' && Number.isFinite(saved.volume) ? Math.max(0, Math.min(1, saved.volume)) : defaults.volume,
       muted: typeof saved.muted === 'boolean' ? saved.muted : defaults.muted,
       shake: typeof saved.shake === 'boolean' ? saved.shake : defaults.shake,
-      touch: typeof saved.touch === 'boolean' ? saved.touch : defaults.touch,
+      touch: autoTouch ? true : (typeof saved.touch === 'boolean' ? saved.touch : defaults.touch),
     };
   } catch { return defaults; }
 }
@@ -242,6 +254,16 @@ export default function App() {
     const handle = () => setFullscreen(!!document.fullscreenElement);
     document.addEventListener('fullscreenchange', handle);
     return () => document.removeEventListener('fullscreenchange', handle);
+  }, []);
+
+  useEffect(() => {
+    const syncTouchOnResize = () => {
+      if (isTouchOrMobileViewport()) {
+        setSettings(prev => (prev.touch ? prev : { ...prev, touch: true }));
+      }
+    };
+    window.addEventListener('resize', syncTouchOnResize);
+    return () => window.removeEventListener('resize', syncTouchOnResize);
   }, []);
 
   useEffect(() => {

@@ -1008,42 +1008,71 @@
     @media (max-width: 640px) {
       .hud-layer {
         flex-direction: column;
-        gap: 6px;
+        gap: 5px;
       }
       .hud-box {
-        padding: 6px 8px;
+        padding: 5px 8px;
         gap: 8px;
         font-size: 0.6875rem;
       }
       .core-hp-bar {
-        width: 80px;
+        width: 72px;
       }
       .super-weapons-bar {
         width: 100%;
         justify-content: space-between;
       }
       .btn-super {
-        padding: 5px 6px;
-        font-size: 0.6rem;
+        padding: 4px 6px;
+        font-size: 0.58rem;
       }
       .dock-hotkey-legend {
         display: none !important;
       }
       .command-dock {
-        padding: 4px 6px;
+        padding: 5px 6px;
+        gap: 4px;
+      }
+      .dock-main-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+      }
+      .tower-buttons-grid {
+        width: 100%;
+        justify-content: space-between;
         gap: 4px;
       }
       .tower-card-btn {
-        min-width: 56px;
-        padding: 4px 5px;
-        gap: 4px;
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 4px 4px;
+        gap: 3px;
+        justify-content: center;
       }
       .tower-card-btn .t-icon {
-        font-size: 1rem;
+        font-size: 0.95rem;
+      }
+      .tower-card-btn .t-name {
+        font-size: 0.48rem;
+      }
+      .tower-card-btn .t-cost {
+        font-size: 0.52rem;
+      }
+      .dock-actions-grid {
+        width: 100%;
+        justify-content: space-between;
+        gap: 4px;
       }
       .dock-act-btn {
-        min-width: 52px;
+        flex: 1 1 0;
+        min-width: 0;
         padding: 4px 6px;
+        flex-direction: row;
+        gap: 5px;
+      }
+      .dock-act-btn .act-key {
+        display: none;
       }
       .upgrade-options-grid {
         grid-template-columns: 1fr;
@@ -1051,11 +1080,13 @@
       }
       .upgrade-choice-card {
         padding: 14px 12px;
-        max-height: 90vh;
+        max-height: 90dvh;
         overflow-y: auto;
       }
       .menu-card {
         padding: 14px 12px;
+        max-height: 92dvh;
+        overflow-y: auto;
       }
       .menu-title {
         font-size: 0.9375rem;
@@ -1068,7 +1099,66 @@
         padding: 10px 12px;
       }
     }
+
+    @media (max-height: 520px) {
+      .hud-layer {
+        top: 6px;
+        left: 8px;
+        right: 8px;
+        gap: 6px;
+      }
+      .hud-box {
+        padding: 4px 8px;
+        gap: 8px;
+        font-size: 0.65rem;
+      }
+      .core-hp-bar {
+        width: 70px;
+        height: 8px;
+      }
+      .btn-super {
+        padding: 4px 7px;
+        font-size: 0.58rem;
+      }
+      .dock-hotkey-legend,
+      .dock-status-bar {
+        display: none !important;
+      }
+      .command-dock {
+        bottom: max(4px, env(safe-area-inset-bottom, 4px));
+        left: 8px;
+        right: 8px;
+        padding: 4px 8px;
+        gap: 3px;
+      }
+      .tower-card-btn {
+        padding: 3px 6px;
+        min-width: 64px;
+      }
+      .tower-card-btn .t-icon {
+        font-size: 1rem;
+      }
+      .dock-act-btn {
+        padding: 3px 7px;
+        min-width: 60px;
+      }
+      .dock-act-btn .act-key {
+        display: none;
+      }
+      .menu-card,
+      .upgrade-choice-card {
+        padding: 12px 14px;
+        max-height: 92dvh;
+        overflow-y: auto;
+      }
+      .armory-grid,
+      .bestiary-grid {
+        max-height: calc(100dvh - 155px);
+      }
+    }
   </style>
+  <script src="../js/landscape-guard.js?v=10"></script>
+  <script src="../js/game-hero-screen.js?v=10"></script>
 </head>
 <body>
 

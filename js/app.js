@@ -600,6 +600,10 @@ const App = {
     this.isBooting = true;
     document.body.classList.add('game-playing');
     if (window.PWA) PWA.hideInstallBanner();
+    if (window.NeoLandscapeGuard) {
+      NeoLandscapeGuard.tryLockLandscape();
+      NeoLandscapeGuard.evaluate();
+    }
 
     // 1. Звук механической вставки картриджа в слот (двухфазный щелчок)
     Sound.playCartridgeInsert();
@@ -783,6 +787,7 @@ const App = {
       if (slotTagLabel) slotTagLabel.textContent = '// ВЫБОР РОМ-КАРТРИДЖА';
 
       document.body.classList.remove('game-playing', 'pseudo-fullscreen');
+      if (window.NeoLandscapeGuard) NeoLandscapeGuard.evaluate();
       this.isPoweredOn = false;
       this.updateDeckDisplay();
       this.updateDashboardInfo();

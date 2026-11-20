@@ -532,22 +532,53 @@ input[type='range']::-moz-range-thumb { width: 10px; height: 14px; border: 2px s
   .opponent-note { font-size: 8px; gap: 5px; }
 }
 @media (orientation: landscape) and (max-height: 600px) and (max-width: 1100px) {
-  .battle-mode .site-header { height: 43px; padding: 0 3%; }
+  .site-header { height: 44px; padding: 0 3%; gap: 14px; }
+  .menu-stage { height: calc(100dvh - 44px); min-height: 310px; }
+  .screen-setup .menu-stage { height: calc(100dvh - 44px); min-height: 310px; }
+  .hero-content { top: 8%; left: 4%; max-width: 440px; }
+  .hero-title { margin: 10px 0 10px; gap: 8px; }
+  .hero-title .pixel-word { height: 34px; }
+  .hero-subtitle { font-size: 16px; margin-bottom: 6px; }
+  .hero-description { font-size: 10px; margin-bottom: 12px; }
+  .hero-actions .primary-button { height: 38px; min-width: 150px; font-size: 11px; }
+  .hero-actions .secondary-button { height: 38px; font-size: 10px; padding: 0 12px; }
+  .start-hint { display: none; }
+  .setup-screen { padding: 12px 4% 16px; }
+  .setup-top { margin-bottom: 10px; }
+  .setup-top h1 { font-size: 20px; margin-top: 2px; }
+  .setup-field-heading { margin-bottom: 6px; font-size: 9px; }
+  .setup-fighters { gap: 8px; margin-bottom: 10px; }
+  .setup-fighter { flex-direction: row; padding: 4px 10px 4px 0; }
+  .setup-fighter .fighter-portrait { width: 64px; height: 56px; }
+  .setup-fighter-info { align-items: flex-start; gap: 3px; }
+  .setup-fighter-info > strong { font-size: 15px; }
+  .setup-fighter-info > span { font-size: 8px; }
+  .fighter-traits { margin-top: 1px; gap: 8px; }
+  .setup-arenas { gap: 8px; margin-bottom: 10px; }
+  .arena-thumbnail { height: 50px; }
+  .arena-option-caption { padding: 6px 8px; gap: 2px; }
+  .arena-option-caption > strong { font-size: 10px; }
+  .arena-option-caption > span { font-size: 8px; }
+  .difficulty-row { margin-bottom: 10px; }
+  .difficulty-options button { height: 28px; width: 76px; font-size: 10px; }
+  .setup-bottom { padding-top: 10px; }
+  .setup-bottom .primary-button { height: 36px; min-width: 138px; font-size: 11px; }
+  .battle-mode .site-header { height: 36px; padding: 0 3%; }
   .battle-mode .brand .pixel-word { height: 10px; }
-  .battle-mode .brand-mark { height: 20px; width: 20px; }
-  .battle-mode .header-actions { gap: 9px; }
-  .battle-mode .settings-button { padding: 5px 7px; font-size: 9px; }
+  .battle-mode .brand-mark { height: 18px; width: 18px; }
+  .battle-mode .header-actions { gap: 8px; }
+  .battle-mode .settings-button { padding: 4px 7px; font-size: 9px; }
   .battle-arena-name { font-size: 9px; }
-  .battle-stage { width: min(100%, calc((100dvh - 92px) * 16 / 9)); }
-  .battle-mode.with-touch .battle-stage { width: min(100%, calc((100dvh - 147px) * 16 / 9)); }
+  .battle-stage { width: min(100%, calc((100dvh - 80px) * 16 / 9)); }
+  .battle-mode.with-touch .battle-stage { width: min(100%, calc((100dvh - 118px) * 16 / 9)); }
   .battle-stage .canvas-container { width: 100%; left: 0; }
-  .touch-controls { height: 104px; padding: 5px 5%; }
-  .touch-dpad { grid-template-columns: repeat(3, 55px); grid-template-rows: repeat(2, 44px); gap: 4px; }
-  .touch-attacks { grid-template-columns: repeat(3, 60px); grid-template-rows: repeat(2, 44px); gap: 4px; }
+  .touch-controls { height: 82px; padding: 4px 4%; }
+  .touch-dpad { grid-template-columns: repeat(3, 52px); grid-template-rows: repeat(2, 35px); gap: 4px; }
+  .touch-attacks { grid-template-columns: repeat(3, 56px); grid-template-rows: repeat(2, 35px); gap: 4px; }
   .touch-center-hint { display: flex; font-size: 8px; }
-  .touch-button > b { font-size: 14px; }
+  .touch-button > b { font-size: 13px; }
   .touch-button > small { font-size: 5px; }
-  .touch-button > svg { width: 17px; }
+  .touch-button > svg { width: 15px; }
   .orientation-hint { display: none; }
   .battle-hud { gap: 15px; grid-template-columns: 1fr 60px 1fr; top: 5%; }
   .fighter-heading { margin-bottom: 6px; }

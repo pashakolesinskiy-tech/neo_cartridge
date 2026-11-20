@@ -365,14 +365,25 @@
       display: none;
     }
 
-    body.touch-enabled .touch-ui,
-    @media (pointer: coarse), (max-width: 900px) {
+    body.touch-enabled .touch-ui {
+      display: block !important;
+    }
+
+    body.touch-enabled .controls-hint {
+      display: none !important;
+    }
+
+    @media (pointer: coarse), (max-width: 920px), (max-height: 520px) {
       .touch-ui {
         display: block !important;
       }
       .controls-hint {
         display: none !important;
       }
+    }
+
+    body.touch-force-off .touch-ui {
+      display: none !important;
     }
 
     .touch-stick-zone {
@@ -498,14 +509,14 @@
       transform: scale(1.05);
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: 640px), (max-height: 520px) {
       .hud-layer {
-        top: 8px;
+        top: 6px;
         left: 8px;
         right: 8px;
       }
       .player-bars {
-        min-width: 135px;
+        min-width: 148px;
         padding: 5px 8px;
       }
       .player-bars .bar-row {
@@ -516,25 +527,62 @@
         height: 5px;
       }
       .sector-badge {
-        font-size: 0.6875rem;
+        font-size: 0.65rem;
+        padding: 3px 8px;
       }
       .combo-badge {
-        font-size: 0.6875rem;
+        font-size: 0.65rem;
       }
       .menu-card {
-        padding: 14px;
-        max-height: 92vh;
+        padding: 12px 14px;
+        max-height: 92dvh;
         overflow-y: auto;
       }
       .menu-title {
         font-size: 0.9375rem;
       }
+      .menu-subtitle {
+        margin-bottom: 10px;
+      }
+      .menu-btn-grid {
+        gap: 7px;
+        margin-bottom: 10px;
+      }
       .menu-btn {
-        padding: 10px 12px;
-        font-size: 0.8125rem;
+        padding: 8px 10px;
+        font-size: 0.78rem;
+      }
+      .touch-stick-area {
+        width: 102px;
+        height: 102px;
+        bottom: max(12px, env(safe-area-inset-bottom, 12px));
+        left: max(14px, env(safe-area-inset-left, 14px));
+      }
+      .touch-stick-nub {
+        width: 40px;
+        height: 40px;
+      }
+      .touch-btns-area {
+        bottom: max(12px, env(safe-area-inset-bottom, 12px));
+        right: max(14px, env(safe-area-inset-right, 14px));
+        gap: 9px;
+      }
+      .touch-btn-cluster-side {
+        gap: 8px;
+      }
+      .touch-btn.btn-slash {
+        width: 62px;
+        height: 62px;
+      }
+      .touch-btn.btn-dash,
+      .touch-btn.btn-focus {
+        width: 48px;
+        height: 48px;
       }
     }
   </style>
+  <script src="../js/landscape-guard.js?v=10"></script>
+  <script src="../js/game-hero-screen.js?v=10"></script>
 </head>
 <body>
 
@@ -548,9 +596,9 @@
   <div class="hud-layer">
     <!-- P1 Stats -->
     <div class="hud-box player-bars">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-family:var(--font-pixel); font-size:0.625rem; color:var(--accent-cyan);">P1 // КЛИНОК-0</span>
-        <span id="p1-chips-count" style="font-size:0.625rem; color:var(--accent-gold);">ЧИПЫ: 0</span>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+        <span style="font-family:var(--font-pixel); font-size:0.56rem; color:var(--accent-cyan); white-space:nowrap;">P1 // КЛИНОК-0</span>
+        <span id="p1-chips-count" style="font-size:0.58rem; color:var(--accent-gold); white-space:nowrap;">ЧИПЫ: 0</span>
       </div>
       <div class="bar-row">
         <span style="color:var(--accent-pink); width:32px;">HP</span>
@@ -1124,10 +1172,17 @@
       },
 
       toggleTouchUI() {
-        document.body.classList.toggle('touch-enabled');
-        const active = document.body.classList.contains('touch-enabled');
+        const isForceOff = document.body.classList.contains('touch-force-off');
+        if (isForceOff) {
+          document.body.classList.remove('touch-force-off');
+          document.body.classList.add('touch-enabled');
+        } else {
+          const active = document.body.classList.toggle('touch-enabled');
+          if (!active) document.body.classList.add('touch-force-off');
+        }
+        const nowActive = document.body.classList.contains('touch-enabled') && !document.body.classList.contains('touch-force-off');
         const btn = document.getElementById('btn-touch-toggle');
-        if (btn) btn.textContent = active ? '📱 СЕНСОР: ВКЛ' : '📱 СЕНСОР: ВЫКЛ';
+        if (btn) btn.textContent = nowActive ? '📱 СЕНСОР: ВКЛ' : '📱 СЕНСОР: ВЫКЛ';
       },
 
       resize() {

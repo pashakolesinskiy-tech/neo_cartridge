@@ -523,7 +523,51 @@
             background: #38bdf8;
             border-radius: 3px;
         }
+
+        /* Mobile portrait & short landscape compact HUD & touch controls */
+        @media (max-width: 520px) {
+            header {
+                flex-wrap: wrap;
+                gap: 4px !important;
+                padding: 4px 6px 0 !important;
+            }
+            #hudLeft {
+                max-width: 100%;
+                gap: 4px !important;
+            }
+            #minimapCanvas {
+                width: 44px !important;
+                height: 32px !important;
+            }
+        }
+
+        @media (max-height: 460px) {
+            header {
+                padding-top: 3px !important;
+            }
+            #minimapCanvas {
+                width: 56px !important;
+                height: 40px !important;
+            }
+            #gameplayFooter {
+                padding-bottom: 6px !important;
+            }
+            #joystickZone {
+                width: 168px !important;
+                height: 50px !important;
+            }
+            #touchNitro {
+                width: 84px !important;
+                height: 84px !important;
+            }
+            #btnOilManual {
+                width: 50px !important;
+                height: 50px !important;
+            }
+        }
     </style>
+    <script src="../js/landscape-guard.js?v=10"></script>
+    <script src="../js/game-hero-screen.js?v=10"></script>
 </head>
 <body class="relative w-full h-full flex flex-col justify-between overflow-hidden select-none">
 
