@@ -16,6 +16,7 @@ const App = {
 
   // Slider State
   isDraggingDeck: false,
+  didDragDeck: false,
   isDraggingThumb: false,
   dragStartY: 0,
   dragDeltaY: 0,
@@ -103,6 +104,24 @@ const App = {
     this.setupKeyboardShortcuts();
     this.setupCartridgeSlot();
 
+    const backdrop = document.getElementById('console-backdrop');
+    if (backdrop) {
+      backdrop.addEventListener('click', () => {
+        document.querySelectorAll('.console-modal.open').forEach((m) => this.closeModal(m.id));
+      });
+    }
+
+    const hintSpan = document.querySelector('.deck-hint-bar span');
+    if (hintSpan && (window.innerWidth <= 899 || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0))) {
+      hintSpan.textContent = 'Свайп вверх/вниз или кнопки ниже • Тап по карте — запуск';
+    }
+
+    const gameParam = new URLSearchParams(window.location.search).get('game');
+    if (gameParam && this.cartridgeOrder.includes(gameParam)) {
+      this.deckIndex = this.cartridgeOrder.indexOf(gameParam);
+      this.currentCartridge = gameParam;
+    }
+
     window.addEventListener('resize', () => {
       if (!this.isPoweredOn && !this.isBooting) {
         this.updateDeckDisplay();
@@ -129,6 +148,7 @@ const App = {
     const onDragStart = (clientY) => {
       if (this.isPoweredOn || this.isBooting) return;
       this.isDraggingDeck = true;
+      this.didDragDeck = false;
       this.dragStartY = clientY;
       this.dragDeltaY = 0;
       this.dragStartTime = Date.now();
@@ -139,6 +159,9 @@ const App = {
     const onDragMove = (clientY) => {
       if (!this.isDraggingDeck) return;
       this.dragDeltaY = clientY - this.dragStartY;
+      if (Math.abs(this.dragDeltaY) > 10) {
+        this.didDragDeck = true;
+      }
       this.updateDeckDisplay(true);
     };
 
@@ -172,9 +195,10 @@ const App = {
 
     window.addEventListener('touchmove', (e) => {
       if (this.isDraggingDeck) {
+        if (e.cancelable) e.preventDefault();
         onDragMove(e.touches[0].clientY);
       }
-    }, { passive: true });
+    }, { passive: false });
 
     window.addEventListener('touchend', () => {
       if (this.isDraggingDeck) onDragEnd();
@@ -249,8 +273,11 @@ const App = {
       });
 
       window.addEventListener('touchmove', (e) => {
-        if (this.isDraggingThumb) onThumbMove(e.touches[0].clientY);
-      }, { passive: true });
+        if (this.isDraggingThumb) {
+          if (e.cancelable) e.preventDefault();
+          onThumbMove(e.touches[0].clientY);
+        }
+      }, { passive: false });
 
       const onThumbEnd = () => {
         if (this.isDraggingThumb) {
@@ -364,6 +391,10 @@ const App = {
 
   onCardClick(index) {
     if (this.isPoweredOn || this.isBooting) return;
+    if (this.didDragDeck) {
+      this.didDragDeck = false;
+      return;
+    }
     if (index === this.deckIndex) {
       // Клик по уже активной (центрированной) карте — вставляет в слот и включает консоль!
       this.powerOnCartridge();
@@ -376,7 +407,9 @@ const App = {
   updateDeckDisplay(isLiveDrag = false) {
     const cards = document.querySelectorAll('.sts-card');
     const totalCards = this.cartridgeOrder.length;
-    const spacing = window.innerWidth <= 768 ? 120 : 145;
+    const vw = window.innerWidth;
+    const spacing = vw <= 480 ? 112 : (vw <= 768 ? 124 : 145);
+    const baseScale = vw <= 420 ? 0.98 : (vw <= 600 ? 1.0 : 1.05);
 
     // Текущий непрерывный прогресс слайдера
     let currentProgress = this.deckIndex;
@@ -397,13 +430,13 @@ const App = {
 
       // Физика вертикального 3D слайдера
       const posY = offset * spacing;
-      const scale = Math.max(0.68, 1.05 - absOffset * 0.16);
+      const scale = Math.max(0.68, baseScale - absOffset * 0.16);
       const rotX = -offset * 6.5;
       const rotZ = offset * 2.2;
       const opacity = Math.max(0.12, 1.0 - absOffset * 0.44);
       const zIndex = Math.round(50 - absOffset * 10);
       const isCenter = absOffset < 0.35;
-      const posX = isCenter ? 26 : 0;
+      const posX = vw <= 600 ? 0 : (isCenter ? 26 : 0);
 
       if (isLiveDrag) {
         card.style.transition = 'none';
@@ -436,6 +469,22 @@ const App = {
     document.querySelectorAll('#deck-dots .dot, #carousel-dots .dot').forEach((dot) => {
       const dIdx = parseInt(dot.dataset.index, 10);
       dot.classList.toggle('active', dIdx === roundedIndex);
+    });
+
+    // Синхронизация мобильной ленты быстрого выбора
+    const strip = document.getElementById('mobile-rom-strip');
+    document.querySelectorAll('.mobile-rom-chip').forEach((chip) => {
+      const cIdx = parseInt(chip.dataset.index, 10);
+      const isAct = cIdx === roundedIndex;
+      chip.classList.toggle('active', isAct);
+      if (isAct && !isLiveDrag && strip) {
+        const targetLeft = chip.offsetLeft - (strip.clientWidth - chip.offsetWidth) / 2;
+        try {
+          strip.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
+        } catch {
+          strip.scrollLeft = Math.max(0, targetLeft);
+        }
+      }
     });
 
     // Подсветка картриджей на нижней полке
@@ -545,6 +594,8 @@ const App = {
     if (!cart) return;
 
     this.isBooting = true;
+    document.body.classList.add('game-playing');
+    if (window.PWA) PWA.hideInstallBanner();
 
     // 1. Звук механической вставки картриджа в слот (двухфазный щелчок)
     Sound.playCartridgeInsert();
@@ -620,12 +671,16 @@ const App = {
       // Переключение состояния кнопок в панели консоли
       const menuPowerWrap = document.getElementById('menu-power-btn-wrap');
       const gameControlsWrap = document.getElementById('game-active-controls-wrap');
+      const screenRestartBtn = document.getElementById('screen-restart-btn');
+      const screenFullscreenBtn = document.getElementById('screen-fullscreen-btn');
       const screenPowerOffBtn = document.getElementById('screen-poweroff-btn');
       const screenStatusLabel = document.getElementById('screen-status-label');
       const slotTagLabel = document.getElementById('slot-tag-label');
 
       if (menuPowerWrap) menuPowerWrap.style.display = 'none';
       if (gameControlsWrap) gameControlsWrap.style.display = 'flex';
+      if (screenRestartBtn) screenRestartBtn.style.display = 'inline-flex';
+      if (screenFullscreenBtn) screenFullscreenBtn.style.display = 'inline-flex';
       if (screenPowerOffBtn) screenPowerOffBtn.style.display = 'inline-flex';
       if (screenStatusLabel) screenStatusLabel.textContent = `// ACTIVE: ${cart.name}`;
       if (slotTagLabel) slotTagLabel.textContent = '// КАРТРИДЖ В СЛОТЕ: АКТИВЕН';
@@ -709,16 +764,21 @@ const App = {
       // Переключение кнопок панели
       const menuPowerWrap = document.getElementById('menu-power-btn-wrap');
       const gameControlsWrap = document.getElementById('game-active-controls-wrap');
+      const screenRestartBtn = document.getElementById('screen-restart-btn');
+      const screenFullscreenBtn = document.getElementById('screen-fullscreen-btn');
       const screenPowerOffBtn = document.getElementById('screen-poweroff-btn');
       const screenStatusLabel = document.getElementById('screen-status-label');
       const slotTagLabel = document.getElementById('slot-tag-label');
 
       if (menuPowerWrap) menuPowerWrap.style.display = 'flex';
       if (gameControlsWrap) gameControlsWrap.style.display = 'none';
+      if (screenRestartBtn) screenRestartBtn.style.display = 'none';
+      if (screenFullscreenBtn) screenFullscreenBtn.style.display = 'none';
       if (screenPowerOffBtn) screenPowerOffBtn.style.display = 'none';
       if (screenStatusLabel) screenStatusLabel.textContent = '// MATRIX DISPLAY 60FPS';
       if (slotTagLabel) slotTagLabel.textContent = '// ВЫБОР РОМ-КАРТРИДЖА';
 
+      document.body.classList.remove('game-playing', 'pseudo-fullscreen');
       this.isPoweredOn = false;
       this.updateDeckDisplay();
       this.updateDashboardInfo();
@@ -768,18 +828,22 @@ const App = {
 
   openFullscreenGame() {
     Sound.playClick();
-    const cart = this.cartridges[this.currentCartridge];
-    if (!cart) return;
-
     const screenWrap = document.getElementById('screen-housing');
-    if (!document.fullscreenElement && screenWrap && screenWrap.requestFullscreen) {
-      screenWrap.requestFullscreen().catch(() => {
-        window.open(cart.src, '_blank');
+    const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+    if (fsEl) {
+      const exitFn = document.exitFullscreen || document.webkitExitFullscreen;
+      if (exitFn) exitFn.call(document).catch(() => {});
+      document.body.classList.remove('pseudo-fullscreen');
+      return;
+    }
+
+    const reqFn = screenWrap && (screenWrap.requestFullscreen || screenWrap.webkitRequestFullscreen);
+    if (reqFn) {
+      Promise.resolve(reqFn.call(screenWrap)).catch(() => {
+        document.body.classList.toggle('pseudo-fullscreen');
       });
-    } else if (document.fullscreenElement) {
-      document.exitFullscreen().catch(() => {});
     } else {
-      window.open(cart.src, '_blank');
+      document.body.classList.toggle('pseudo-fullscreen');
     }
   },
 

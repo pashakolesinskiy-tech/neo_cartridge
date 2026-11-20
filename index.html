@@ -2,10 +2,17 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>NEO-CARTRIDGE // ZERO — Zero-Server Игровая Ретро-Консоль</title>
   <meta name="description" content="Полноразмерный игровой портал без единого сервера: WebAssembly, процедурный чиптюн-звук, P2P дуэли по WebRTC, локальные сохранения и встроенный редактор карт.">
+  <meta name="theme-color" content="#0a0b0e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="NEO-CARTRIDGE">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
 
   <!-- Fonts: Space Grotesk & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,7 +32,7 @@
       </div>
 
       <div class="nav-badges">
-        <div class="system-pill" title="0 обращений к внешним серверам">
+        <div class="system-pill" id="pwa-online-pill" title="0 обращений к внешним серверам">
           <span class="dot"></span>
           <span>ZERO-SERVER: 100% CLIENT</span>
         </div>
@@ -33,6 +40,9 @@
           <span class="dot" style="background:var(--accent-gold); box-shadow:0 0 6px var(--accent-gold);"></span>
           <span>P2P: WEBRTC ГОТОВ</span>
         </div>
+        <button id="btn-pwa-install" class="btn-tactile btn-pwa-install" style="display:none; padding:4px 10px; font-size:0.6875rem;" onclick="PWA.promptInstall()" title="Установить NEO-CARTRIDGE как приложение">
+          <span>📲 УСТАНОВИТЬ</span>
+        </button>
         <button class="btn-tactile" style="padding:4px 10px; font-size:0.6875rem; color:var(--crt-cyan); border-color:var(--console-border);" onclick="App.openModal('settings-modal')" title="Открыть настройки консоли">
           <span>⚙️ НАСТРОЙКИ</span>
         </button>
@@ -107,8 +117,10 @@
           <div class="screen-housing crt-active" id="screen-housing">
             <div class="screen-header-bar">
               <span id="screen-status-label">// MATRIX DISPLAY 60FPS</span>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <button id="screen-poweroff-btn" class="btn-tactile btn-danger-action" style="display:none; padding:3px 8px; font-size:0.625rem;" onclick="App.powerOffConsole()">⏻ ВЫКЛ (ESC)</button>
+              <div class="screen-header-actions">
+                <button id="screen-restart-btn" class="btn-tactile" style="display:none; padding:3px 8px; font-size:0.625rem;" onclick="App.restartGame()" title="Перезагрузить картридж">🔄</button>
+                <button id="screen-fullscreen-btn" class="btn-tactile" style="display:none; padding:3px 8px; font-size:0.625rem;" onclick="App.openFullscreenGame()" title="На весь экран">⛶</button>
+                <button id="screen-poweroff-btn" class="btn-tactile btn-danger-action" style="display:none; padding:3px 8px; font-size:0.625rem;" onclick="App.powerOffConsole()">⏻ ВЫХ</button>
                 <button class="btn-tactile" style="padding:3px 8px; font-size:0.625rem;" onclick="App.openModal('settings-modal')">⚙️ НАСТРОЙКИ</button>
                 <span id="crt-status-indicator" style="display:none;">CRT FILTER: ACTIVE</span>
               </div>
@@ -372,9 +384,19 @@
               </div>
 
               <!-- Running Game Iframe -->
-              <iframe id="game-iframe" style="width:100%; height:100%; border:none; background:#000; display:none;" allow="autoplay" title="Game Screen"></iframe>
+              <iframe id="game-iframe" style="width:100%; height:100%; border:none; background:#000; display:none;" allow="autoplay; fullscreen; gamepad" allowfullscreen title="Game Screen"></iframe>
               <!-- CRT Scanline & Phosphor Overlay -->
               <div class="crt-overlay" aria-hidden="true"></div>
+            </div>
+
+            <!-- Mobile 1-tap cartridge quick selector -->
+            <div class="mobile-rom-strip" id="mobile-rom-strip" aria-label="Быстрый выбор картриджа">
+              <button type="button" class="mobile-rom-chip active" data-index="0" onclick="App.setDeckIndex(0)">01 STICK</button>
+              <button type="button" class="mobile-rom-chip" data-index="1" onclick="App.setDeckIndex(1)">02 DRIFT</button>
+              <button type="button" class="mobile-rom-chip" data-index="2" onclick="App.setDeckIndex(2)">03 CHRONO</button>
+              <button type="button" class="mobile-rom-chip" data-index="3" onclick="App.setDeckIndex(3)">04 MECHA</button>
+              <button type="button" class="mobile-rom-chip" data-index="4" onclick="App.setDeckIndex(4)">05 WORMS</button>
+              <button type="button" class="mobile-rom-chip" data-index="5" onclick="App.setDeckIndex(5)">06 COSMO</button>
             </div>
           </div>
 
@@ -543,16 +565,34 @@
           </button>
         </div>
       </div>
+
+      <!-- Group 4: Приложение (PWA и Офлайн) -->
+      <div class="settings-group">
+        <div class="settings-group-header">
+          <span>📱 ПРИЛОЖЕНИЕ (PWA И ОФЛАЙН)</span>
+        </div>
+        <div class="settings-item-row">
+          <div class="settings-item-info">
+            <div class="item-title">Установить как приложение (PWA)</div>
+            <div class="item-desc" id="pwa-install-desc">Добавить иконку на рабочий стол / главный экран телефона</div>
+          </div>
+          <button id="btn-setting-pwa-install" class="btn-tactile btn-toggle" onclick="PWA.promptInstall()">
+            <span>📲 УСТАНОВИТЬ</span>
+          </button>
+        </div>
+
+        <div class="settings-item-row">
+          <div class="settings-item-info">
+            <div class="item-title">Офлайн-кэш всех 6 игр</div>
+            <div class="item-desc" id="pwa-offline-desc">Сохранить все 6 игр и спрайты Worms на устройство (~10 МБ)</div>
+          </div>
+          <button id="btn-setting-offline-cache" class="btn-tactile btn-toggle" onclick="PWA.cacheAllGames()">
+            <span>📥 СКАЧАТЬ ВСЕ 6 ИГР</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
-
-      </section>
-
-    </div>
-  </main>
-
-  <!-- Modals & Overlays -->
-  <div id="console-backdrop" class="console-backdrop" aria-hidden="true"></div>
 
   <!-- Studio Level Editor Modal -->
   <div id="studio-modal" class="console-modal" role="dialog" aria-modal="true" aria-labelledby="studio-title">
@@ -640,12 +680,54 @@
     </div>
   </div>
 
+  <!-- Mobile PWA Install Banner -->
+  <div id="pwa-install-banner" class="pwa-install-banner" role="region" aria-label="Установка приложения">
+    <img src="assets/icons/icon-192.png" alt="NEO-CARTRIDGE" class="pwa-banner-icon">
+    <div class="pwa-banner-text">
+      <div class="pwa-banner-title">NEO-CARTRIDGE // ZERO</div>
+      <div class="pwa-banner-sub">Установите на экран телефона для полноэкранной игры и офлайна</div>
+    </div>
+    <div class="pwa-banner-actions">
+      <button type="button" id="pwa-banner-install-btn" class="btn-tactile btn-primary-action" style="padding:6px 10px; font-size:0.6875rem;" onclick="PWA.promptInstall()">УСТАНОВИТЬ</button>
+      <button type="button" id="pwa-banner-close-btn" class="modal-close-btn" onclick="PWA.dismissInstallBanner()" aria-label="Скрыть">✕</button>
+    </div>
+  </div>
+
+  <!-- PWA Update Toast -->
+  <div id="pwa-update-toast" class="pwa-update-toast" role="status">
+    <span>⚡ Доступна новая версия консоли</span>
+    <button type="button" class="btn-tactile btn-primary-action" style="padding:4px 10px; font-size:0.6875rem;" onclick="PWA.applyUpdate()">ОБНОВИТЬ</button>
+  </div>
+
+  <!-- iOS / Manual PWA Install Guide Modal -->
+  <div id="pwa-ios-modal" class="console-modal" role="dialog" aria-modal="true" aria-labelledby="pwa-ios-title">
+    <div class="modal-title-row">
+      <span id="pwa-ios-title">// УСТАНОВКА НА ЭКРАН «ДОМОЙ» (PWA)</span>
+      <button class="modal-close-btn" onclick="App.closeModal('pwa-ios-modal')" aria-label="Закрыть">✕</button>
+    </div>
+    <div style="font-size:0.875rem; color:var(--text-muted); line-height:1.55;">
+      <p style="margin-bottom:12px;">
+        Установите <b style="color:#fff;">NEO-CARTRIDGE</b> на главный экран — консоль будет запускаться на весь экран без адресной строки и работать офлайн.
+      </p>
+      <div style="background:#0d0f14; border:1px solid var(--console-border); border-radius:6px; padding:12px; margin-bottom:10px;">
+        <div style="color:var(--crt-phosphor); font-family:var(--font-retro); font-size:0.75rem; margin-bottom:6px;">IPHONE / IPAD (SAFARI):</div>
+        <div>1. Нажмите кнопку <b>«Поделиться»</b> (квадрат со стрелкой вверх ↑) на нижней панели Safari.</div>
+        <div style="margin-top:6px;">2. Выберите пункт <b>«На экран „Домой“»</b> → <b>«Добавить»</b>.</div>
+      </div>
+      <div style="background:#0d0f14; border:1px solid var(--console-border); border-radius:6px; padding:12px;">
+        <div style="color:var(--crt-cyan); font-family:var(--font-retro); font-size:0.75rem; margin-bottom:6px;">ANDROID / CHROME / EDGE:</div>
+        <div>Откройте меню браузера (⋮) и нажмите <b>«Установить приложение»</b> или <b>«Добавить на гл. экран»</b>.</div>
+      </div>
+    </div>
+  </div>
+
   <!-- Core Scripts -->
   <script src="js/audio.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/editor.js"></script>
   <script src="js/p2p.js"></script>
   <script src="js/previews.js"></script>
+  <script src="js/pwa.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

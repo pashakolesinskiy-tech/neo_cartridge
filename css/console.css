@@ -42,11 +42,18 @@
   padding: 0;
 }
 
+html {
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   background-color: #06070a;
   color: var(--text-main);
   font-family: var(--font-display);
-  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
   display: flex;
   flex-direction: column;
   background-image: 
@@ -175,11 +182,26 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
   font-family: var(--font-retro);
   font-size: 0.6875rem;
   color: var(--text-dim);
   margin-bottom: 8px;
   padding: 0 4px;
+}
+
+#screen-status-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.screen-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .screen-canvas-wrapper {
@@ -768,6 +790,7 @@ body {
   padding: 12px;
   perspective: 1200px;
   user-select: none;
+  touch-action: none;
   cursor: grab;
 }
 
@@ -1261,6 +1284,7 @@ body {
   justify-content: center;
   cursor: pointer;
   user-select: none;
+  touch-action: none;
 }
 
 .slider-groove {
@@ -1287,6 +1311,7 @@ body {
   border-radius: 4px;
   box-shadow: 0 0 12px rgba(0, 243, 255, 0.5), 0 4px 8px rgba(0, 0, 0, 0.7);
   cursor: grab;
+  touch-action: none;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1614,5 +1639,304 @@ body {
   .arrow-right { right: 8px; }
   .console-deck-bay {
     padding: 10px 12px;
+  }
+}
+
+/* ==========================================================================
+   PWA INSTALL BUTTON, MOBILE 1-TAP ROM STRIP & IMMERSIVE GAMEPLAY MODE
+   ========================================================================== */
+.btn-pwa-install {
+  border-color: var(--crt-phosphor) !important;
+  color: var(--crt-phosphor) !important;
+  background: rgba(0, 255, 136, 0.08);
+  box-shadow: 0 0 12px rgba(0, 255, 136, 0.22);
+}
+
+.btn-pwa-install:hover {
+  background: rgba(0, 255, 136, 0.2);
+  color: #fff !important;
+}
+
+.mobile-rom-strip {
+  display: none;
+}
+
+/* Pseudo-fullscreen (fallback for iOS / Standalone PWA where Fullscreen API is unavailable) */
+body.pseudo-fullscreen {
+  overflow: hidden !important;
+  height: 100dvh !important;
+}
+
+body.pseudo-fullscreen #screen-housing {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 95 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: none !important;
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: #000 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left) !important;
+}
+
+body.pseudo-fullscreen #screen-housing .screen-header-bar {
+  height: 38px;
+  min-height: 38px;
+  margin-bottom: 0;
+  padding: 4px 10px;
+  background: #090b10;
+  border-bottom: 1px solid #1e2433;
+}
+
+body.pseudo-fullscreen #screen-housing .screen-canvas-wrapper {
+  flex: 1 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  aspect-ratio: auto !important;
+  border-radius: 0 !important;
+}
+
+body.pseudo-fullscreen .mobile-rom-strip {
+  display: none !important;
+}
+
+/* Immersive Mobile Gameplay Mode */
+@media (max-width: 899px), (pointer: coarse) {
+  body.game-playing {
+    overflow: hidden !important;
+    height: 100dvh !important;
+  }
+
+  body.game-playing #screen-housing {
+    position: fixed;
+    inset: 0;
+    z-index: 95;
+    width: 100vw;
+    height: 100dvh;
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  body.game-playing #screen-housing .screen-header-bar {
+    height: 38px;
+    min-height: 38px;
+    margin-bottom: 0;
+    padding: 4px 10px;
+    background: #090b10;
+    border-bottom: 1px solid #1e2433;
+  }
+
+  body.game-playing #screen-housing .screen-canvas-wrapper {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    aspect-ratio: auto;
+    border-radius: 0;
+  }
+
+  body.game-playing .mobile-rom-strip {
+    display: none !important;
+  }
+}
+
+/* Portrait & Small Phone Layout Overhaul */
+@media (max-width: 899px) {
+  .top-nav {
+    padding: max(8px, env(safe-area-inset-top)) 0 8px;
+  }
+
+  .brand-wrap img {
+    height: 28px !important;
+  }
+
+  .slot-dashboard-box {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #menu-power-btn-wrap {
+    order: -1;
+    margin-bottom: 12px !important;
+  }
+
+  .mobile-rom-strip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 8px 2px 2px;
+    margin-top: 4px;
+  }
+
+  .mobile-rom-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-rom-chip {
+    flex: 0 0 auto;
+    background: #141822;
+    border: 1px solid var(--console-border);
+    color: var(--text-muted);
+    font-family: var(--font-retro);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    padding: 7px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    white-space: nowrap;
+    min-height: 34px;
+    transition: all 0.15s ease;
+  }
+
+  .mobile-rom-chip.active {
+    background: rgba(0, 255, 136, 0.14);
+    border-color: var(--crt-phosphor);
+    color: var(--crt-phosphor);
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.28);
+  }
+}
+
+@media (max-width: 768px) {
+  .console-bolt {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .nav-badges .system-pill {
+    display: none;
+  }
+
+  .nav-row {
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+
+  .console-inner-grid {
+    gap: 14px;
+  }
+
+  .console-deck-bay {
+    padding: 8px 10px;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .deck-power-section {
+    gap: 8px;
+  }
+
+  .deck-cartridge-slot {
+    min-width: 0;
+    flex: 1 1 140px;
+    padding: 5px 8px;
+  }
+
+  .slot-sub-info {
+    display: none;
+  }
+
+  .deck-actions-section {
+    display: none;
+  }
+
+  body.game-playing .deck-actions-section {
+    display: flex;
+  }
+
+  .screen-canvas-wrapper {
+    min-height: 300px;
+    height: clamp(290px, 43dvh, 370px);
+    aspect-ratio: auto;
+  }
+
+  .slider-rail-backdrop {
+    display: none;
+  }
+
+  .vertical-slider-viewport {
+    width: calc(100% - 44px);
+    height: 100%;
+    margin-left: -34px;
+  }
+
+  .vertical-card-stack,
+  .sts-card {
+    width: min(262px, calc(100vw - 92px));
+    height: 138px;
+  }
+
+  .deck-slider-rail,
+  .deck-vertical-controls {
+    right: 6px;
+    gap: 6px;
+  }
+
+  .deck-slider-channel {
+    height: 130px;
+  }
+
+  .deck-hint-bar {
+    font-size: 0.58rem;
+    padding: 0 10px;
+    bottom: 6px;
+  }
+}
+
+@media (max-width: 420px) {
+  .brand-wrap img {
+    height: 24px !important;
+  }
+
+  .power-rocker-btn {
+    width: 64px;
+    height: 28px;
+    padding: 0 7px;
+    font-size: 0.56rem;
+  }
+
+  .power-rocker-btn .rocker-lever {
+    width: 28px;
+    height: 20px;
+  }
+
+  .power-rocker-btn.active .rocker-lever {
+    left: 30px;
+  }
+
+  .sts-art-window {
+    width: 64px;
+    height: 64px;
+  }
+
+  .sts-title-text {
+    font-size: 0.72rem;
+  }
+
+  .sts-desc-box p {
+    font-size: 0.62rem;
+  }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  body.game-playing #screen-housing .screen-header-bar,
+  body.pseudo-fullscreen #screen-housing .screen-header-bar {
+    height: 30px;
+    min-height: 30px;
+    padding: 2px 8px;
+    font-size: 0.6rem;
   }
 }

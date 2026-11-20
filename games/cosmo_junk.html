@@ -2,7 +2,7 @@
 <html lang="ru" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#04060e" />
     <title>COSMO JUNK // NEO-CARTRIDGE</title>
     <link rel="icon" type="image/svg+xml" href="cosmo-junk-game-concept/standalone/assets/icon.svg" />
@@ -237,8 +237,27 @@
           right: 0;
           border-left: 0;
           border-top: 2px solid var(--cj-neon);
+          padding-bottom: env(safe-area-inset-bottom);
         }
         .cj-badge {
+          display: none;
+        }
+      }
+      @media (max-width: 560px) {
+        #cj-topbar {
+          padding: 0 6px;
+        }
+        .cj-actions {
+          gap: 4px;
+        }
+        .cj-btn {
+          font-size: 9px;
+          padding: 3px 6px;
+          gap: 3px;
+        }
+      }
+      @media (max-width: 430px) {
+        .cj-title {
           display: none;
         }
       }

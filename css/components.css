@@ -473,4 +473,134 @@
   .settings-tools-grid {
     grid-template-columns: 1fr;
   }
+
+  .console-modal {
+    width: calc(100vw - 16px);
+    max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    padding: 14px;
+  }
+
+  .modal-close-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 0.875rem;
+  }
+
+  #studio-canvas {
+    max-width: 100%;
+    height: auto;
+    touch-action: none;
+  }
+
+  .achievement-toast-container {
+    left: 12px;
+    right: 12px;
+    bottom: max(14px, env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 420px) {
+  .settings-item-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .settings-item-row > .btn-tactile,
+  .settings-item-row > .btn-toggle {
+    width: 100%;
+  }
+}
+
+/* ==========================================================================
+   PWA INSTALL BANNER & UPDATE TOAST
+   ========================================================================== */
+.pwa-install-banner {
+  position: fixed;
+  left: 10px;
+  right: 10px;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  z-index: 90;
+  background: rgba(14, 17, 25, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid var(--crt-phosphor);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.78), 0 0 18px rgba(0, 255, 136, 0.2);
+  transform: translateY(130%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+}
+
+.pwa-install-banner.open {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.pwa-banner-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 255, 136, 0.4);
+}
+
+.pwa-banner-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.pwa-banner-title {
+  font-family: var(--font-retro);
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--crt-phosphor);
+}
+
+.pwa-banner-sub {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  line-height: 1.25;
+}
+
+.pwa-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.pwa-update-toast {
+  position: fixed;
+  left: 50%;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  transform: translate(-50%, 140%);
+  z-index: 120;
+  background: #0d121d;
+  border: 1.5px solid var(--crt-cyan);
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-retro);
+  font-size: 0.72rem;
+  color: #fff;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.28s ease, opacity 0.25s ease;
+  max-width: calc(100vw - 24px);
+}
+
+.pwa-update-toast.open {
+  transform: translate(-50%, 0);
+  opacity: 1;
+  pointer-events: auto;
 }
