@@ -126,6 +126,10 @@ class RoomSignaler {
   private peerWsReady = false;
   private peerWsQueue: string[] = [];
   private ntfyWs: WebSocket | null = null;
+  private ntfyTimers = new Set<number>();
+  private ntfyRateLimitedUntil = 0;
+  private lastNtfyJoinAt = 0;
+  private viaBc = false;
   private heartbeatTimer = 0;
   private seenIds = new Set<string>();
   private closed = false;
@@ -163,7 +167,10 @@ class RoomSignaler {
     if (typeof BroadcastChannel === 'undefined') return;
     try {
       this.bc = new BroadcastChannel(`sf26-room-${this.room}`);
-      this.bc.onmessage = event => this.handleIncoming(event.data);
+      this.bc.onmessage = event => {
+        this.viaBc = true;
+        this.handleIncoming(event.data);
+      };
     } catch { /* Ignore */ }
   }
 
@@ -232,11 +239,27 @@ class RoomSignaler {
       }
     }
 
-    const topic = `sf26-room-sig-${this.room.toLowerCase()}`;
-    void fetch(`https://ntfy.sh/${topic}`, {
-      method: 'POST',
-      body: JSON.stringify(msg),
-    }).catch(() => {});
+    // Never spam ntfy.sh with per-candidate ICE or rapid retries; delay SDP/join 700ms so BC/PeerJS settle first
+    if (msg.sig !== 'ice' && Date.now() >= this.ntfyRateLimitedUntil) {
+      const topic = `sf26-room-sig-${this.room.toLowerCase()}`;
+      const tid = window.setTimeout(() => {
+        this.ntfyTimers.delete(tid);
+        if (this.closed || this.viaBc || Date.now() < this.ntfyRateLimitedUntil) return;
+        if (msg.sig === 'join') {
+          if (Date.now() - this.lastNtfyJoinAt < 3500) return;
+          this.lastNtfyJoinAt = Date.now();
+        }
+        void fetch(`https://ntfy.sh/${topic}`, {
+          method: 'POST',
+          body: JSON.stringify(msg),
+        }).then(res => {
+          if (res && res.status === 429) {
+            this.ntfyRateLimitedUntil = Date.now() + 60000;
+          }
+        }).catch(() => {});
+      }, 700);
+      this.ntfyTimers.add(tid);
+    }
   }
 
   close() {
@@ -244,6 +267,8 @@ class RoomSignaler {
     this.closed = true;
     this.onSignal = null;
     window.clearInterval(this.heartbeatTimer);
+    for (const tid of this.ntfyTimers) window.clearTimeout(tid);
+    this.ntfyTimers.clear();
     try { this.bc?.close(); } catch { /* Ignore */ }
     try { this.peerWs?.close(); } catch { /* Ignore */ }
     try { this.ntfyWs?.close(); } catch { /* Ignore */ }

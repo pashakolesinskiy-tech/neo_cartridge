@@ -32,6 +32,21 @@
     return (prefix || 'p') + '_' + a + b;
   }
 
+  function serializeSdp(desc) {
+    return desc ? { type: desc.type, sdp: desc.sdp } : null;
+  }
+
+  function serializeIce(cand) {
+    if (!cand) return null;
+    if (typeof cand.toJSON === 'function') return cand.toJSON();
+    return {
+      candidate: cand.candidate,
+      sdpMid: cand.sdpMid,
+      sdpMLineIndex: cand.sdpMLineIndex,
+      usernameFragment: cand.usernameFragment
+    };
+  }
+
   class NeoP2PRoom {
     constructor(opts) {
       opts = opts || {};
@@ -65,7 +80,9 @@
       this._peerHeartbeat = null;
       this._ntfyWs = null;
       this._ntfyTopic = '';
-      this._ntfyQueue = [];
+      this._ntfyTimers = new Set();
+      this._ntfyRateLimitedUntil = 0;
+      this._lastNtfyJoinAt = 0;
       this._joinRetryTimer = null;
       this._reconnectTimer = null;
       this._hostId = null;
@@ -285,6 +302,11 @@
         global.clearTimeout(this._reconnectTimer);
         this._reconnectTimer = null;
       }
+      for (const tid of this._ntfyTimers) {
+        global.clearTimeout(tid);
+      }
+      this._ntfyTimers.clear();
+      this._lastNtfyJoinAt = 0;
       for (const peerId of Array.from(this.peers.keys())) {
         this._destroyPeer(peerId, 'reset', true);
       }
@@ -292,7 +314,6 @@
       this._peerJsIds.clear();
       this._seenSignals.clear();
       this._peerWsQueue = [];
-      this._ntfyQueue = [];
       this._peerWsOpen = false;
       this._hostId = null;
 
@@ -504,7 +525,7 @@
       } catch (_) {}
     }
 
-    _broadcastSignal(sigObj) {
+    _broadcastSignal(sigObj, peerForSdp) {
       if (this.closed || !this.code) return;
       const msg = Object.assign(
         {
@@ -516,7 +537,7 @@
         sigObj
       );
 
-      // 1) BroadcastChannel (0ms same-browser)
+      // 1) BroadcastChannel (0ms same-browser; plain JSON objects only)
       if (this._bc) {
         try {
           this._bc.postMessage(msg);
@@ -540,15 +561,39 @@
         }
       }
 
-      // 3) ntfy.sh HTTP POST publish (skip pure high-freq candidates if peerJs/BC handled? No: send reliably so cross-device works even if PeerJS ID-TAKEN)
-      if (this._ntfyTopic) {
-        try {
-          global.fetch('https://ntfy.sh/' + encodeURIComponent(this._ntfyTopic), {
-            method: 'POST',
-            body: JSON.stringify(msg),
-            keepalive: true
-          }).catch(() => {});
-        } catch (_) {}
+      // 3) Delayed ntfy.sh HTTP POST fallback (cross-device only, never for ice/bye/host_ready/full)
+      const needsNtfy = msg.sig === 'join' || msg.sig === 'offer' || msg.sig === 'answer';
+      if (needsNtfy && this._ntfyTopic && Date.now() >= this._ntfyRateLimitedUntil) {
+        const tid = global.setTimeout(() => {
+          this._ntfyTimers.delete(tid);
+          if (this.closed || !this._ntfyTopic || Date.now() < this._ntfyRateLimitedUntil) return;
+          if (msg.sig === 'join') {
+            if (this.getConnectedPeerIds().length > 0) return;
+            for (const p of this.peers.values()) {
+              if (p.viaBc || p.open) return;
+            }
+            if (Date.now() - this._lastNtfyJoinAt < 3500) return;
+            this._lastNtfyJoinAt = Date.now();
+          } else {
+            const pTarget = peerForSdp || (msg.to && this.peers.get(msg.to));
+            if (pTarget && (pTarget.open || pTarget.viaBc)) return;
+            if (peerForSdp && peerForSdp.pc && peerForSdp.pc.localDescription) {
+              msg.sdp = serializeSdp(peerForSdp.pc.localDescription);
+            }
+          }
+          try {
+            global.fetch('https://ntfy.sh/' + encodeURIComponent(this._ntfyTopic), {
+              method: 'POST',
+              body: JSON.stringify(msg),
+              keepalive: true
+            }).then((res) => {
+              if (res && res.status === 429) {
+                this._ntfyRateLimitedUntil = Date.now() + 60000;
+              }
+            }).catch(() => {});
+          } catch (_) {}
+        }, 750);
+        this._ntfyTimers.add(tid);
       }
     }
 
@@ -615,7 +660,6 @@
             return;
           }
           const peer = this._createPeerRecord(msg.from, msg.meta || {}, via === 'bc');
-          this._createHostDataChannels(peer);
           this._scheduleBcFallback(peer);
           await this._sendHostOffer(peer);
         } else {
@@ -633,6 +677,7 @@
       if (via === 'bc') peer.viaBc = true;
 
       if (msg.sig === 'answer' && msg.sdp) {
+        peer.handshakeSeen = true;
         if (peer.offerId && msg.offerId && msg.offerId !== peer.offerId) return;
         if (peer.pc.signalingState === 'have-local-offer') {
           try {
@@ -678,10 +723,11 @@
         let peer = this.peers.get(msg.from);
         if (!peer) {
           peer = this._createPeerRecord(msg.from, msg.meta || {}, via === 'bc');
-          peer.pc.ondatachannel = (ev) => this._attachChannel(peer, ev.channel);
+          peer.handshakeSeen = true;
           this._scheduleBcFallback(peer);
         } else {
           if (via === 'bc') peer.viaBc = true;
+          peer.handshakeSeen = true;
           if (msg.meta) peer.meta = { ...peer.meta, ...msg.meta };
         }
         if (peer.seenOfferIds.has(msg.offerId)) return;
@@ -706,9 +752,9 @@
             from: this.myId,
             to: peer.id,
             offerId: msg.offerId,
-            sdp: peer.pc.localDescription,
+            sdp: serializeSdp(peer.pc.localDescription),
             meta: this.peerMeta
-          });
+          }, peer);
         } catch (err) {
           console.warn('[NeoP2PRoom] Guest offer/answer error:', err);
         }
@@ -733,6 +779,7 @@
         fast: null,
         open: false,
         bcFallback: false,
+        handshakeSeen: false,
         bcTimer: null,
         keepaliveTimer: null,
         viaBc: !!viaBc,
@@ -745,13 +792,23 @@
       };
       this.peers.set(peerId, peer);
 
+      // Negotiated pre-attached DataChannels on BOTH Host & Guest eliminate ondatachannel timing races
+      try {
+        const ctl = pc.createDataChannel('ctl', { negotiated: true, id: 0, ordered: true });
+        this._attachChannel(peer, ctl);
+        const fast = pc.createDataChannel('fast', { negotiated: true, id: 1, ordered: false, maxRetransmits: 0 });
+        this._attachChannel(peer, fast);
+      } catch (err) {
+        console.warn('[NeoP2PRoom] createDataChannel failed:', err);
+      }
+
       pc.onicecandidate = (ev) => {
         if (ev.candidate) {
           this._broadcastSignal({
             sig: 'ice',
             from: this.myId,
             to: peerId,
-            cand: ev.candidate
+            cand: serializeIce(ev.candidate)
           });
         }
       };
@@ -759,7 +816,7 @@
       pc.oniceconnectionstatechange = () => {
         const st = pc.iceConnectionState;
         if (st === 'failed' || st === 'closed') {
-          if (peer.viaBc && !this.closed) {
+          if (peer.viaBc && peer.handshakeSeen && !this.closed) {
             this._activateBcFallback(peer);
           } else if (peer.open) {
             this._handlePeerDisconnect(peerId, st);
@@ -776,17 +833,6 @@
       };
 
       return peer;
-    }
-
-    _createHostDataChannels(peer) {
-      try {
-        const ctl = peer.pc.createDataChannel('ctl', { ordered: true });
-        this._attachChannel(peer, ctl);
-        const fast = peer.pc.createDataChannel('fast', { ordered: false, maxRetransmits: 0 });
-        this._attachChannel(peer, fast);
-      } catch (err) {
-        console.warn('[NeoP2PRoom] createDataChannel failed:', err);
-      }
     }
 
     _attachChannel(peer, dc) {
@@ -807,20 +853,23 @@
           this._handlePeerDisconnect(peer.id, 'channel_closed');
         }
       };
+      if (dc.readyState === 'open' && dc.label !== 'fast') {
+        this._markPeerOpen(peer);
+      }
     }
 
     _scheduleBcFallback(peer) {
       if (peer.bcTimer) global.clearTimeout(peer.bcTimer);
       peer.bcTimer = global.setTimeout(() => {
         if (this.closed || this.peers.get(peer.id) !== peer) return;
-        if (!peer.open && peer.viaBc) {
+        if (!peer.open && peer.viaBc && peer.handshakeSeen) {
           this._activateBcFallback(peer);
         }
       }, 1500);
     }
 
     _activateBcFallback(peer) {
-      if (!peer.viaBc || this.closed) return;
+      if (!peer.viaBc || !peer.handshakeSeen || this.closed) return;
       peer.bcFallback = true;
       this._markPeerOpen(peer);
     }
@@ -832,6 +881,10 @@
       }
       if (peer.open) return;
       peer.open = true;
+      if (this.role === 'guest' || this.getConnectedPeerIds().length >= this.maxPeers) {
+        for (const tid of this._ntfyTimers) global.clearTimeout(tid);
+        this._ntfyTimers.clear();
+      }
       if (this._joinRetryTimer && this.role === 'guest') {
         global.clearInterval(this._joinRetryTimer);
         this._joinRetryTimer = null;
@@ -905,9 +958,9 @@
           from: this.myId,
           to: peer.id,
           offerId: peer.offerId,
-          sdp: peer.pc.localDescription,
+          sdp: serializeSdp(peer.pc.localDescription),
           meta: this.peerMeta
-        });
+        }, peer);
       } catch (err) {
         console.warn('[NeoP2PRoom] Host createOffer failed:', err);
       }

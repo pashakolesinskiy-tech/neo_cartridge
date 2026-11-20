@@ -6014,6 +6014,21 @@ function normalizeWormsCode(raw) {
   return String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
 }
 
+function serializeWormsSdp(desc) {
+  return desc ? { type: desc.type, sdp: desc.sdp } : null;
+}
+
+function serializeWormsIce(cand) {
+  if (!cand) return null;
+  if (typeof cand.toJSON === 'function') return cand.toJSON();
+  return {
+    candidate: cand.candidate,
+    sdpMid: cand.sdpMid,
+    sdpMLineIndex: cand.sdpMLineIndex,
+    usernameFragment: cand.usernameFragment,
+  };
+}
+
 /**
  * Compact Zero-Server WebRTC P2P Room transport for standalone single-file bundling.
  * Uses BroadcastChannel (0ms same-browser) + PeerJS WS + ntfy.sh (?since=15s).
@@ -6032,6 +6047,7 @@ class WormsP2PLink {
     this.open = false;
     this.viaBc = false;
     this.bcFallback = false;
+    this.handshakeSeen = false;
     this.offerId = '';
     this.lastOfferAt = 0;
     this.createdAt = 0;
@@ -6049,6 +6065,9 @@ class WormsP2PLink {
     this.peerJsTargets = new Map();
     this.ntfyWs = null;
     this.ntfyTopic = '';
+    this.ntfyTimers = new Set();
+    this.ntfyRateLimitedUntil = 0;
+    this.lastNtfyJoinAt = 0;
     this.joinRetryTimer = null;
     this.bcTimer = null;
 
@@ -6137,6 +6156,9 @@ class WormsP2PLink {
       clearTimeout(this.bcTimer);
       this.bcTimer = null;
     }
+    for (const tid of this.ntfyTimers) clearTimeout(tid);
+    this.ntfyTimers.clear();
+    this.lastNtfyJoinAt = 0;
     this._destroyPeer();
     if (this.bc) {
       try { this.bc.close(); } catch { /* ignore */ }
@@ -6159,6 +6181,7 @@ class WormsP2PLink {
   _destroyPeer() {
     this.open = false;
     this.bcFallback = false;
+    this.handshakeSeen = false;
     this.pendingIce = [];
     this.seenOfferIds.clear();
     if (this.bcTimer) {
@@ -6259,7 +6282,7 @@ class WormsP2PLink {
     } catch { /* ignore */ }
   }
 
-  _broadcastSig(sigObj) {
+  _broadcastSig(sigObj, usePcSdp = false) {
     if (this.closed || !this.code) return;
     const msg = Object.assign(
       { sid: 'sg_' + Math.random().toString(36).slice(2, 9), room: this.code, ns: 'worms', ts: Date.now() },
@@ -6279,14 +6302,30 @@ class WormsP2PLink {
         if (this.peerWsQueue.length < 48) this.peerWsQueue.push(env);
       }
     }
-    if (this.ntfyTopic) {
-      try {
-        fetch(`https://ntfy.sh/${encodeURIComponent(this.ntfyTopic)}`, {
-          method: 'POST',
-          body: JSON.stringify(msg),
-          keepalive: true,
-        }).catch(() => {});
-      } catch { /* ignore */ }
+    const needsNtfy = msg.sig === 'join' || msg.sig === 'offer' || msg.sig === 'answer';
+    if (needsNtfy && this.ntfyTopic && Date.now() >= this.ntfyRateLimitedUntil) {
+      const tid = setTimeout(() => {
+        this.ntfyTimers.delete(tid);
+        if (this.closed || !this.ntfyTopic || this.open || this.viaBc || Date.now() < this.ntfyRateLimitedUntil) return;
+        if (msg.sig === 'join') {
+          if (Date.now() - this.lastNtfyJoinAt < 3500) return;
+          this.lastNtfyJoinAt = Date.now();
+        } else if (usePcSdp && this.pc && this.pc.localDescription) {
+          msg.sdp = serializeWormsSdp(this.pc.localDescription);
+        }
+        try {
+          fetch(`https://ntfy.sh/${encodeURIComponent(this.ntfyTopic)}`, {
+            method: 'POST',
+            body: JSON.stringify(msg),
+            keepalive: true,
+          }).then((res) => {
+            if (res && res.status === 429) {
+              this.ntfyRateLimitedUntil = Date.now() + 60000;
+            }
+          }).catch(() => {});
+        } catch { /* ignore */ }
+      }, 750);
+      this.ntfyTimers.add(tid);
     }
   }
 
@@ -6317,19 +6356,25 @@ class WormsP2PLink {
     this.pc = pc;
     this.remotePeerId = peerId;
     this.viaBc = viaBc;
+    this.handshakeSeen = false;
     this.createdAt = Date.now();
     this.pendingIce = [];
     this.seenSeqs.clear();
 
+    try {
+      this._attachDc(pc.createDataChannel('ctl', { negotiated: true, id: 0, ordered: true }));
+      this._attachDc(pc.createDataChannel('fast', { negotiated: true, id: 1, ordered: false, maxRetransmits: 0 }));
+    } catch { /* ignore */ }
+
     pc.onicecandidate = (ev) => {
       if (ev.candidate && !this.closed) {
-        this._broadcastSig({ sig: 'ice', from: this.myId, to: peerId, cand: ev.candidate });
+        this._broadcastSig({ sig: 'ice', from: this.myId, to: peerId, cand: serializeWormsIce(ev.candidate) });
       }
     };
     pc.oniceconnectionstatechange = () => {
       const st = pc.iceConnectionState;
       if (st === 'failed' || st === 'closed') {
-        if (this.viaBc && !this.closed) {
+        if (this.viaBc && this.handshakeSeen && !this.closed) {
           this._activateBc();
         } else if (this.open) {
           this._handlePeerLeft();
@@ -6338,7 +6383,7 @@ class WormsP2PLink {
     };
     if (this.bcTimer) clearTimeout(this.bcTimer);
     this.bcTimer = setTimeout(() => {
-      if (!this.closed && !this.open && this.viaBc) {
+      if (!this.closed && !this.open && this.viaBc && this.handshakeSeen) {
         this._activateBc();
       }
     }, 1500);
@@ -6357,10 +6402,13 @@ class WormsP2PLink {
         this._handlePeerLeft();
       }
     };
+    if (dc.readyState === 'open' && dc.label !== 'fast') {
+      this._markOpen();
+    }
   }
 
   _activateBc() {
-    if (!this.viaBc || this.closed) return;
+    if (!this.viaBc || !this.handshakeSeen || this.closed) return;
     this.bcFallback = true;
     this._markOpen();
   }
@@ -6372,6 +6420,8 @@ class WormsP2PLink {
     }
     if (this.open) return;
     this.open = true;
+    for (const tid of this.ntfyTimers) clearTimeout(tid);
+    this.ntfyTimers.clear();
     if (this.joinRetryTimer) {
       clearInterval(this.joinRetryTimer);
       this.joinRetryTimer = null;
@@ -6426,8 +6476,6 @@ class WormsP2PLink {
       if (!this.pc || (this.remotePeerId !== msg.from && stale)) {
         if (stale) this._destroyPeer();
         this._createPc(msg.from, via === 'bc');
-        this._attachDc(this.pc.createDataChannel('ctl', { ordered: true }));
-        this._attachDc(this.pc.createDataChannel('fast', { ordered: false, maxRetransmits: 0 }));
         await this._sendOffer();
       } else if (this.remotePeerId === msg.from) {
         if (via === 'bc') this.viaBc = true;
@@ -6440,6 +6488,7 @@ class WormsP2PLink {
     if (!this.pc || msg.from !== this.remotePeerId) return;
     if (via === 'bc') this.viaBc = true;
     if (msg.sig === 'answer' && msg.sdp && this.pc.signalingState === 'have-local-offer') {
+      this.handshakeSeen = true;
       if (msg.offerId && this.offerId && msg.offerId !== this.offerId) return;
       try {
         await this.pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
@@ -6466,10 +6515,10 @@ class WormsP2PLink {
       }
       if (!this.pc) {
         this._createPc(msg.from, via === 'bc');
-        this.pc.ondatachannel = (ev) => this._attachDc(ev.channel);
       } else if (via === 'bc') {
         this.viaBc = true;
       }
+      this.handshakeSeen = true;
       if (this.seenOfferIds.has(msg.offerId)) return;
       this.seenOfferIds.add(msg.offerId);
       try {
@@ -6482,8 +6531,8 @@ class WormsP2PLink {
           from: this.myId,
           to: msg.from,
           offerId: msg.offerId,
-          sdp: this.pc.localDescription,
-        });
+          sdp: serializeWormsSdp(this.pc.localDescription),
+        }, true);
       } catch { /* ignore */ }
       return;
     }
@@ -6506,8 +6555,8 @@ class WormsP2PLink {
         from: this.myId,
         to: this.remotePeerId,
         offerId: this.offerId,
-        sdp: this.pc.localDescription,
-      });
+        sdp: serializeWormsSdp(this.pc.localDescription),
+      }, true);
     } catch { /* ignore */ }
   }
 

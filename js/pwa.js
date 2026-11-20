@@ -5,7 +5,7 @@
  */
 
 const PWA = {
-  CACHE_NAME: 'neo-cartridge-pwa-v4',
+  CACHE_NAME: 'neo-cartridge-pwa-v5',
   DISMISS_KEY: 'neo_pwa_banner_dismissed',
   OFFLINE_READY_KEY: 'neo_pwa_offline_ready',
   deferredPrompt: null,
