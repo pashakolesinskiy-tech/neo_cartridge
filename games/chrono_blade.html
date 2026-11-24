@@ -1428,6 +1428,20 @@
         window.addEventListener('touchend', onTouchEnd, { passive: false });
         window.addEventListener('touchcancel', onTouchEnd, { passive: false });
 
+        const releaseTouchControls = () => {
+          stickTouchId = null;
+          nub.style.transform = 'translate(-50%, -50%)';
+          this.touchDir = { x: 0, y: 0 };
+          document.querySelectorAll('#touch-controls-layer .btn-pressed').forEach((btn) => {
+            btn.classList.remove('btn-pressed');
+          });
+        };
+        window.addEventListener('blur', releaseTouchControls);
+        window.addEventListener('pagehide', releaseTouchControls);
+        document.addEventListener('visibilitychange', () => {
+          if (document.hidden) releaseTouchControls();
+        });
+
         // Touch Action Buttons with Haptics and Multi-touch
         const bindActionBtn = (id, action) => {
           const btn = document.getElementById(id);

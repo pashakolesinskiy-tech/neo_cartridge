@@ -2746,8 +2746,11 @@
             if (action) inputs[action] = false;
         });
 
-        window.addEventListener('blur', () => {
-            clearAllInputs();
+        const releaseControls = () => clearAllInputs();
+        window.addEventListener('blur', releaseControls);
+        window.addEventListener('pagehide', releaseControls);
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) releaseControls();
         });
 
         const joystickZone = document.getElementById('joystickZone');
@@ -2778,6 +2781,7 @@
         }
 
         joystickZone.addEventListener('touchstart', (e) => {
+            if (stickTouchId !== null || !e.changedTouches.length) return;
             if (e.cancelable) e.preventDefault();
             sound.resume();
             const t = e.changedTouches[0];
@@ -2804,7 +2808,14 @@
             }
         }, { passive: false });
 
-        joystickZone.addEventListener('touchcancel', resetJoystick, { passive: false });
+        joystickZone.addEventListener('touchcancel', (e) => {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === stickTouchId) {
+                    resetJoystick();
+                    break;
+                }
+            }
+        }, { passive: false });
 
         // Desktop mouse support for the horizontal stick
         joystickZone.addEventListener('mousedown', (e) => {
