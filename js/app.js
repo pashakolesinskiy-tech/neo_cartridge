@@ -181,8 +181,11 @@ const App = {
     const thumb = document.getElementById('deck-slider-thumb');
     if (!stage) return;
 
+    let deckTouchId = null;
+    let lastDeckTouchAt = 0;
+
     const onDragStart = (clientY) => {
-      if (this.isPoweredOn || this.isBooting) return;
+      if (this.isPoweredOn || this.isBooting || this.isDraggingDeck) return;
       this.isDraggingDeck = true;
       this.didDragDeck = false;
       this.dragStartY = clientY;
@@ -231,26 +234,41 @@ const App = {
     };
 
     stage.addEventListener('touchstart', (e) => {
+      if (deckTouchId !== null || this.isDraggingDeck || !e.changedTouches.length) return;
       if (e.target.closest('#deck-slider-rail')) return;
-      onDragStart(e.touches[0].clientY);
+      const touch = e.changedTouches[0];
+      deckTouchId = touch.identifier;
+      lastDeckTouchAt = Date.now();
+      onDragStart(touch.clientY);
     }, { passive: true });
 
     window.addEventListener('touchmove', (e) => {
-      if (this.isDraggingDeck) {
-        if (e.cancelable) e.preventDefault();
-        onDragMove(e.touches[0].clientY);
+      if (!this.isDraggingDeck || deckTouchId === null) return;
+      for (let i = 0; i < e.touches.length; i++) {
+        const touch = e.touches[i];
+        if (touch.identifier === deckTouchId) {
+          if (e.cancelable) e.preventDefault();
+          onDragMove(touch.clientY);
+          break;
+        }
       }
     }, { passive: false });
 
-    window.addEventListener('touchend', () => {
-      if (this.isDraggingDeck) onDragEnd();
-    });
-    window.addEventListener('touchcancel', () => {
-      if (this.isDraggingDeck) onDragEnd();
-    });
+    const finishDeckTouch = (e) => {
+      if (deckTouchId === null) return;
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === deckTouchId) {
+          deckTouchId = null;
+          onDragEnd();
+          break;
+        }
+      }
+    };
+    window.addEventListener('touchend', finishDeckTouch);
+    window.addEventListener('touchcancel', finishDeckTouch);
 
     stage.addEventListener('mousedown', (e) => {
-      if (e.button !== 0) return;
+      if (e.button !== 0 || Date.now() - lastDeckTouchAt < 800) return;
       if (e.target.closest('#deck-slider-rail')) return;
       onDragStart(e.clientY);
     });
