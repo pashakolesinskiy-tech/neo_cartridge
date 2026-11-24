@@ -535,10 +535,11 @@ const App = {
     if (artChipEl) artChipEl.textContent = artTags[this.currentCartridge] || '🎮 ARCADE ART';
   },
 
-  initPreloader() {
-    this.cartridgeOrder.forEach((gameId, idx) => {
+  async initPreloader() {
+    for (let idx = 0; idx < this.cartridgeOrder.length; idx++) {
+      const gameId = this.cartridgeOrder[idx];
       const cart = this.cartridges[gameId];
-      if (!cart || !cart.src) return;
+      if (!cart || !cart.src) continue;
 
       const badge = document.getElementById(`preload-badge-${idx}`);
       if (badge) {
@@ -548,21 +549,22 @@ const App = {
         if (textSpan) textSpan.textContent = 'LOADING...';
       }
 
-      fetch(cart.src, { cache: 'force-cache' })
-        .then((res) => {
-          if (!res.ok) throw new Error('Fetch status ' + res.status);
-          return res.text();
-        })
-        .then((content) => {
-          cart.preloaded = true;
-          cart.sizeKb = Math.round(content.length / 1024);
-          this.updateCartridgePreloadUI(idx);
-        })
-        .catch(() => {
-          cart.preloaded = true;
-          this.updateCartridgePreloadUI(idx);
-        });
-    });
+      try {
+        const res = await fetch(cart.src, { cache: 'force-cache' });
+        if (!res.ok) throw new Error('Fetch status ' + res.status);
+        const content = await res.text();
+        cart.preloaded = true;
+        cart.sizeKb = Math.round(content.length / 1024);
+        this.updateCartridgePreloadUI(idx);
+      } catch (_) {
+        cart.preloaded = false;
+        if (badge) {
+          badge.classList.remove('loading', 'ready');
+          const textSpan = badge.querySelector('.preload-text');
+          if (textSpan) textSpan.textContent = 'LOAD FAILED';
+        }
+      }
+    }
   },
 
   updateCartridgePreloadUI(idx) {
