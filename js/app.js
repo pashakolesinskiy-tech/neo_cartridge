@@ -233,6 +233,22 @@ const App = {
       this.setDeckIndex(targetIndex);
     };
 
+    const cancelDeckDrag = () => {
+      deckTouchId = null;
+      if (!this.isDraggingDeck) return;
+      this.isDraggingDeck = false;
+      this.dragDeltaY = 0;
+      if (this.deckDragRaf) {
+        cancelAnimationFrame(this.deckDragRaf);
+        this.deckDragRaf = 0;
+      }
+      stage.classList.remove('is-dragging');
+      document.body.classList.remove('is-deck-dragging');
+      this.updateDeckDisplay(false);
+    };
+    window.addEventListener('blur', cancelDeckDrag);
+    window.addEventListener('pagehide', cancelDeckDrag);
+
     stage.addEventListener('touchstart', (e) => {
       if (deckTouchId !== null || this.isDraggingDeck || !e.changedTouches.length) return;
       if (e.target.closest('#deck-slider-rail')) return;
