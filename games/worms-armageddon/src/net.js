@@ -100,7 +100,7 @@ class WormsP2PLink {
   async startGuest(rawCode) {
     const clean = normalizeWormsCode(rawCode);
     if (!clean || clean.length < 3) {
-      throw new Error('Invalid room code');
+      throw new Error('Неверный код комнаты');
     }
     this.close(true);
     this.closed = false;
@@ -515,7 +515,7 @@ class WormsP2PLink {
       return;
     }
     if (msg.sig === 'full') {
-      this.onError?.(new Error('Room is full'));
+      this.onError?.(new Error('Комната уже заполнена'));
       return;
     }
     if (msg.sig === 'offer' && msg.sdp) {
@@ -671,7 +671,7 @@ export class OnlineClient {
           if (this._pendingResolver) {
             const res = this._pendingResolver;
             this._pendingResolver = null;
-            res.reject(new Error(msg.message || msg.reason || 'Room error'));
+            res.reject(new Error(msg.message || msg.reason || 'Ошибка комнаты'));
           }
         } else if (msg.type === 'guest_joined') {
           this.peerConnected = true;
@@ -689,12 +689,12 @@ export class OnlineClient {
       ws.onerror = (err) => {
         if (!settled) {
           settled = true;
-          reject(new Error('WebSocket connection failed'));
+          reject(new Error('Не удалось подключиться к WebSocket'));
         }
         if (this._pendingResolver) {
           const res = this._pendingResolver;
           this._pendingResolver = null;
-          res.reject(new Error('WebSocket error'));
+          res.reject(new Error('Ошибка WebSocket'));
         }
         this.onError?.(err);
       };
@@ -708,12 +708,12 @@ export class OnlineClient {
         this.peerConnected = false;
         if (!settled) {
           settled = true;
-          reject(new Error('WebSocket closed'));
+          reject(new Error('Соединение WebSocket закрыто'));
         }
         if (this._pendingResolver) {
           const res = this._pendingResolver;
           this._pendingResolver = null;
-          res.reject(new Error('Connection closed'));
+          res.reject(new Error('Соединение закрыто'));
         }
         if (wasConnected) {
           this.onClose?.();
@@ -783,7 +783,7 @@ export class OnlineClient {
     this.disconnect(true);
     const cleanCode = normalizeWormsCode(code);
     if (!cleanCode || cleanCode.length < 3) {
-      throw new Error('Please enter a valid room code.');
+      throw new Error('Введите корректный код комнаты.');
     }
 
     return new Promise((resolve, reject) => {
@@ -799,7 +799,7 @@ export class OnlineClient {
       };
 
       this._guestTimer = setTimeout(() => {
-        fail(new Error('Could not find host room ' + cleanCode));
+        fail(new Error('Комната ведущего не найдена ' + cleanCode));
       }, 20000);
 
       const p2p = new WormsP2PLink({
@@ -812,7 +812,7 @@ export class OnlineClient {
           this.roomCode = null;
           this.peerConnected = false;
           if (!settled) {
-            fail(new Error('Connection closed by host'));
+            fail(new Error('Ведущий закрыл соединение'));
             return;
           }
           if (wasJoined) {
@@ -821,7 +821,7 @@ export class OnlineClient {
           }
         },
         onError: (err) => {
-          fail(err instanceof Error ? err : new Error('Room error'));
+          fail(err instanceof Error ? err : new Error('Ошибка комнаты'));
         },
         onMessage: (msg) => {
           if (!msg) return;
