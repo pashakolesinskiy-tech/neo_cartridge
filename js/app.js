@@ -578,7 +578,10 @@ const App = {
 
     const biosPreloadStatus = document.getElementById('bios-preload-status');
     if (biosPreloadStatus) {
-      biosPreloadStatus.textContent = 'ROM CACHE: 100% PRE-LOADED [INSTANT BOOT]';
+      const ready = this.cartridgeOrder.filter((gameId) => this.cartridges[gameId]?.preloaded).length;
+      biosPreloadStatus.textContent = ready === this.cartridgeOrder.length
+        ? 'ROM CACHE: 100% PRE-LOADED [INSTANT BOOT]'
+        : `ROM CACHE: ${ready}/${this.cartridgeOrder.length} READY`;
     }
   },
 
