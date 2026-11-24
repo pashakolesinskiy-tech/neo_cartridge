@@ -1367,7 +1367,7 @@ export class GameEngine {
           this._emitFx({ kind: 'angel', x: worm.x, y: worm.y });
           this.explode(worm.x, worm.y, 26, 16, 180, {
             attackerTeamIndex: -1,
-            label: 'R.I.P.',
+            label: 'ПОКОЙСЯ С МИРОМ',
           });
         },
       });
@@ -2473,7 +2473,7 @@ export class GameEngine {
           if (typeof action.airstrikeDir === 'number') this.airstrikeDir = action.airstrikeDir;
           this.fireWeapon();
         } else if (this.selectedWeaponId === 'homing') {
-          this.showBanner('Target locked! Aim & hold Click/Space to launch', '#48dbfb', 1.8);
+          this.showBanner('Цель захвачена! Наведитесь и удерживайте ЛКМ или Пробел для запуска', '#48dbfb', 1.8);
         }
         break;
       default:
