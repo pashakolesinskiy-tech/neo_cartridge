@@ -11750,6 +11750,12 @@ function sendOrRunAction(action, localFn) {
 }
 
 // --- Weapon Panel ---
+function setWeaponDescription(weapon) {
+  if (!weapon) return;
+  weaponDescTitle.textContent = weapon.name;
+  weaponDescText.textContent = weapon.description;
+}
+
 function renderWeaponGrid() {
   const activeTeam = game.teams[game.activeTeamIndex];
   const inv = activeTeam?.inventory || {};
@@ -11771,23 +11777,27 @@ function renderWeaponGrid() {
       <span class="weapon-slot-ammo">${ammoText}</span>
     `;
 
-    slot.addEventListener('mouseenter', () => {
-      weaponDescTitle.textContent = w.name;
-      weaponDescText.textContent = w.description;
-    });
+    slot.addEventListener('mouseenter', () => setWeaponDescription(w));
+    slot.addEventListener('focus', () => setWeaponDescription(w));
     slot.addEventListener('click', () => {
+      setWeaponDescription(w);
       game.sound.unlock();
       if (game.phase !== PHASES.PLAYER_TURN || !game.canLocalPlayerControl()) return;
       sendOrRunAction(
         { kind: 'select_weapon', weaponId: w.id },
         () => game.selectWeapon(w.id)
       );
-      weaponPanel.classList.add('hidden');
-      syncModalBodyClass();
+      // On touch screens keep the arsenal open so the selected weapon's
+      // Russian description remains readable without hover support.
+      if (!window.matchMedia('(pointer: coarse)').matches) {
+        weaponPanel.classList.add('hidden');
+        syncModalBodyClass();
+      }
       renderWeaponGrid();
     });
     weaponGrid.appendChild(slot);
   }
+  setWeaponDescription(WEAPON_MAP[game.selectedWeaponId] || WEAPONS[0]);
 }
 
 function toggleWeaponPanel(forceState = null) {
@@ -11798,8 +11808,7 @@ function toggleWeaponPanel(forceState = null) {
     closeMobileOverlays();
     renderWeaponGrid();
     const cur = WEAPON_MAP[game.selectedWeaponId] || WEAPONS[0];
-    weaponDescTitle.textContent = cur.name;
-    weaponDescText.textContent = cur.description;
+    setWeaponDescription(cur);
     weaponPanel.classList.remove('hidden');
   } else {
     weaponPanel.classList.add('hidden');
