@@ -5,7 +5,7 @@
  */
 
 const PWA = {
-  CACHE_NAME: 'neo-cartridge-pwa-v12',
+  CACHE_NAME: 'neo-cartridge-pwa-v16',
   DISMISS_KEY: 'neo_pwa_banner_dismissed',
   OFFLINE_READY_KEY: 'neo_pwa_offline_ready',
   CORE_ASSETS: [
@@ -14,6 +14,7 @@ const PWA = {
     './manifest.webmanifest',
     './css/console.css',
     './css/components.css',
+    './js/perf.js',
     './js/landscape-guard.js',
     './js/game-hero-screen.js',
     './js/app.js',
@@ -272,9 +273,16 @@ const PWA = {
         return;
       }
       const cache = await caches.open(this.CACHE_NAME);
+      const offlineGameDocuments = [
+        './games/stick_fighting.html',
+        './games/pixel_drift.html',
+        './games/chrono_blade.html',
+        './games/mecha_siege.html',
+        './games/worms_armageddon.html',
+        './games/cosmo_junk.html'
+      ];
       const checks = await Promise.all(
-        ['./games/stick_fighting.html', './games/worms_armageddon.html', './games/cosmo_junk.html']
-          .map((path) => cache.match(path, { ignoreSearch: true }))
+        offlineGameDocuments.map((path) => cache.match(path, { ignoreSearch: true }))
       );
       const ready = checks.every(Boolean);
       try {
