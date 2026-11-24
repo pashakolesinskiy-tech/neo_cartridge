@@ -149,6 +149,7 @@
   let animFrame = 0;
   let sheetImg = null;
   let stageSizeObserver = null;
+  let stageResizeHandler = null;
   let stageWidth = 0;
   let stageHeight = 0;
   let lastStageFrame = 0;
@@ -783,14 +784,21 @@
       cancelAnimationFrame(animFrame);
       animFrame = 0;
     }
-    if (stageSizeObserver) stageSizeObserver.disconnect();
+    if (stageSizeObserver) {
+      stageSizeObserver.disconnect();
+      stageSizeObserver = null;
+    }
+    if (stageResizeHandler) {
+      window.removeEventListener('resize', stageResizeHandler);
+      stageResizeHandler = null;
+    }
     measureStage(canvas);
     if (typeof ResizeObserver === 'function') {
       stageSizeObserver = new ResizeObserver(() => measureStage(canvas));
       stageSizeObserver.observe(canvas);
     } else {
-      const measureOnResize = () => measureStage(canvas);
-      window.addEventListener('resize', measureOnResize, { passive: true });
+      stageResizeHandler = () => measureStage(canvas);
+      window.addEventListener('resize', stageResizeHandler, { passive: true });
     }
     const ctx = canvas.getContext('2d');
     const step = (now) => {
@@ -959,6 +967,10 @@
     if (stageSizeObserver) {
       stageSizeObserver.disconnect();
       stageSizeObserver = null;
+    }
+    if (stageResizeHandler) {
+      window.removeEventListener('resize', stageResizeHandler);
+      stageResizeHandler = null;
     }
   }
 
