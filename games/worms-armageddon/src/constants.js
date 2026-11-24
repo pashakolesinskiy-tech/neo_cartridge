@@ -71,9 +71,9 @@ export const WORM_NAMES = [
   'Прыгун',
   'Грохот',
   'Серж',
-  'Toby',
-  'Fizz',
-  'Crater',
+  'Тоби',
+  'Физз',
+  'Кратер',
 ];
 
 export const THEMES = {
