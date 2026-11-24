@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Worms Armageddon — Artillery Web Edition</title>
+  <title>Worms Armageddon — Артиллерийская битва</title>
   <style>
 :root {
   --steel-bg: rgba(18, 24, 38, 0.9);
@@ -1677,9 +1677,8 @@ body.modal-open .touch-controls {
 }
 
 </style>
-  <script src="../js/perf.js?v=15"></script>
-  <script src="../js/landscape-guard.js?v=15"></script>
-  <script src="../js/game-hero-screen.js?v=15"></script>
+  <script src="../js/landscape-guard.js?v=13"></script>
+  <script src="../js/game-hero-screen.js?v=13"></script>
 </head>
 <body>
   <div id="app">
@@ -1691,35 +1690,35 @@ body.modal-open .touch-controls {
         <div class="active-turn-badge">
           <span id="hud-team-dot" class="team-dot"></span>
           <div>
-            <div id="hud-active-team" class="hud-team-name">Red Brigade</div>
-            <div id="hud-active-worm" class="hud-worm-name">Boggy B</div>
+            <div id="hud-active-team" class="hud-team-name">Красная бригада</div>
+            <div id="hud-active-worm" class="hud-worm-name">Богги Б</div>
           </div>
         </div>
         <div class="hud-divider"></div>
-        <div id="hud-weapon-chip" class="weapon-chip" title="Click or press Tab to change weapon">
+        <div id="hud-weapon-chip" class="weapon-chip" title="Нажмите или нажмите Tab, чтобы сменить оружие">
           <span id="hud-weapon-icon" class="weapon-chip-icon"></span>
           <div class="weapon-chip-meta">
-            <span id="hud-weapon-name" class="weapon-chip-name">Bazooka</span>
+            <span id="hud-weapon-name" class="weapon-chip-name">Базука</span>
             <span id="hud-weapon-ammo" class="weapon-chip-ammo">∞</span>
           </div>
         </div>
         <div id="hud-fuse-controls" class="fuse-controls hidden">
-          <span>Fuse:</span>
-          <button type="button" class="fuse-btn" data-fuse="1">1s</button>
-          <button type="button" class="fuse-btn" data-fuse="2">2s</button>
-          <button type="button" class="fuse-btn" data-fuse="3">3s</button>
-          <button type="button" class="fuse-btn" data-fuse="4">4s</button>
-          <button type="button" class="fuse-btn" data-fuse="5">5s</button>
+          <span>Запал:</span>
+          <button type="button" class="fuse-btn" data-fuse="1">1с</button>
+          <button type="button" class="fuse-btn" data-fuse="2">2с</button>
+          <button type="button" class="fuse-btn" data-fuse="3">3с</button>
+          <button type="button" class="fuse-btn" data-fuse="4">4с</button>
+          <button type="button" class="fuse-btn" data-fuse="5">5с</button>
         </div>
         <div id="hud-jetpack-fuel" class="fuel-wrap hidden">
-          <span>FUEL</span>
+          <span>ТОПЛИВО</span>
           <div class="fuel-track"><div id="hud-fuel-fill" class="fuel-fill"></div></div>
         </div>
       </div>
 
       <div class="hud-center panel-bevel">
         <div class="timer-block">
-          <span id="hud-phase-label" class="phase-label">TURN</span>
+          <span id="hud-phase-label" class="phase-label">ХОД</span>
           <span id="hud-timer" class="timer-value">45</span>
         </div>
         <div class="hud-divider"></div>
@@ -1733,13 +1732,13 @@ body.modal-open .touch-controls {
             <div id="hud-wind-fill" class="wind-bar-fill"></div>
           </div>
         </div>
-        <div id="hud-sudden-death" class="sudden-death-badge hidden">SUDDEN DEATH</div>
-        <div id="hud-online-badge" class="online-badge hidden">ONLINE</div>
+        <div id="hud-sudden-death" class="sudden-death-badge hidden">ВНЕЗАПНАЯ СМЕРТЬ</div>
+        <div id="hud-online-badge" class="online-badge hidden">В СЕТИ</div>
       </div>
 
       <div class="hud-right">
         <div class="mobile-hud-toggles">
-          <button id="btn-minimap-toggle" type="button" class="hud-btn mobile-icon-btn" title="Мини-карта">Map</button>
+          <button id="btn-minimap-toggle" type="button" class="hud-btn mobile-icon-btn" title="Мини-карта">Карта</button>
           <button id="btn-mobile-pause" type="button" class="hud-btn mobile-icon-btn" title="Пауза">⏸</button>
           <button id="btn-mobile-menu" type="button" class="hud-btn mobile-icon-btn" title="Меню и настройки">☰</button>
         </div>
@@ -1767,13 +1766,13 @@ body.modal-open .touch-controls {
     <footer id="hud-bottom" class="hidden">
       <div id="team-bars" class="team-bars panel-bevel"></div>
       <div class="controls-strip panel-bevel">
-        <span><b>←/→</b> Walk</span>
-        <span><b>↑/↓</b> Aim</span>
-        <span><b>Q</b> Jump</span>
-        <span><b>E</b> Backflip</span>
-        <span><b>Space/Click</b> Charge &amp; Fire</span>
-        <span><b>Tab/Right-Click</b> Weapons</span>
-        <span><b>Right-Drag</b> Pan • <b>Wheel</b> Zoom</span>
+        <span><b>←/→</b> Ходьба</span>
+        <span><b>↑/↓</b> Прицел</span>
+        <span><b>Q</b> Прыжок</span>
+        <span><b>E</b> Сальто назад</span>
+        <span><b>Пробел/клик</b> Сила выстрела и огонь</span>
+        <span><b>Tab/ПКМ</b> Оружие</span>
+        <span><b>ПКМ + перетаскивание</b> Камера • <b>Колесо</b> Масштаб</span>
       </div>
     </footer>
 
@@ -1855,64 +1854,64 @@ body.modal-open .touch-controls {
             <!-- Online Section -->
             <div id="online-section" class="hidden">
               <div class="preset-row">
-                <button type="button" id="subtab-host" class="preset-btn active">Create Room (Host)</button>
-                <button type="button" id="subtab-join" class="preset-btn">Join by Code</button>
+                <button type="button" id="subtab-host" class="preset-btn active">Создать комнату</button>
+                <button type="button" id="subtab-join" class="preset-btn">Войти по коду</button>
               </div>
 
               <!-- Host Room Pane -->
               <div id="online-host-pane" class="online-pane">
                 <div class="field-group">
-                  <label for="online-host-name">Your Team Name (Host)</label>
-                  <input id="online-host-name" type="text" maxlength="18" value="Red Brigade" class="text-input" />
+                  <label for="online-host-name">Название вашей команды (ведущий)</label>
+                  <input id="online-host-name" type="text" maxlength="18" value="Красная бригада" class="text-input" />
                 </div>
 
-                <button id="btn-create-room" type="button" class="start-btn online-action-btn">CREATE ROOM (HOST SERVER)</button>
+                <button id="btn-create-room" type="button" class="start-btn online-action-btn">СОЗДАТЬ КОМНАТУ</button>
 
                 <div id="host-room-card" class="room-card hidden">
                   <div class="room-code-row">
                     <div>
-                      <div class="room-label">ROOM CODE</div>
+                      <div class="room-label">КОД КОМНАТЫ</div>
                       <div id="room-code-display" class="room-code-pill">------</div>
                     </div>
-                    <button id="btn-copy-code" type="button" class="hud-btn">Copy Code</button>
+                    <button id="btn-copy-code" type="button" class="hud-btn">Копировать код</button>
                   </div>
 
                   <div class="field-group">
-                    <label for="online-addr-select">Share Address (QR &amp; Invite Link)</label>
+                    <label for="online-addr-select">Адрес для приглашения (QR-код и ссылка)</label>
                     <select id="online-addr-select" class="text-input"></select>
                   </div>
 
                   <div class="qr-box">
                     <canvas id="qr-canvas" width="176" height="176"></canvas>
                     <div class="qr-meta">
-                      <div class="room-label">SCAN QR CODE OR SHARE LINK</div>
+                      <div class="room-label">ОТСКАНИРУЙТЕ QR-КОД ИЛИ ОТПРАВЬТЕ ССЫЛКУ</div>
                       <div id="invite-link-text" class="invite-link"></div>
                       <div class="qr-btns">
-                        <button id="btn-copy-link" type="button" class="hud-btn">Copy Link</button>
-                        <button id="btn-close-room" type="button" class="hud-btn danger-btn">Close Room</button>
+                        <button id="btn-copy-link" type="button" class="hud-btn">Копировать ссылку</button>
+                        <button id="btn-close-room" type="button" class="hud-btn danger-btn">Закрыть комнату</button>
                       </div>
                     </div>
                   </div>
 
-                  <div id="host-status" class="online-status">Waiting for Player 2 to join...</div>
+                  <div id="host-status" class="online-status">Ожидание подключения второго игрока...</div>
                 </div>
               </div>
 
               <!-- Join Room Pane -->
               <div id="online-join-pane" class="online-pane hidden">
                 <div class="field-group">
-                  <label for="online-guest-name">Your Team Name</label>
+                  <label for="online-guest-name">Название вашей команды</label>
                   <input id="online-guest-name" type="text" maxlength="18" value="Blue Platoon" class="text-input" />
                 </div>
 
                 <div class="field-group">
-                  <label for="join-code-input">Room Code or Invite URL</label>
-                  <input id="join-code-input" type="text" maxlength="120" placeholder="Enter 6-char code (e.g. K7M4P9)" class="text-input code-input" />
+                  <label for="join-code-input">Код комнаты или ссылка-приглашение</label>
+                  <input id="join-code-input" type="text" maxlength="120" placeholder="Введите код из 6 символов (например, K7M4P9)" class="text-input code-input" />
                 </div>
 
                 <div class="join-actions">
-                  <button id="btn-join-room" type="button" class="start-btn online-action-btn">JOIN ROOM</button>
-                  <button id="btn-leave-room" type="button" class="hud-btn danger-btn hidden">Leave Room</button>
+                  <button id="btn-join-room" type="button" class="start-btn online-action-btn">ВОЙТИ В КОМНАТУ</button>
+                  <button id="btn-leave-room" type="button" class="hud-btn danger-btn hidden">Покинуть комнату</button>
                 </div>
 
                 <div id="join-status" class="online-status hidden"></div>
@@ -1921,23 +1920,23 @@ body.modal-open .touch-controls {
 
             <div id="match-options" class="options-grid">
               <div class="field-group">
-                <label for="opt-worms">Worms / Team</label>
+                <label for="opt-worms">Червяки в команде</label>
                 <select id="opt-worms">
-                  <option value="2">2 Worms</option>
-                  <option value="3" selected>3 Worms</option>
-                  <option value="4">4 Worms</option>
+                  <option value="2">2 червяка</option>
+                  <option value="3" selected>3 червяка</option>
+                  <option value="4">4 червяка</option>
                 </select>
               </div>
               <div class="field-group">
-                <label for="opt-hp">Starting HP</label>
+                <label for="opt-hp">Здоровье в начале</label>
                 <select id="opt-hp">
-                  <option value="100" selected>100 HP</option>
-                  <option value="150">150 HP</option>
-                  <option value="200">200 HP</option>
+                  <option value="100" selected>100 ОЗ</option>
+                  <option value="150">150 ОЗ</option>
+                  <option value="200">200 ОЗ</option>
                 </select>
               </div>
               <div class="field-group">
-                <label for="opt-turn">Turn Timer</label>
+                <label for="opt-turn">Время на ход</label>
                 <select id="opt-turn">
                   <option value="30">30s</option>
                   <option value="45" selected>45s</option>
@@ -1945,11 +1944,11 @@ body.modal-open .touch-controls {
                 </select>
               </div>
               <div class="field-group">
-                <label for="opt-sd">Sudden Death</label>
+                <label for="opt-sd">Внезапная смерть</label>
                 <select id="opt-sd">
-                  <option value="10">Turn 10</option>
-                  <option value="14" selected>Turn 14</option>
-                  <option value="0">Off</option>
+                  <option value="10">10-й ход</option>
+                  <option value="14" selected>14-й ход</option>
+                  <option value="0">Выкл.</option>
                 </select>
               </div>
             </div>
@@ -1957,22 +1956,22 @@ body.modal-open .touch-controls {
 
           <div class="setup-col preview-col">
             <div class="field-group">
-              <label>Battlefield Theme</label>
+              <label>Оформление поля боя</label>
               <div id="theme-pills" class="theme-pills">
-                <button type="button" class="theme-btn active" data-theme="meadow">Green Hills</button>
-                <button type="button" class="theme-btn" data-theme="arctic">Arctic Frost</button>
-                <button type="button" class="theme-btn" data-theme="desert">Sunset Mesa</button>
-                <button type="button" class="theme-btn" data-theme="volcano">Volcanic Keep</button>
+                <button type="button" class="theme-btn active" data-theme="meadow">Зелёные холмы</button>
+                <button type="button" class="theme-btn" data-theme="arctic">Арктический мороз</button>
+                <button type="button" class="theme-btn" data-theme="desert">Закатное плато</button>
+                <button type="button" class="theme-btn" data-theme="volcano">Вулканическая крепость</button>
               </div>
             </div>
 
             <div class="preview-frame">
               <canvas id="preview-canvas" width="380" height="190"></canvas>
-              <button id="btn-reroll-map" type="button" class="reroll-btn">↻ New Map</button>
+              <button id="btn-reroll-map" type="button" class="reroll-btn">↻ Новая карта</button>
             </div>
 
             <div id="setup-tips" class="setup-tips">
-              <div><strong>34 Weapons &amp; Utilities:</strong> Bazooka, Homing, Mortar, Cluster, Banana, Holy Grenade, Shotgun, Handgun, Uzi, Sheep, Super Sheep, Mad Cows, Toxic &amp; Ice Bombs, Petrol, Ninja Rope, Drill, Magnet, Air/Napalm/Meteor Strikes &amp; more!</div>
+              <div><strong>34 вида оружия и снаряжения:</strong> базука, самонаводящаяся ракета, миномёт, кассетная и банановая бомбы, святая граната, дробовик, пистолет, Узи, овца и супер-овца, бешеные коровы, ядовитая и ледяная бомбы, зажигательная бутылка, верёвка ниндзя, бур, магнит, авиаудар, напалм, метеориты и многое другое!</div>
             </div>
 
             <button id="btn-start-match" type="button" class="start-btn">В БОЙ!</button>
@@ -2070,28 +2069,28 @@ const PHASES = Object.freeze({
 
 const TEAM_PALETTES = [
   {
-    name: 'Red Brigade',
+    name: 'Красная бригада',
     color: '#ff4757',
     dark: '#b31d2b',
     light: '#ff7b87',
     badgeBg: 'rgba(179, 29, 43, 0.9)',
   },
   {
-    name: 'Blue Platoon',
+    name: 'Синий взвод',
     color: '#2e9cff',
     dark: '#145fa8',
     light: '#76c0ff',
     badgeBg: 'rgba(20, 95, 168, 0.9)',
   },
   {
-    name: 'Gold Squad',
+    name: 'Золотой отряд',
     color: '#ffd32a',
     dark: '#b58b00',
     light: '#ffe885',
     badgeBg: 'rgba(155, 118, 0, 0.92)',
   },
   {
-    name: 'Emerald Corps',
+    name: 'Изумрудный корпус',
     color: '#2ed573',
     dark: '#168744',
     light: '#7bed9f',
@@ -2100,19 +2099,19 @@ const TEAM_PALETTES = [
 ];
 
 const WORM_NAMES = [
-  'Boggy B',
-  'Spadge',
-  'Clagnut',
-  'Sgt. Squirm',
-  'Major Mud',
-  'Pvt. Pinky',
-  'Sir Wiggles',
-  'Cpl. Crawler',
-  'Lt. Lunge',
-  'Noodle',
-  'Bouncer',
-  'Rumble',
-  'Sarge',
+  'Богги Б',
+  'Спэдж',
+  'Клэгнат',
+  'Сержант Сквирм',
+  'Майор Грязь',
+  'Рядовой Пинки',
+  'Сэр Вигглз',
+  'Капрал Краулер',
+  'Лейтенант Выпад',
+  'Лапша',
+  'Прыгун',
+  'Грохот',
+  'Серж',
   'Toby',
   'Fizz',
   'Crater',
@@ -2121,7 +2120,7 @@ const WORM_NAMES = [
 const THEMES = {
   meadow: {
     id: 'meadow',
-    label: 'Green Hills',
+    label: 'Зелёные холмы',
     skyTop: '#163d6b',
     skyMid: '#377eb8',
     skyBottom: '#93d5f5',
@@ -2142,7 +2141,7 @@ const THEMES = {
   },
   arctic: {
     id: 'arctic',
-    label: 'Arctic Frost',
+    label: 'Арктический мороз',
     skyTop: '#0b1530',
     skyMid: '#183766',
     skyBottom: '#5a8bbd',
@@ -2163,7 +2162,7 @@ const THEMES = {
   },
   desert: {
     id: 'desert',
-    label: 'Sunset Mesa',
+    label: 'Закатное плато',
     skyTop: '#2e1647',
     skyMid: '#943c54',
     skyBottom: '#f29f58',
@@ -2184,7 +2183,7 @@ const THEMES = {
   },
   volcano: {
     id: 'volcano',
-    label: 'Volcanic Keep',
+    label: 'Вулканическая крепость',
     skyTop: '#160910',
     skyMid: '#48131d',
     skyBottom: '#a63322',
@@ -3652,18 +3651,18 @@ class ParticleSystem {
 },
 './weapons.js': function(__exports, __require) {
 const WEAPON_CATEGORIES = [
-  { id: 'rockets', label: 'Rockets' },
-  { id: 'grenades', label: 'Thrown' },
-  { id: 'firearms', label: 'Firearms' },
-  { id: 'explosives', label: 'Melee & Mines' },
-  { id: 'special', label: 'Specials' },
-  { id: 'utility', label: 'Utilities' },
+  { id: 'rockets', label: 'Ракеты' },
+  { id: 'grenades', label: 'Метательное' },
+  { id: 'firearms', label: 'Огнестрельное' },
+  { id: 'explosives', label: 'Ближний бой и мины' },
+  { id: 'special', label: 'Особое' },
+  { id: 'utility', label: 'Инструменты' },
 ];
 
 const WEAPONS = [
   {
     id: 'bazooka',
-    name: 'Bazooka',
+    name: 'Базука',
     category: 'rockets',
     ammo: Infinity,
     damage: 45,
@@ -3678,13 +3677,13 @@ const WEAPONS = [
     retreatTime: 3.0,
     speedMin: 220,
     speedMax: 780,
-    description: 'Classic rocket launcher. Strongly affected by wind.',
+    description: 'Классическая ракетная установка. Траектория ракеты сильно зависит от ветра.',
     spriteIcon: { sheet: 'items', key: 'bazooka' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><path d="M5 21L21 5l6 6L11 27 5 21z" fill="#3b7a57" stroke="#e5f5ec" stroke-width="1.6"/><path d="M22 6l4 4 3-5-7 1z" fill="#ff5252"/><path d="M8 18l6 6" stroke="#ffd32a" stroke-width="2"/></svg>`,
   },
   {
     id: 'homing',
-    name: 'Homing Missile',
+    name: 'Самонаводящаяся ракета',
     category: 'rockets',
     ammo: 2,
     damage: 45,
@@ -3699,13 +3698,13 @@ const WEAPONS = [
     retreatTime: 3.0,
     speedMin: 210,
     speedMax: 720,
-    description: 'Click map to lock a target, then charge and fire.',
+    description: 'Сначала нажмите на карту, чтобы выбрать цель, затем задайте силу выстрела и стреляйте.',
     spriteIcon: { sheet: 'items', key: 'homing' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><circle cx="22" cy="10" r="6" stroke="#ff4757" stroke-width="1.8" stroke-dasharray="2 2"/><circle cx="22" cy="10" r="1.8" fill="#ff4757"/><path d="M5 24L18 11l3 3L8 27l-3-3z" fill="#4aa3df" stroke="#fff" stroke-width="1.5"/><path d="M18 11l5-2-2 5-3-3z" fill="#ff4757"/></svg>`,
   },
   {
     id: 'grenade',
-    name: 'Frag Grenade',
+    name: 'Осколочная граната',
     category: 'grenades',
     ammo: Infinity,
     damage: 45,
@@ -3722,13 +3721,13 @@ const WEAPONS = [
     speedMax: 620,
     restitution: 0.34,
     groundFriction: 0.66,
-    description: 'Bouncy fuse grenade. Keys 1–5 set fuse seconds.',
+    description: 'Граната отскакивает от поверхности и взрывается по таймеру. Клавиши 1–5 задают задержку в секундах.',
     spriteIcon: { sheet: 'items', key: 'grenadeIcon' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><rect x="13" y="5" width="6" height="4" rx="1" fill="#bbb"/><path d="M17 6c3 0 5 1 6 3" stroke="#ffd32a" stroke-width="2" stroke-linecap="round"/><ellipse cx="16" cy="18" rx="8" ry="9" fill="#3d7c3f" stroke="#c8f5c8" stroke-width="1.6"/><path d="M10 15h12M10 21h12M16 10v16" stroke="#224a24" stroke-width="1.4"/></svg>`,
   },
   {
     id: 'cluster',
-    name: 'Cluster Bomb',
+    name: 'Кассетная бомба',
     category: 'grenades',
     ammo: 3,
     damage: 32,
@@ -3745,13 +3744,13 @@ const WEAPONS = [
     speedMax: 620,
     restitution: 0.32,
     groundFriction: 0.64,
-    description: 'Splits on detonation into 5 explosive bomblets.',
+    description: 'При взрыве разделяется на 5 дополнительных взрывных зарядов.',
     spriteIcon: { sheet: 'items', key: 'clusterGroup' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="18" r="8" fill="#d63031" stroke="#ffeaa7" stroke-width="1.6"/><circle cx="13" cy="16" r="2.2" fill="#ffd32a"/><circle cx="19" cy="17" r="2.2" fill="#ffd32a"/><circle cx="16" cy="21" r="2.2" fill="#ffd32a"/><path d="M16 10V6l3-2" stroke="#ffd32a" stroke-width="2" stroke-linecap="round"/></svg>`,
   },
   {
     id: 'banana',
-    name: 'Banana Bomb',
+    name: 'Банановая бомба',
     category: 'grenades',
     ammo: 1,
     damage: 65,
@@ -3768,13 +3767,13 @@ const WEAPONS = [
     speedMax: 640,
     restitution: 0.55,
     groundFriction: 0.78,
-    description: 'Super-bouncy banana that bursts into 5 lethal bananas!',
+    description: 'Очень упругая банана, которая при взрыве разлетается на 5 смертоносных бананов!',
     spriteIcon: { sheet: 'worms', key: 'banana' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><path d="M7 22c6 4 15 1 18-9 1-3 0-6-2-7-1 5-6 11-14 12-2 1-3 3-2 4z" fill="#ffe135" stroke="#fff7c2" stroke-width="1.5"/><circle cx="24" cy="7" r="2" fill="#5d4037"/></svg>`,
   },
   {
     id: 'holy',
-    name: 'Holy Hand Grenade',
+    name: 'Святая граната',
     category: 'special',
     ammo: 1,
     damage: 90,
@@ -3791,13 +3790,13 @@ const WEAPONS = [
     speedMax: 580,
     restitution: 0.24,
     groundFriction: 0.56,
-    description: 'Hallelujah! Massive golden blast with huge crater.',
+    description: 'Аллилуйя! Мощнейший золотой взрыв оставляет огромный кратер.',
     spriteIcon: { sheet: 'items', key: 'cross' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><path d="M16 4v7M12.5 7.5h7" stroke="#ffe57f" stroke-width="2.4" stroke-linecap="round"/><circle cx="16" cy="19" r="8.5" fill="#f9ca24" stroke="#fff6cc" stroke-width="1.6"/><path d="M8 19h16" stroke="#ff5252" stroke-width="2.2"/><circle cx="16" cy="19" r="2.2" fill="#fff"/></svg>`,
   },
   {
     id: 'shotgun',
-    name: 'Shotgun',
+    name: 'Дробовик',
     category: 'firearms',
     ammo: Infinity,
     damage: 25,
@@ -3810,13 +3809,13 @@ const WEAPONS = [
     targetMode: 'instant',
     shotsPerTurn: 2,
     retreatTime: 3.0,
-    description: '2 pinpoint hitscan shots per turn. Strong knockback.',
+    description: 'Два точных выстрела за ход. Сильно отбрасывает противников.',
     spriteIcon: { sheet: 'items', key: 'shotgun' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><path d="M4 19l19-9 2 3-13 6-2 6-4-1 1-4-3-1z" fill="#8d5524" stroke="#f5d6b8" stroke-width="1.4"/><path d="M12 15l15-7 1 2-15 7-1-2z" fill="#ced6e0"/></svg>`,
   },
   {
     id: 'uzi',
-    name: 'Uzi',
+    name: 'Узи',
     category: 'firearms',
     ammo: 3,
     damage: 6,
@@ -3829,13 +3828,13 @@ const WEAPONS = [
     targetMode: 'instant',
     shotsPerTurn: 1,
     retreatTime: 3.0,
-    description: '10 rapid-fire rounds chewing through terrain and worms.',
+    description: 'Выпускает очередь из 10 быстрых пуль, пробивая грунт и поражая червяков.',
     spriteIcon: { sheet: 'items', key: 'uzi' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><rect x="7" y="10" width="16" height="6" rx="1" fill="#4b5563" stroke="#e5e7eb" stroke-width="1.4"/><path d="M11 16v9h4v-9M23 12h5v2h-5" fill="#374151" stroke="#d1d5db" stroke-width="1.3"/><rect x="17" y="16" width="3" height="7" fill="#9ca3af"/></svg>`,
   },
   {
     id: 'dynamite',
-    name: 'Dynamite',
+    name: 'Динамит',
     category: 'explosives',
     ammo: 2,
     damage: 75,
@@ -3850,13 +3849,13 @@ const WEAPONS = [
     targetMode: 'instant',
     shotsPerTurn: 1,
     retreatTime: 5.0,
-    description: 'Drops a 5-second dynamite bundle at your feet. Run!',
+    description: 'Оставляет у ног заряд с таймером на 5 секунд. Бегите подальше!',
     spriteIcon: { sheet: 'items', key: 'dynamite' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><rect x="9" y="10" width="4" height="16" rx="1" fill="#ff4757" stroke="#ffd2d6" stroke-width="1"/><rect x="14" y="10" width="4" height="16" rx="1" fill="#ff4757" stroke="#ffd2d6" stroke-width="1"/><rect x="19" y="10" width="4" height="16" rx="1" fill="#ff4757" stroke="#ffd2d6" stroke-width="1"/><path d="M16 10c0-4 3-6 7-5" stroke="#ffd32a" stroke-width="2" stroke-linecap="round"/><circle cx="24" cy="5" r="2.2" fill="#ffa502"/></svg>`,
   },
   {
     id: 'bat',
-    name: 'Baseball Bat',
+    name: 'Бейсбольная бита',
     category: 'explosives',
     ammo: 2,
     damage: 30,
@@ -3869,13 +3868,13 @@ const WEAPONS = [
     targetMode: 'instant',
     shotsPerTurn: 1,
     retreatTime: 3.0,
-    description: 'Launches adjacent enemies into orbit or into the sea!',
+    description: 'Мощный удар по соседнему противнику отправляет его в полёт или прямо в воду!',
     spriteIcon: null,
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><path d="M7 25L23 6c1.5-1.2 3.5.8 2.2 2.3L9 26.5c-1 .9-2.8-.6-2-1.5z" fill="#e0a96d" stroke="#fff0dc" stroke-width="1.4"/><circle cx="8" cy="25" r="2" fill="#a8703b"/></svg>`,
   },
   {
     id: 'airstrike',
-    name: 'Air Strike',
+    name: 'Авиаудар',
     category: 'special',
     ammo: 1,
     damage: 35,
@@ -3888,13 +3887,13 @@ const WEAPONS = [
     targetMode: 'mapClick',
     shotsPerTurn: 1,
     retreatTime: 3.0,
-    description: 'Left/Right flips plane. Click target to rain 5 bombs.',
+    description: 'Стрелками влево/вправо выберите направление самолёта. Нажмите на карту, чтобы сбросить 5 бомб.',
     spriteIcon: { sheet: 'plane', key: 'plane' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><path d="M4 13l12 2 7-5 4 1-4 5 5 2-2 2-6-1-4 4-3-1 2-4-11-3v-2z" fill="#74b9ff" stroke="#ffffff" stroke-width="1.3"/><circle cx="12" cy="24" r="2.2" fill="#ff5252"/><circle cx="19" cy="26" r="2.2" fill="#ff5252"/></svg>`,
   },
   {
     id: 'teleport',
-    name: 'Teleport',
+    name: 'Телепорт',
     category: 'utility',
     ammo: 2,
     damage: 0,
@@ -3907,13 +3906,13 @@ const WEAPONS = [
     targetMode: 'mapClick',
     shotsPerTurn: 1,
     retreatTime: 1.4,
-    description: 'Click any open air location to warp immediately.',
+    description: 'Нажмите на свободное место над землёй, чтобы мгновенно переместиться туда.',
     spriteIcon: { sheet: 'items', key: 'portal' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="10" stroke="#00d2d3" stroke-width="2" stroke-dasharray="4 2"/><circle cx="16" cy="16" r="5" fill="#48dbfb"/><path d="M16 3v5M16 24v5M3 16h5M24 16h5" stroke="#c8fff4" stroke-width="2" stroke-linecap="round"/></svg>`,
   },
   {
     id: 'jetpack',
-    name: 'Jet Pack',
+    name: 'Реактивный ранец',
     category: 'utility',
     ammo: 2,
     damage: 0,
@@ -3926,13 +3925,13 @@ const WEAPONS = [
     targetMode: 'jetpack',
     shotsPerTurn: 1,
     retreatTime: 2.0,
-    description: 'Fly with Arrows/WASD. Press Space to turn off & land.',
+    description: 'Летайте стрелками или WASD. Нажмите Пробел, чтобы отключить ранец и приземлиться.',
     spriteIcon: { sheet: 'items', key: 'jetpack' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><rect x="9" y="6" width="5" height="14" rx="2" fill="#a4b0be" stroke="#fff" stroke-width="1.3"/><rect x="18" y="6" width="5" height="14" rx="2" fill="#a4b0be" stroke="#fff" stroke-width="1.3"/><path d="M10 21l1.5 6 1.5-6M19 21l1.5 6 1.5-6" fill="#ff9f43"/><path d="M14 11h4" stroke="#ff4757" stroke-width="2"/></svg>`,
   },
   {
     id: 'blowtorch',
-    name: 'Blowtorch',
+    name: 'Газовая горелка',
     category: 'utility',
     ammo: 3,
     damage: 14,
@@ -3945,13 +3944,13 @@ const WEAPONS = [
     targetMode: 'blowtorch',
     shotsPerTurn: 1,
     retreatTime: 2.0,
-    description: 'Carve a tunnel through terrain along your aim angle.',
+    description: 'Прожигает тоннель в грунте в направлении прицела.',
     spriteIcon: { sheet: 'items', key: 'blowtorch' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><path d="M6 23l10-10 4 4-10 10-4-4z" fill="#576574" stroke="#dfe6e9" stroke-width="1.4"/><path d="M18 11l7-6c1 3 1 6-3 9l-4-3z" fill="#ff9f43" stroke="#fff2a6" stroke-width="1.2"/></svg>`,
   },
   {
     id: 'girder',
-    name: 'Steel Girder',
+    name: 'Стальная балка',
     category: 'utility',
     ammo: 2,
     damage: 0,
@@ -3964,13 +3963,13 @@ const WEAPONS = [
     targetMode: 'girder',
     shotsPerTurn: 1,
     retreatTime: 1.5,
-    description: 'Q/E or wheel rotates beam. Click to build solid bridge.',
+    description: 'Поворачивайте балку клавишами Q/E или колёсиком мыши. Нажмите, чтобы построить мост.',
     spriteIcon: { sheet: 'items', key: 'bricks' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><path d="M5 19L23 9l3 5L8 24l-3-5z" fill="#7f8fa6" stroke="#f5f6fa" stroke-width="1.5"/><path d="M8 21l5-7 3 6 5-7" stroke="#2f3640" stroke-width="1.6"/></svg>`,
   },
   {
     id: 'handgun',
-    name: 'Handgun',
+    name: 'Пистолет',
     category: 'firearms',
     ammo: Infinity,
     damage: 8,
@@ -3983,13 +3982,13 @@ const WEAPONS = [
     targetMode: 'instant',
     shotsPerTurn: 1,
     retreatTime: 2.5,
-    description: 'Fires a rapid 6-round semi-auto burst along your aim.',
+    description: 'Выпускает быструю полуавтоматическую очередь из 6 пуль в направлении прицела.',
     spriteIcon: { sheet: 'items', key: 'handgun' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><rect x="7" y="10" width="16" height="5" rx="1" fill="#7f8fa6"/><path d="M10 15l-2 9h4l2-9z" fill="#c23616"/></svg>`,
   },
   {
     id: 'mortar',
-    name: 'Mortar',
+    name: 'Миномёт',
     category: 'rockets',
     ammo: 3,
     damage: 38,
@@ -4004,13 +4003,13 @@ const WEAPONS = [
     retreatTime: 3.0,
     speedMin: 210,
     speedMax: 720,
-    description: 'Heavy mortar shell that bursts into 4 bouncing shrapnel.',
+    description: 'Тяжёлый миномётный снаряд при взрыве разбрасывает 4 отскакивающих осколка.',
     spriteIcon: { sheet: 'items', key: 'mortar' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><path d="M8 23l12-14 4 3-12 14z" fill="#718093"/><rect x="6" y="23" width="20" height="4" rx="1" fill="#8c7ae6"/></svg>`,
   },
   {
     id: 'fireball',
-    name: 'Dragon Ball',
+    name: 'Огненный шар',
     category: 'special',
     ammo: 3,
     damage: 35,
@@ -4023,13 +4022,13 @@ const WEAPONS = [
     targetMode: 'instant',
     shotsPerTurn: 1,
     retreatTime: 2.8,
-    description: 'Shoots a straight blazing energy orb with fierce knockback.',
+    description: 'Запускает по прямой раскалённый энергетический шар с мощной отбрасывающей силой.',
     spriteIcon: { sheet: 'items', key: 'fireball' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="9" fill="#ff9f43"/><circle cx="16" cy="16" r="5" fill="#fff2a6"/></svg>`,
   },
   {
     id: 'sheep',
-    name: 'Sheep',
+    name: 'Овца',
     category: 'special',
     ammo: 2,
     damage: 75,
@@ -4042,13 +4041,13 @@ const WEAPONS = [
     targetMode: 'instant',
     shotsPerTurn: 1,
     retreatTime: 0,
-    description: 'Hops across hills. Press Space anytime to detonate!',
+    description: 'Прыгает по холмам. Нажмите Пробел в любой момент, чтобы взорвать её!',
     spriteIcon: { sheet: 'items', key: 'sheep' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><ellipse cx="15" cy="17" rx="9" ry="7" fill="#f5f6fa"/><circle cx="22" cy="14" r="4" fill="#2f3640"/></svg>`,
   },
   {
     id: 'supersheep',
-    name: 'Super Sheep',
+    name: 'Супер-овца',
     category: 'special',
     ammo: 1,
     damage: 75,
@@ -4061,13 +4060,13 @@ const WEAPONS = [
     targetMode: 'instant',
     shotsPerTurn: 1,
     retreatTime: 0,
-    description: 'Press Space to take off flying, then steer with ←/→!',
+    description: 'Нажмите Пробел, чтобы взлететь, затем управляйте полётом стрелками влево/вправо!',
     spriteIcon: { sheet: 'items', key: 'supersheep' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><ellipse cx="16" cy="16" rx="9" ry="6" fill="#f5f6fa"/><path d="M8 14l14-4-2 5z" fill="#ff4757"/></svg>`,
   },
   {
     id: 'cow',
-    name: 'Mad Cows',
+    name: 'Бешеные коровы',
     category: 'special',
     ammo: 1,
     damage: 40,
@@ -4080,13 +4079,13 @@ const WEAPONS = [
     targetMode: 'instant',
     shotsPerTurn: 1,
     retreatTime: 0,
-    description: 'Releases 3 stampeding cows that explode on contact!',
+    description: 'Выпускает трёх несущихся коров, которые взрываются при столкновении!',
     spriteIcon: { sheet: 'items', key: 'cow' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><rect x="7" y="12" width="16" height="10" rx="3" fill="#fff"/><circle cx="21" cy="15" r="4" fill="#ffb8c2"/></svg>`,
   },
   {
     id: 'punch',
-    name: 'Boxing Glove',
+    name: 'Боксёрская перчатка',
     category: 'explosives',
     ammo: 3,
     damage: 35,
@@ -4099,13 +4098,13 @@ const WEAPONS = [
     targetMode: 'instant',
     shotsPerTurn: 1,
     retreatTime: 2.5,
-    description: 'Close-range knockout uppercut with huge launch force.',
+    description: 'Апперкот вблизи отправляет противника в мощный нокаутирующий полёт.',
     spriteIcon: { sheet: 'items', key: 'punch' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><circle cx="17" cy="15" r="8" fill="#ff4757"/><rect x="12" y="21" width="9" height="5" rx="1" fill="#fff"/></svg>`,
   },
   {
     id: 'mine',
-    name: 'Land Mine',
+    name: 'Противопехотная мина',
     category: 'explosives',
     ammo: 2,
     damage: 36,
@@ -4118,13 +4117,13 @@ const WEAPONS = [
     targetMode: 'instant',
     shotsPerTurn: 1,
     retreatTime: 3.5,
-    description: 'Drops a proximity mine at your feet (arms in 2s).',
+    description: 'Устанавливает мину рядом с червяком. Активируется через 2 секунды.',
     spriteIcon: { sheet: 'items', key: 'mineButton' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><path d="M6 22a10 10 0 0 1 20 0z" fill="#576574"/><circle cx="16" cy="13" r="3" fill="#ff4757"/></svg>`,
   },
   {
     id: 'rope',
-    name: 'Ninja Rope',
+    name: 'Верёвка ниндзя',
     category: 'utility',
     ammo: 3,
     damage: 0,
@@ -4137,13 +4136,13 @@ const WEAPONS = [
     targetMode: 'aim',
     shotsPerTurn: 1,
     retreatTime: 1.6,
-    description: 'Grapple terrain overhead. ←/→ swing, ↑/↓ reel, Space drop.',
+    description: 'Цепляйтесь за грунт над головой. ←/→ — раскачивание, ↑/↓ — подтягивание, Пробел — отпустить.',
     spriteIcon: { sheet: 'items', key: 'rope' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><path d="M8 25c4-8 6-12 12-16" stroke="#d4a373" stroke-width="3"/><circle cx="22" cy="8" r="3" stroke="#ced6e0" stroke-width="2"/></svg>`,
   },
   {
     id: 'poison',
-    name: 'Toxic Bomb',
+    name: 'Ядовитая бомба',
     category: 'grenades',
     ammo: 2,
     damage: 20,
@@ -4158,13 +4157,13 @@ const WEAPONS = [
     retreatTime: 3.0,
     speedMin: 180,
     speedMax: 600,
-    description: 'Explodes into toxic slime that poisons hit worms (-5/turn).',
+    description: 'Взрывается облаком токсичной слизи и отравляет задетых червяков (−5 здоровья за ход).',
     spriteIcon: { sheet: 'items', key: 'slime' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="17" r="8" fill="#7bed9f"/><circle cx="13" cy="14" r="2" fill="#2ed573"/></svg>`,
   },
   {
     id: 'icebomb',
-    name: 'Ice Bomb',
+    name: 'Ледяная бомба',
     category: 'grenades',
     ammo: 2,
     damage: 26,
@@ -4179,13 +4178,13 @@ const WEAPONS = [
     retreatTime: 3.0,
     speedMin: 180,
     speedMax: 600,
-    description: 'Frost blast that freezes hit worms solid for 1 turn.',
+    description: 'Морозный взрыв замораживает задетых червяков на один ход.',
     spriteIcon: { sheet: 'items', key: 'ice' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><rect x="8" y="8" width="16" height="16" rx="3" fill="#74b9ff" stroke="#dff9fb" stroke-width="2"/></svg>`,
   },
   {
     id: 'magnet',
-    name: 'Magnet',
+    name: 'Магнит',
     category: 'utility',
     ammo: 2,
     damage: 0,
@@ -4198,13 +4197,13 @@ const WEAPONS = [
     targetMode: 'mapClick',
     shotsPerTurn: 1,
     retreatTime: 1.2,
-    description: 'Click map to place a magnet bending metal shells for 4 turns.',
+    description: 'Нажмите на карту, чтобы установить магнит. Он отклоняет металлические снаряды в течение 4 ходов.',
     spriteIcon: { sheet: 'items', key: 'magnet' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><path d="M9 10v8a7 7 0 0 0 14 0v-8" stroke="#ff4757" stroke-width="4" stroke-linecap="round"/></svg>`,
   },
   {
     id: 'petrol',
-    name: 'Petrol Bomb',
+    name: 'Зажигательная бутылка',
     category: 'grenades',
     ammo: 3,
     damage: 18,
@@ -4219,13 +4218,13 @@ const WEAPONS = [
     retreatTime: 3.0,
     speedMin: 180,
     speedMax: 610,
-    description: 'Shatters on impact into 8 burning fire droplets.',
+    description: 'Разбивается при ударе и разбрасывает 8 горящих капель.',
     spriteIcon: { sheet: 'items', key: 'petrol' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><rect x="11" y="12" width="10" height="14" rx="2" fill="#e17055"/><circle cx="16" cy="7" r="3" fill="#fdcb6e"/></svg>`,
   },
   {
     id: 'meteor',
-    name: 'Meteor Strike',
+    name: 'Метеоритный удар',
     category: 'special',
     ammo: 1,
     damage: 55,
@@ -4238,13 +4237,13 @@ const WEAPONS = [
     targetMode: 'mapClick',
     shotsPerTurn: 1,
     retreatTime: 2.5,
-    description: 'Click target to summon 3 giant meteors from the sky!',
+    description: 'Нажмите на точку на карте, чтобы вызвать с неба три огромных метеорита!',
     spriteIcon: { sheet: 'items', key: 'meteor' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><circle cx="15" cy="17" r="8" fill="#8d6e63"/><path d="M18 10l8-6-3 9" fill="#ff9f43"/></svg>`,
   },
   {
     id: 'drill',
-    name: 'Pneumatic Drill',
+    name: 'Пневматический бур',
     category: 'utility',
     ammo: 3,
     damage: 12,
@@ -4257,13 +4256,13 @@ const WEAPONS = [
     targetMode: 'drill',
     shotsPerTurn: 1,
     retreatTime: 1.6,
-    description: 'Drills straight down through terrain. Space stops early.',
+    description: 'Бурит грунт строго вниз. Нажмите Пробел, чтобы остановить бур раньше.',
     spriteIcon: { sheet: 'items', key: 'drill' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><path d="M10 8h12l-6 18z" fill="#95a5a6" stroke="#fff" stroke-width="1.4"/></svg>`,
   },
   {
     id: 'sonic',
-    name: 'Sonic Wave',
+    name: 'Звуковая волна',
     category: 'explosives',
     ammo: 3,
     damage: 18,
@@ -4276,13 +4275,13 @@ const WEAPONS = [
     targetMode: 'instant',
     shotsPerTurn: 1,
     retreatTime: 2.5,
-    description: 'Blasts a shock cone forward pushing worms & mines away.',
+    description: 'Создаёт направленный ударный импульс, отталкивающий червяков и мины.',
     spriteIcon: { sheet: 'items', key: 'sonic' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><path d="M10 10a9 9 0 0 1 0 12M15 7a13 13 0 0 1 0 18M20 5a16 16 0 0 1 0 22" stroke="#48dbfb" stroke-width="2.2" stroke-linecap="round"/></svg>`,
   },
   {
     id: 'napalm',
-    name: 'Napalm Strike',
+    name: 'Напалмовый удар',
     category: 'special',
     ammo: 1,
     damage: 20,
@@ -4295,13 +4294,13 @@ const WEAPONS = [
     targetMode: 'mapClick',
     shotsPerTurn: 1,
     retreatTime: 2.5,
-    description: 'Left/Right flips plane. Click target to drop burning napalm.',
+    description: 'Стрелками влево/вправо выберите направление самолёта. Укажите цель на карте для сброса напалма.',
     spriteIcon: { sheet: 'items', key: 'flare' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><rect x="11" y="13" width="6" height="14" rx="1" transform="rotate(20 14 20)" fill="#ff4757"/><circle cx="19" cy="8" r="4" fill="#ffa502"/></svg>`,
   },
   {
     id: 'balloon',
-    name: 'Water Balloon',
+    name: 'Водяной шар',
     category: 'grenades',
     ammo: 3,
     damage: 18,
@@ -4316,13 +4315,13 @@ const WEAPONS = [
     retreatTime: 3.0,
     speedMin: 180,
     speedMax: 600,
-    description: 'Splat! Small damage but washes worms off ledges.',
+    description: 'Плюх! Наносит небольшой урон, но может смыть червяков с уступов.',
     spriteIcon: { sheet: 'items', key: 'balloon' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><ellipse cx="16" cy="17" rx="7" ry="9" fill="#2e9cff"/></svg>`,
   },
   {
     id: 'windblower',
-    name: 'Wind Fan',
+    name: 'Ветродуй',
     category: 'utility',
     ammo: 2,
     damage: 0,
@@ -4335,7 +4334,7 @@ const WEAPONS = [
     targetMode: 'instant',
     shotsPerTurn: 1,
     retreatTime: 2.0,
-    description: 'Gusts nearby worms away AND turns battlefield wind in your direction!',
+    description: 'Отбрасывает ближайших червяков и разворачивает ветер на поле боя в вашу сторону!',
     spriteIcon: { sheet: 'items', key: 'windblower' },
     iconSvg: `<svg viewBox="0 0 32 32" fill="none"><circle cx="13" cy="16" r="7" fill="#2e9cff"/><path d="M20 13h7M20 19h5" stroke="#70e4ff" stroke-width="2" stroke-linecap="round"/></svg>`,
   },
@@ -6266,7 +6265,7 @@ class WormsP2PLink {
   async startGuest(rawCode) {
     const clean = normalizeWormsCode(rawCode);
     if (!clean || clean.length < 3) {
-      throw new Error('Invalid room code');
+      throw new Error('Неверный код комнаты');
     }
     this.close(true);
     this.closed = false;
@@ -6681,7 +6680,7 @@ class WormsP2PLink {
       return;
     }
     if (msg.sig === 'full') {
-      this.onError?.(new Error('Room is full'));
+      this.onError?.(new Error('Комната уже заполнена'));
       return;
     }
     if (msg.sig === 'offer' && msg.sdp) {
@@ -6837,7 +6836,7 @@ class OnlineClient {
           if (this._pendingResolver) {
             const res = this._pendingResolver;
             this._pendingResolver = null;
-            res.reject(new Error(msg.message || msg.reason || 'Room error'));
+            res.reject(new Error(msg.message || msg.reason || 'Ошибка комнаты'));
           }
         } else if (msg.type === 'guest_joined') {
           this.peerConnected = true;
@@ -6855,12 +6854,12 @@ class OnlineClient {
       ws.onerror = (err) => {
         if (!settled) {
           settled = true;
-          reject(new Error('WebSocket connection failed'));
+          reject(new Error('Не удалось подключиться к WebSocket'));
         }
         if (this._pendingResolver) {
           const res = this._pendingResolver;
           this._pendingResolver = null;
-          res.reject(new Error('WebSocket error'));
+          res.reject(new Error('Ошибка WebSocket'));
         }
         this.onError?.(err);
       };
@@ -6874,12 +6873,12 @@ class OnlineClient {
         this.peerConnected = false;
         if (!settled) {
           settled = true;
-          reject(new Error('WebSocket closed'));
+          reject(new Error('Соединение WebSocket закрыто'));
         }
         if (this._pendingResolver) {
           const res = this._pendingResolver;
           this._pendingResolver = null;
-          res.reject(new Error('Connection closed'));
+          res.reject(new Error('Соединение закрыто'));
         }
         if (wasConnected) {
           this.onClose?.();
@@ -6949,7 +6948,7 @@ class OnlineClient {
     this.disconnect(true);
     const cleanCode = normalizeWormsCode(code);
     if (!cleanCode || cleanCode.length < 3) {
-      throw new Error('Please enter a valid room code.');
+      throw new Error('Введите корректный код комнаты.');
     }
 
     return new Promise((resolve, reject) => {
@@ -6965,7 +6964,7 @@ class OnlineClient {
       };
 
       this._guestTimer = setTimeout(() => {
-        fail(new Error('Could not find host room ' + cleanCode));
+        fail(new Error('Комната ведущего не найдена ' + cleanCode));
       }, 20000);
 
       const p2p = new WormsP2PLink({
@@ -6978,7 +6977,7 @@ class OnlineClient {
           this.roomCode = null;
           this.peerConnected = false;
           if (!settled) {
-            fail(new Error('Connection closed by host'));
+            fail(new Error('Ведущий закрыл соединение'));
             return;
           }
           if (wasJoined) {
@@ -6987,7 +6986,7 @@ class OnlineClient {
           }
         },
         onError: (err) => {
-          fail(err instanceof Error ? err : new Error('Room error'));
+          fail(err instanceof Error ? err : new Error('Ошибка комнаты'));
         },
         onMessage: (msg) => {
           if (!msg) return;
@@ -8821,7 +8820,7 @@ class GameEngine {
     if (!weapon) return false;
 
     if (weapon.id === 'homing' && !this.pendingMapTarget) {
-      this.showBanner('Click the map first to lock Homing Target!', '#48dbfb', 1.6);
+      this.showBanner('Сначала нажмите на карту, чтобы захватить цель самонаводящейся ракеты!', '#48dbfb', 1.6);
       return false;
     }
 
@@ -8941,7 +8940,7 @@ class GameEngine {
       this.sound.playClick();
       this._emitSound('click');
       this.showBanner(
-        weapon.id === 'supersheep' ? 'SUPER SHEEP — Press Space to fly!' : 'SHEEP — Press Space to detonate!',
+        weapon.id === 'supersheep' ? 'СУПЕРОВЦА — нажмите Пробел, чтобы взлететь!' : 'ОВЦА — нажмите Пробел, чтобы взорвать!',
         '#ffd32a',
         2.2
       );
@@ -8961,7 +8960,7 @@ class GameEngine {
       };
       this.sound.playClick();
       this._emitSound('click');
-      this.showBanner('MAD COWS LOOSE!', '#ff6b81', 2.0);
+      this.showBanner('БЕШЕНЫЕ КОРОВЫ НА ВОЛЕ!', '#ff6b81', 2.0);
       this.phase = PHASES.PROJECTILE_ACTIVE;
       this.onHudUpdate?.(this);
       return true;
@@ -8988,7 +8987,7 @@ class GameEngine {
         attackerTeamIndex: worm.teamIndex,
         attackerWormName: worm.name,
         silentAudio: true,
-        label: hitAny ? 'K.O.!' : null,
+        label: hitAny ? 'НОКАУТ!' : null,
       });
       if (hitAny) {
         this.sound.playHurt();
@@ -9011,7 +9010,7 @@ class GameEngine {
       this._emitSound('click');
       this.phase = PHASES.RETREAT;
       this.retreatTimer = weapon.retreatTime;
-      this.showBanner('MINE ARMED IN 2s — STEP BACK!', '#ff5252', 1.8);
+      this.showBanner('МИНА ВЗВЕДЕНА ЧЕРЕЗ 2 СЕК. — ОТОЙДИТЕ!', '#ff5252', 1.8);
       this.onHudUpdate?.(this);
       return true;
     }
@@ -9080,7 +9079,7 @@ class GameEngine {
         }
       }
       if (hitX === null) {
-        this.showBanner('Aim at solid terrain within 340px!', '#ff9f43', 1.4);
+        this.showBanner('Прицельтесь в твёрдый грунт на расстоянии до 340 пикселей!', '#ff9f43', 1.4);
         return false;
       }
       this._consumeAmmo('rope');
@@ -9095,7 +9094,7 @@ class GameEngine {
       this.sound.playClick();
       this._emitSound('click');
       this.phase = PHASES.ROPE;
-      this.showBanner('NINJA ROPE — ←/→ swing • ↑/↓ reel • Space drop', '#feca57', 2.2);
+      this.showBanner('ВЕРЁВКА НИНДЗЯ — ←/→ раскачиваться • ↑/↓ подтягиваться • Пробел отпустить', '#feca57', 2.2);
       this.onHudUpdate?.(this);
       return true;
     }
@@ -9137,7 +9136,7 @@ class GameEngine {
       this.sound.playClick();
       this.phase = PHASES.RETREAT;
       this.retreatTimer = weapon.retreatTime;
-      this.showBanner('DYNAMITE DROPPED! RUN!', '#ff5252', 1.8);
+      this.showBanner('ДИНАМИТ УСТАНОВЛЕН! БЕГИТЕ!', '#ff5252', 1.8);
       this.onHudUpdate?.(this);
       return true;
     }
@@ -9145,7 +9144,7 @@ class GameEngine {
     if (weapon.id === 'airstrike' || weapon.id === 'napalm') {
       if (!this.pendingMapTarget) {
         this.showBanner(
-          weapon.id === 'napalm' ? 'Click target X on the map for Napalm Strike!' : 'Click target X on the map for Air Strike!',
+          weapon.id === 'napalm' ? 'Укажите точку X на карте для напалмового удара!' : 'Укажите точку X на карте для авиаудара!',
           '#74b9ff',
           1.6
         );
@@ -9177,7 +9176,7 @@ class GameEngine {
 
     if (weapon.id === 'meteor') {
       if (!this.pendingMapTarget) {
-        this.showBanner('Click target on the map for Meteor Strike!', '#ff9f43', 1.6);
+        this.showBanner('Укажите цель на карте для метеоритного удара!', '#ff9f43', 1.6);
         return false;
       }
       this._consumeAmmo(weapon.id);
@@ -9209,12 +9208,12 @@ class GameEngine {
 
     if (weapon.id === 'magnet') {
       if (!this.pendingMapTarget) {
-        this.showBanner('Click open air location to drop Magnet!', '#ff6b81', 1.6);
+        this.showBanner('Нажмите на свободное место над землёй, чтобы установить магнит!', '#ff6b81', 1.6);
         return false;
       }
       const { x, y } = this.pendingMapTarget;
       if (y > this.waterY - 14 || this.terrain.isSolid(x, y)) {
-        this.showBanner('Place magnet in open air above water!', '#ff5252', 1.4);
+        this.showBanner('Магнит можно установить только в воздухе над водой!', '#ff5252', 1.4);
         this.pendingMapTarget = null;
         return false;
       }
@@ -9232,7 +9231,7 @@ class GameEngine {
       if (!this.pendingMapTarget) return false;
       const { x, y } = this.pendingMapTarget;
       if (y > this.waterY - 14 || isWormColliding(x, y, this.terrain)) {
-        this.showBanner('Cannot teleport into solid rock or water!', '#ff5252', 1.5);
+        this.showBanner('Нельзя телепортироваться внутрь скалы или воды!', '#ff5252', 1.5);
         this.pendingMapTarget = null;
         return false;
       }
@@ -9287,7 +9286,7 @@ class GameEngine {
 
     // Ballistic projectile weapons (bazooka, homing, grenade, cluster, banana, holy)
     if (weapon.id === 'homing' && !this.pendingMapTarget) {
-      this.showBanner('Click map to lock Homing target first!', '#48dbfb', 1.6);
+      this.showBanner('Сначала выберите цель самонаводящейся ракеты на карте!', '#48dbfb', 1.6);
       return false;
     }
 
@@ -9402,10 +9401,10 @@ class GameEngine {
       }
     }
     if (hitAny) {
-      this.particles.addPopup(worm.x, worm.y - 34, 'HOMERUN!', '#ffe875', 18, 1.1);
+      this.particles.addPopup(worm.x, worm.y - 34, 'ХОУМ-РАН!', '#ffe875', 18, 1.1);
       this.sound.playHurt();
       this.camera.shake(7, 0.22);
-      this._emitFx({ kind: 'popup', x: worm.x, y: worm.y - 34, text: 'HOMERUN!', color: '#ffe875', size: 18, duration: 1.1 });
+      this._emitFx({ kind: 'popup', x: worm.x, y: worm.y - 34, text: 'ХОУМ-РАН!', color: '#ffe875', size: 18, duration: 1.1 });
       this._emitFx({ kind: 'shake', intensity: 7, duration: 0.22 });
       this._emitSound('hurt');
     }
@@ -9419,7 +9418,7 @@ class GameEngine {
     this.jetpackFuel = 100;
     this.jetpackThrusting = false;
     this.sound.playClick();
-    this.showBanner('JET PACK ACTIVE — Arrows/WASD fly • Space stop', '#feca57', 2.4);
+    this.showBanner('РЕАКТИВНЫЙ РАНЕЦ — стрелки/WASD для полёта • Пробел — остановиться', '#feca57', 2.4);
   }
 
   stopJetpack() {
@@ -9438,7 +9437,7 @@ class GameEngine {
     this.blowtorchTimer = 2.2;
     this.blowtorchCarveAccum = 0;
     this.sound.playClick();
-    this.showBanner('BLOWTORCH — Aim Up/Down to steer tunnel!', '#ff9f43', 2.2);
+    this.showBanner('ГАЗОВАЯ ГОРЕЛКА — управляйте направлением тоннеля стрелками вверх/вниз!', '#ff9f43', 2.2);
   }
 
   _activateDrill() {
@@ -9449,7 +9448,7 @@ class GameEngine {
     this.drillTimer = 2.0;
     this.drillCarveAccum = 0;
     this.sound.playClick();
-    this.showBanner('PNEUMATIC DRILL — Space stops early', '#a4b0be', 2.2);
+    this.showBanner('ПНЕВМАТИЧЕСКИЙ БУР — Пробел останавливает досрочно', '#a4b0be', 2.2);
   }
 
   stopDrill() {
@@ -9475,7 +9474,7 @@ class GameEngine {
       activeWalker.activateFlight();
       this.sound.playLaunch(false);
       this._emitSound('launch', false);
-      this.showBanner('SUPER SHEEP FLYING! Steer ←/→', '#ffe875', 1.6);
+      this.showBanner('СУПЕРОВЦА ЛЕТИТ! Управление: ←/→', '#ffe875', 1.6);
       return true;
     }
     const idx = this.walkers.indexOf(activeWalker);
@@ -9490,7 +9489,7 @@ class GameEngine {
     this.explode(wk.x, wk.y, wk.blastRadius, wk.damage, wk.knockback, {
       attackerTeamIndex: wk.teamIndex,
       attackerWormName: owner?.name || wk.kind.toUpperCase(),
-      label: wk.kind === 'cow' ? 'MOO-BOOM!' : 'BAA-BOOM!',
+      label: wk.kind === 'cow' ? 'МУ-У-ВЗРЫВ!' : 'БЕ-Е-ВЗРЫВ!',
     });
   }
 
@@ -9533,7 +9532,7 @@ class GameEngine {
     if (opts.label) {
       this.particles.addPopup(cx, cy - radius * 0.6, opts.label, opts.particleColor || '#ffe875', 22, 1.2);
     } else if (radius >= 45) {
-      this.particles.addPopup(cx, cy - radius * 0.5, radius >= 70 ? 'KA-BOOM!' : 'BOOM!', '#ffe875', 19, 0.9);
+      this.particles.addPopup(cx, cy - radius * 0.5, radius >= 70 ? 'БА-БАХ!' : 'БА-БАХ!', '#ffe875', 19, 0.9);
     }
 
     const blastReach = Math.max(24, radius * 1.45);
@@ -9578,7 +9577,7 @@ class GameEngine {
           this.explode(b.x, b.y, 50, 45, 360, {
             attackerTeamIndex: opts.attackerTeamIndex,
             attackerWormName: opts.attackerWormName,
-            label: 'CHAIN!',
+            label: 'ЦЕПНАЯ РЕАКЦИЯ!',
           });
         }
       }
@@ -9594,7 +9593,7 @@ class GameEngine {
         attackerTeamIndex: proj.teamIndex,
         attackerWormName: attackerName,
         particleColor: '#ffe875',
-        label: 'HALLELUJAH!',
+        label: 'АЛЛИЛУЙЯ!',
       });
       return;
     }
@@ -9604,7 +9603,7 @@ class GameEngine {
         attackerTeamIndex: proj.teamIndex,
         attackerWormName: attackerName,
         particleColor: '#7bed9f',
-        label: 'TOXIC!',
+        label: 'ЯДОВИТО!',
       });
       this.particles.spawnGasCloud(proj.x, proj.y);
       this._emitFx({ kind: 'gas', x: proj.x, y: proj.y });
@@ -9622,7 +9621,7 @@ class GameEngine {
         attackerTeamIndex: proj.teamIndex,
         attackerWormName: attackerName,
         particleColor: '#74b9ff',
-        label: 'FROZEN!',
+        label: 'ЗАМОРОЖЕН!',
       });
       this.particles.spawnIceBurst(proj.x, proj.y);
       this._emitFx({ kind: 'ice', x: proj.x, y: proj.y });
@@ -9640,7 +9639,7 @@ class GameEngine {
         attackerTeamIndex: proj.teamIndex,
         attackerWormName: attackerName,
         particleColor: '#48dbfb',
-        label: 'SPLASH!',
+        label: 'ПЛЮХ!',
       });
       this.particles.spawnSplash(proj.x, proj.y, false);
       this._emitFx({ kind: 'splash', x: proj.x, y: proj.y, isLava: false });
@@ -9819,7 +9818,7 @@ class GameEngine {
           this._emitFx({ kind: 'angel', x: worm.x, y: worm.y });
           this.explode(worm.x, worm.y, 26, 16, 180, {
             attackerTeamIndex: -1,
-            label: 'R.I.P.',
+            label: 'ПОКОЙСЯ С МИРОМ',
           });
         },
       });
@@ -9999,7 +9998,7 @@ class GameEngine {
         onExplode: (mine) => {
           this.explode(mine.x, mine.y, 42, 36, 300, {
             attackerTeamIndex: -1,
-            label: 'MINE!',
+            label: 'МИНА!',
           });
         },
       });
@@ -10088,7 +10087,7 @@ class GameEngine {
       }
       if (this.turnTimer <= 0) {
         this.turnTimer = 0;
-        this.showBanner("Time's Up!", '#ff7f50', 1.4);
+        this.showBanner("Время вышло!", '#ff7f50', 1.4);
         this._enterResolving();
         return;
       }
@@ -10427,7 +10426,7 @@ class GameEngine {
         this.suddenDeathActive = true;
         this.sound.playSiren();
         this._emitSound('siren');
-        this.showBanner('SUDDEN DEATH! WATER RISING!', '#ff4757', 2.8);
+        this.showBanner('ВНЕЗАПНАЯ СМЕРТЬ! ВОДА ПОДНИМАЕТСЯ!', '#ff4757', 2.8);
       }
       this.waterY = Math.max(260, this.waterY - 26);
     }
@@ -10753,7 +10752,7 @@ class GameEngine {
         if (fx.label) {
           this.particles.addPopup(fx.cx, fx.cy - fx.radius * 0.6, fx.label, fx.particleColor || '#ffe875', 22, 1.2);
         } else if (fx.radius >= 45) {
-          this.particles.addPopup(fx.cx, fx.cy - fx.radius * 0.5, fx.radius >= 70 ? 'KA-BOOM!' : 'BOOM!', '#ffe875', 19, 0.9);
+          this.particles.addPopup(fx.cx, fx.cy - fx.radius * 0.5, fx.radius >= 70 ? 'БА-БАХ!' : 'БА-БАХ!', '#ffe875', 19, 0.9);
         }
         break;
       case 'splash':
@@ -10925,7 +10924,7 @@ class GameEngine {
           if (typeof action.airstrikeDir === 'number') this.airstrikeDir = action.airstrikeDir;
           this.fireWeapon();
         } else if (this.selectedWeaponId === 'homing') {
-          this.showBanner('Target locked! Aim & hold Click/Space to launch', '#48dbfb', 1.8);
+          this.showBanner('Цель захвачена! Наведитесь и удерживайте ЛКМ или Пробел для запуска', '#48dbfb', 1.8);
         }
         break;
       default:
@@ -11116,12 +11115,12 @@ async function loadNetworkAddresses() {
   if (!loaded && proto === 'file:') {
     online.serverUrl = 'http://127.0.0.1:4174';
     setupState.networkAddresses = [
-      { name: 'Local Worms Server', ip: '127.0.0.1', url: 'http://127.0.0.1:4174', kind: 'local' },
+      { name: 'Локальный сервер Worms', ip: '127.0.0.1', url: 'http://127.0.0.1:4174', kind: 'local' },
     ];
   } else if (!loaded) {
     online.serverUrl = null;
     setupState.networkAddresses = [
-      { name: window.location.host || 'WebRTC P2P', ip: window.location.host || 'p2p', url: window.location.origin, kind: 'web' },
+      { name: window.location.host || 'Сетевое P2P-соединение', ip: window.location.host || 'p2p', url: window.location.origin, kind: 'web' },
     ];
   }
 
@@ -11129,7 +11128,7 @@ async function loadNetworkAddresses() {
   for (const item of setupState.networkAddresses) {
     const opt = document.createElement('option');
     opt.value = item.url;
-    const tag = item.kind === 'lan' ? 'Wi-Fi / LAN' : item.kind === 'vpn' ? 'VPN' : item.kind === 'web' ? 'WebRTC P2P' : 'Локальный';
+    const tag = item.kind === 'lan' ? 'Wi-Fi / локальная сеть' : item.kind === 'vpn' ? 'VPN' : item.kind === 'web' ? 'Сетевое P2P-соединение' : 'Локальный';
     opt.textContent = `[${tag}] ${item.name} (${item.ip || item.url})`;
     onlineAddrSelect.appendChild(opt);
   }
@@ -12505,7 +12504,7 @@ canvas.addEventListener('mousedown', (e) => {
       ) {
         game.fireWeapon();
       } else if (weapon.id === 'homing') {
-        game.showBanner('Target locked! Aim & hold Click/Space to launch', '#48dbfb', 1.8);
+        game.showBanner('Цель захвачена! Наведитесь и удерживайте ЛКМ или Пробел для запуска', '#48dbfb', 1.8);
       }
     }
     return;
@@ -12745,7 +12744,7 @@ canvas.addEventListener(
         ) {
           game.fireWeapon();
         } else if (weapon.id === 'homing') {
-          game.showBanner('Target locked! Hold FIRE to launch', '#48dbfb', 1.8);
+          game.showBanner('Цель захвачена! Удерживайте кнопку ОГОНЬ для запуска', '#48dbfb', 1.8);
         }
       }
       return;
@@ -12778,10 +12777,6 @@ window.addEventListener('resize', () => {
 });
 
 window.addEventListener('blur', clearDirectionalInputs);
-window.addEventListener('pagehide', clearDirectionalInputs);
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) clearDirectionalInputs();
-});
 
 // Touch controls wiring (for QR phone players)
 document.querySelectorAll('#touch-controls [data-touch]').forEach((btn) => {
@@ -12922,7 +12917,7 @@ if (autoHost) {
   online.preferLocalWs = Boolean(setupState.hasSameOriginApi);
   online.createRoom(hostName, getLobbyState(), autoHost).then(() => {
     game.setNetworkMode('host', 0);
-    setStatusBox(hostStatusEl, 'Waiting for Player 2 to join via code or QR...', 'info');
+    setStatusBox(hostStatusEl, 'Ожидание второго игрока по коду или QR-коду...', 'info');
     refreshInviteAndQR();
     updateSetupControlsState();
   }).catch((err) => {
