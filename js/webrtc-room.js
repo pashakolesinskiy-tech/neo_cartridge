@@ -587,7 +587,7 @@
         msg.sig === 'join' ||
         msg.sig === 'offer' ||
         msg.sig === 'answer' ||
-        (msg.sig === 'ice' && !this._peerWsOpen);
+        (msg.sig === 'ice');
       if (needsNtfy && this._ntfyTopic && Date.now() >= this._ntfyRateLimitedUntil) {
         const delayMs = msg.sig === 'offer' || msg.sig === 'answer' ? 1400 : 650;
         const tid = global.setTimeout(() => {
@@ -756,7 +756,23 @@
           peer.handshakeSeen = true;
           if (msg.meta) peer.meta = { ...peer.meta, ...msg.meta };
         }
-        if (peer.seenOfferIds.has(msg.offerId)) return;
+        if (peer.seenOfferIds.has(msg.offerId)) {
+          // A repeated offer may be the signaling fallback retry; resend the
+          // already-created answer instead of silently dropping the retry.
+          if (peer.pc.signalingState === 'stable' &&
+              peer.pc.localDescription &&
+              peer.pc.localDescription.type === 'answer') {
+            this._broadcastSignal({
+              sig: 'answer',
+              from: this.myId,
+              to: peer.id,
+              offerId: msg.offerId,
+              sdp: serializeSdp(peer.pc.localDescription),
+              meta: this.peerMeta
+            }, peer);
+            return;
+          }
+        }
         peer.seenOfferIds.add(msg.offerId);
 
         try {
