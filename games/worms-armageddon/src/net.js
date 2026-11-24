@@ -601,7 +601,7 @@ export class OnlineClient {
     this.onClose = handlers.onClose || null;
     this.onError = handlers.onError || null;
     this._pendingResolver = null;
-    this._hostName = 'TEAM 1';
+    this._hostName = 'Команда 1';
     this._lobbyState = null;
     this._guestTimer = null;
   }
@@ -732,7 +732,7 @@ export class OnlineClient {
     }
 
     this.disconnect(true);
-    this._hostName = hostName || 'TEAM 1';
+    this._hostName = hostName || 'Команда 1';
     this._lobbyState = lobbyState ? { ...lobbyState } : null;
 
     const p2p = new WormsP2PLink({
@@ -753,7 +753,7 @@ export class OnlineClient {
             hostName: this._hostName,
             lobbyState: this._lobbyState,
           });
-          this.onMessage?.({ type: 'guest_joined', guestName: msg.guestName || 'TEAM 2' });
+          this.onMessage?.({ type: 'guest_joined', guestName: msg.guestName || 'Команда 2' });
           return;
         }
         this.onMessage?.(msg);
@@ -804,7 +804,7 @@ export class OnlineClient {
 
       const p2p = new WormsP2PLink({
         onOpen: () => {
-          p2p.send({ __wproto: 'hello', guestName: guestName || 'TEAM 2' });
+          p2p.send({ __wproto: 'hello', guestName: guestName || 'Команда 2' });
         },
         onClose: () => {
           const wasJoined = this.role === 'guest';
@@ -839,7 +839,7 @@ export class OnlineClient {
               const res = {
                 type: 'room_joined',
                 code: this.roomCode,
-                hostName: msg.hostName || 'TEAM 1',
+                hostName: msg.hostName || 'Команда 1',
                 lobbyState: msg.lobbyState || null,
               };
               this.onMessage?.(res);
