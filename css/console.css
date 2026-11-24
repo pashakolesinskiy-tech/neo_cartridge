@@ -2466,3 +2466,18 @@ body.pseudo-fullscreen .mobile-rom-strip {
   height: 100dvh !important;
   min-height: 100dvh !important;
 }
+
+
+/* Keep touch gameplay and native fullscreen aligned to the dynamic viewport. */
+@media (pointer: coarse) {
+  .top-nav {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+.screen-housing:fullscreen,
+.screen-housing:-webkit-full-screen {
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+}
