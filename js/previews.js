@@ -190,7 +190,7 @@ const Previews = {
       else if (gameId === 'pixel_drift') this.renderPixelDrift(ctx, w, h, dt);
       else if (gameId === 'chrono_blade') this.renderChronoBlade(ctx, w, h, dt);
       else if (gameId === 'mecha_siege') this.renderMechaSiege(ctx, w, h, dt);
-      else if (gameId === 'worms_armageddon') this.renderWormsArmageddon(ctx, w, h, dt);
+      else if (gameId === 'worms_armageddon') this.renderWormsArmageddon(ctx, w, h, frameDt);
       else if (gameId === 'cosmo_junk') this.renderCosmoJunk(ctx, w, h, dt);
     });
 
