@@ -46,7 +46,7 @@
       fps = Math.round(frames * 1000 / (now - sampleStarted));
       if (!override) {
         if (fps < 42) applyQuality('low');
-        else if (fps < 53 && quality === 'high') applyQuality('mid');
+        else if (fps < 53 && quality !== 'low') applyQuality('mid');
         else if (fps >= 57 && quality !== 'high') applyQuality('high');
       }
       sampleStarted = now;
