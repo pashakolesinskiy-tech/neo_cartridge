@@ -19,6 +19,7 @@ const App = {
   dragStartY: 0,
   dragDeltaY: 0,
   dragStartTime: 0,
+  deckDragRaf: 0,
 
   cartridges: {
     stick_fighting: {
@@ -197,12 +198,21 @@ const App = {
       if (Math.abs(this.dragDeltaY) > 10) {
         this.didDragDeck = true;
       }
-      this.updateDeckDisplay(true);
+      if (!this.deckDragRaf) {
+        this.deckDragRaf = requestAnimationFrame(() => {
+          this.deckDragRaf = 0;
+          if (this.isDraggingDeck) this.updateDeckDisplay(true);
+        });
+      }
     };
 
     const onDragEnd = () => {
       if (!this.isDraggingDeck) return;
       this.isDraggingDeck = false;
+      if (this.deckDragRaf) {
+        cancelAnimationFrame(this.deckDragRaf);
+        this.deckDragRaf = 0;
+      }
       stage.classList.remove('is-dragging');
       document.body.classList.remove('is-deck-dragging');
 
