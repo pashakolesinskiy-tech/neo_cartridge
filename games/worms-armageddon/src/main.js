@@ -1076,7 +1076,7 @@ function updateHud(engine) {
     hudTeamDot.style.background = team.palette.color;
     hudTeamDot.style.color = team.palette.color;
     hudActiveTeam.textContent = team.isAI ? `${team.name} (ИИ)` : team.name;
-    hudActiveWorm.textContent = worm ? `${worm.name} • ${Math.ceil(worm.hp)} HP` : '—';
+    hudActiveWorm.textContent = worm ? `${worm.name} • ${Math.ceil(worm.hp)} ОЗ` : '—';
 
     const ammo = team.inventory[weapon.id] ?? 0;
     const readyFlag = (sprites.isReady() ? '1' : '0') + (sprites.sheets.plane?.naturalWidth > 0 ? '1' : '0');
@@ -1254,7 +1254,7 @@ function showGameOver(engine) {
     row.className = 'gameover-stat-row';
     row.innerHTML = `
       <span style="color:${t.palette.light}">${t.name}</span>
-      <span>Урон: ${Math.round(t.damageDealt)} • Фраги: ${t.kills} • Ост. HP: ${remHp}</span>
+      <span>Урон: ${Math.round(t.damageDealt)} • Фраги: ${t.kills} • Ост. ОЗ: ${remHp}</span>
     `;
     statsEl.appendChild(row);
   }
