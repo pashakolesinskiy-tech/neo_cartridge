@@ -180,18 +180,26 @@ const Previews = {
   updateAndRender(dt) {
     const activeIdx = window.App ? App.deckIndex : 0;
     this._order.forEach((gameId, idx) => {
-      if (Math.abs(idx - activeIdx) > 2) return;
+      const distance = Math.abs(idx - activeIdx);
+      if (distance > 1) return;
       const ctx = this.contexts[gameId];
       if (!ctx) return;
       const w = 160;
       const h = 130;
+      const state = this.states[gameId];
+      if (!state) return;
+      state._previewElapsed = (state._previewElapsed || 0) + dt;
+      const interval = distance === 0 ? 0 : 3 * (1000 / 60);
+      if (state._previewElapsed < interval) return;
+      const frameDt = Math.min(48, state._previewElapsed);
+      state._previewElapsed = 0;
 
-      if (gameId === 'stick_fighting') this.renderStickFighting(ctx, w, h, dt);
-      else if (gameId === 'pixel_drift') this.renderPixelDrift(ctx, w, h, dt);
-      else if (gameId === 'chrono_blade') this.renderChronoBlade(ctx, w, h, dt);
-      else if (gameId === 'mecha_siege') this.renderMechaSiege(ctx, w, h, dt);
+      if (gameId === 'stick_fighting') this.renderStickFighting(ctx, w, h, frameDt);
+      else if (gameId === 'pixel_drift') this.renderPixelDrift(ctx, w, h, frameDt);
+      else if (gameId === 'chrono_blade') this.renderChronoBlade(ctx, w, h, frameDt);
+      else if (gameId === 'mecha_siege') this.renderMechaSiege(ctx, w, h, frameDt);
       else if (gameId === 'worms_armageddon') this.renderWormsArmageddon(ctx, w, h, frameDt);
-      else if (gameId === 'cosmo_junk') this.renderCosmoJunk(ctx, w, h, dt);
+      else if (gameId === 'cosmo_junk') this.renderCosmoJunk(ctx, w, h, frameDt);
     });
 
     if (this.heroCtx && this.heroCanvas) {
