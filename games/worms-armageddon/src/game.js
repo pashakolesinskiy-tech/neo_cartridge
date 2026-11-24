@@ -369,7 +369,7 @@ export class GameEngine {
     if (!weapon) return false;
 
     if (weapon.id === 'homing' && !this.pendingMapTarget) {
-      this.showBanner('Click the map first to lock Homing Target!', '#48dbfb', 1.6);
+      this.showBanner('Сначала нажмите на карту, чтобы захватить цель самонаводящейся ракеты!', '#48dbfb', 1.6);
       return false;
     }
 
@@ -489,7 +489,7 @@ export class GameEngine {
       this.sound.playClick();
       this._emitSound('click');
       this.showBanner(
-        weapon.id === 'supersheep' ? 'SUPER SHEEP — Press Space to fly!' : 'SHEEP — Press Space to detonate!',
+        weapon.id === 'supersheep' ? 'СУПЕРОВЦА — нажмите Пробел, чтобы взлететь!' : 'ОВЦА — нажмите Пробел, чтобы взорвать!',
         '#ffd32a',
         2.2
       );
@@ -509,7 +509,7 @@ export class GameEngine {
       };
       this.sound.playClick();
       this._emitSound('click');
-      this.showBanner('MAD COWS LOOSE!', '#ff6b81', 2.0);
+      this.showBanner('БЕШЕНЫЕ КОРОВЫ НА ВОЛЕ!', '#ff6b81', 2.0);
       this.phase = PHASES.PROJECTILE_ACTIVE;
       this.onHudUpdate?.(this);
       return true;
@@ -536,7 +536,7 @@ export class GameEngine {
         attackerTeamIndex: worm.teamIndex,
         attackerWormName: worm.name,
         silentAudio: true,
-        label: hitAny ? 'K.O.!' : null,
+        label: hitAny ? 'НОКАУТ!' : null,
       });
       if (hitAny) {
         this.sound.playHurt();
@@ -559,7 +559,7 @@ export class GameEngine {
       this._emitSound('click');
       this.phase = PHASES.RETREAT;
       this.retreatTimer = weapon.retreatTime;
-      this.showBanner('MINE ARMED IN 2s — STEP BACK!', '#ff5252', 1.8);
+      this.showBanner('МИНА ВЗВЕДЕНА ЧЕРЕЗ 2 СЕК. — ОТОЙДИТЕ!', '#ff5252', 1.8);
       this.onHudUpdate?.(this);
       return true;
     }
@@ -628,7 +628,7 @@ export class GameEngine {
         }
       }
       if (hitX === null) {
-        this.showBanner('Aim at solid terrain within 340px!', '#ff9f43', 1.4);
+        this.showBanner('Прицельтесь в твёрдый грунт на расстоянии до 340 пикселей!', '#ff9f43', 1.4);
         return false;
       }
       this._consumeAmmo('rope');
@@ -643,7 +643,7 @@ export class GameEngine {
       this.sound.playClick();
       this._emitSound('click');
       this.phase = PHASES.ROPE;
-      this.showBanner('NINJA ROPE — ←/→ swing • ↑/↓ reel • Space drop', '#feca57', 2.2);
+      this.showBanner('ВЕРЁВКА НИНДЗЯ — ←/→ раскачиваться • ↑/↓ подтягиваться • Пробел отпустить', '#feca57', 2.2);
       this.onHudUpdate?.(this);
       return true;
     }
@@ -685,7 +685,7 @@ export class GameEngine {
       this.sound.playClick();
       this.phase = PHASES.RETREAT;
       this.retreatTimer = weapon.retreatTime;
-      this.showBanner('DYNAMITE DROPPED! RUN!', '#ff5252', 1.8);
+      this.showBanner('ДИНАМИТ УСТАНОВЛЕН! БЕГИТЕ!', '#ff5252', 1.8);
       this.onHudUpdate?.(this);
       return true;
     }
@@ -693,7 +693,7 @@ export class GameEngine {
     if (weapon.id === 'airstrike' || weapon.id === 'napalm') {
       if (!this.pendingMapTarget) {
         this.showBanner(
-          weapon.id === 'napalm' ? 'Click target X on the map for Napalm Strike!' : 'Click target X on the map for Air Strike!',
+          weapon.id === 'napalm' ? 'Укажите точку X на карте для напалмового удара!' : 'Укажите точку X на карте для авиаудара!',
           '#74b9ff',
           1.6
         );
@@ -725,7 +725,7 @@ export class GameEngine {
 
     if (weapon.id === 'meteor') {
       if (!this.pendingMapTarget) {
-        this.showBanner('Click target on the map for Meteor Strike!', '#ff9f43', 1.6);
+        this.showBanner('Укажите цель на карте для метеоритного удара!', '#ff9f43', 1.6);
         return false;
       }
       this._consumeAmmo(weapon.id);
@@ -757,12 +757,12 @@ export class GameEngine {
 
     if (weapon.id === 'magnet') {
       if (!this.pendingMapTarget) {
-        this.showBanner('Click open air location to drop Magnet!', '#ff6b81', 1.6);
+        this.showBanner('Нажмите на свободное место над землёй, чтобы установить магнит!', '#ff6b81', 1.6);
         return false;
       }
       const { x, y } = this.pendingMapTarget;
       if (y > this.waterY - 14 || this.terrain.isSolid(x, y)) {
-        this.showBanner('Place magnet in open air above water!', '#ff5252', 1.4);
+        this.showBanner('Магнит можно установить только в воздухе над водой!', '#ff5252', 1.4);
         this.pendingMapTarget = null;
         return false;
       }
@@ -780,7 +780,7 @@ export class GameEngine {
       if (!this.pendingMapTarget) return false;
       const { x, y } = this.pendingMapTarget;
       if (y > this.waterY - 14 || isWormColliding(x, y, this.terrain)) {
-        this.showBanner('Cannot teleport into solid rock or water!', '#ff5252', 1.5);
+        this.showBanner('Нельзя телепортироваться внутрь скалы или воды!', '#ff5252', 1.5);
         this.pendingMapTarget = null;
         return false;
       }
@@ -835,7 +835,7 @@ export class GameEngine {
 
     // Ballistic projectile weapons (bazooka, homing, grenade, cluster, banana, holy)
     if (weapon.id === 'homing' && !this.pendingMapTarget) {
-      this.showBanner('Click map to lock Homing target first!', '#48dbfb', 1.6);
+      this.showBanner('Сначала выберите цель самонаводящейся ракеты на карте!', '#48dbfb', 1.6);
       return false;
     }
 
@@ -950,10 +950,10 @@ export class GameEngine {
       }
     }
     if (hitAny) {
-      this.particles.addPopup(worm.x, worm.y - 34, 'HOMERUN!', '#ffe875', 18, 1.1);
+      this.particles.addPopup(worm.x, worm.y - 34, 'ХОУМ-РАН!', '#ffe875', 18, 1.1);
       this.sound.playHurt();
       this.camera.shake(7, 0.22);
-      this._emitFx({ kind: 'popup', x: worm.x, y: worm.y - 34, text: 'HOMERUN!', color: '#ffe875', size: 18, duration: 1.1 });
+      this._emitFx({ kind: 'popup', x: worm.x, y: worm.y - 34, text: 'ХОУМ-РАН!', color: '#ffe875', size: 18, duration: 1.1 });
       this._emitFx({ kind: 'shake', intensity: 7, duration: 0.22 });
       this._emitSound('hurt');
     }
@@ -967,7 +967,7 @@ export class GameEngine {
     this.jetpackFuel = 100;
     this.jetpackThrusting = false;
     this.sound.playClick();
-    this.showBanner('JET PACK ACTIVE — Arrows/WASD fly • Space stop', '#feca57', 2.4);
+    this.showBanner('РЕАКТИВНЫЙ РАНЕЦ — стрелки/WASD для полёта • Пробел — остановиться', '#feca57', 2.4);
   }
 
   stopJetpack() {
@@ -986,7 +986,7 @@ export class GameEngine {
     this.blowtorchTimer = 2.2;
     this.blowtorchCarveAccum = 0;
     this.sound.playClick();
-    this.showBanner('BLOWTORCH — Aim Up/Down to steer tunnel!', '#ff9f43', 2.2);
+    this.showBanner('ГАЗОВАЯ ГОРЕЛКА — управляйте направлением тоннеля стрелками вверх/вниз!', '#ff9f43', 2.2);
   }
 
   _activateDrill() {
@@ -997,7 +997,7 @@ export class GameEngine {
     this.drillTimer = 2.0;
     this.drillCarveAccum = 0;
     this.sound.playClick();
-    this.showBanner('PNEUMATIC DRILL — Space stops early', '#a4b0be', 2.2);
+    this.showBanner('ПНЕВМАТИЧЕСКИЙ БУР — Пробел останавливает досрочно', '#a4b0be', 2.2);
   }
 
   stopDrill() {
@@ -1023,7 +1023,7 @@ export class GameEngine {
       activeWalker.activateFlight();
       this.sound.playLaunch(false);
       this._emitSound('launch', false);
-      this.showBanner('SUPER SHEEP FLYING! Steer ←/→', '#ffe875', 1.6);
+      this.showBanner('СУПЕРОВЦА ЛЕТИТ! Управление: ←/→', '#ffe875', 1.6);
       return true;
     }
     const idx = this.walkers.indexOf(activeWalker);
@@ -1038,7 +1038,7 @@ export class GameEngine {
     this.explode(wk.x, wk.y, wk.blastRadius, wk.damage, wk.knockback, {
       attackerTeamIndex: wk.teamIndex,
       attackerWormName: owner?.name || wk.kind.toUpperCase(),
-      label: wk.kind === 'cow' ? 'MOO-BOOM!' : 'BAA-BOOM!',
+      label: wk.kind === 'cow' ? 'МУ-У-ВЗРЫВ!' : 'БЕ-Е-ВЗРЫВ!',
     });
   }
 
@@ -1081,7 +1081,7 @@ export class GameEngine {
     if (opts.label) {
       this.particles.addPopup(cx, cy - radius * 0.6, opts.label, opts.particleColor || '#ffe875', 22, 1.2);
     } else if (radius >= 45) {
-      this.particles.addPopup(cx, cy - radius * 0.5, radius >= 70 ? 'KA-BOOM!' : 'BOOM!', '#ffe875', 19, 0.9);
+      this.particles.addPopup(cx, cy - radius * 0.5, radius >= 70 ? 'БА-БАХ!' : 'БА-БАХ!', '#ffe875', 19, 0.9);
     }
 
     const blastReach = Math.max(24, radius * 1.45);
@@ -1126,7 +1126,7 @@ export class GameEngine {
           this.explode(b.x, b.y, 50, 45, 360, {
             attackerTeamIndex: opts.attackerTeamIndex,
             attackerWormName: opts.attackerWormName,
-            label: 'CHAIN!',
+            label: 'ЦЕПНАЯ РЕАКЦИЯ!',
           });
         }
       }
@@ -1142,7 +1142,7 @@ export class GameEngine {
         attackerTeamIndex: proj.teamIndex,
         attackerWormName: attackerName,
         particleColor: '#ffe875',
-        label: 'HALLELUJAH!',
+        label: 'АЛЛИЛУЙЯ!',
       });
       return;
     }
@@ -1152,7 +1152,7 @@ export class GameEngine {
         attackerTeamIndex: proj.teamIndex,
         attackerWormName: attackerName,
         particleColor: '#7bed9f',
-        label: 'TOXIC!',
+        label: 'ЯДОВИТО!',
       });
       this.particles.spawnGasCloud(proj.x, proj.y);
       this._emitFx({ kind: 'gas', x: proj.x, y: proj.y });
@@ -1170,7 +1170,7 @@ export class GameEngine {
         attackerTeamIndex: proj.teamIndex,
         attackerWormName: attackerName,
         particleColor: '#74b9ff',
-        label: 'FROZEN!',
+        label: 'ЗАМОРОЖЕН!',
       });
       this.particles.spawnIceBurst(proj.x, proj.y);
       this._emitFx({ kind: 'ice', x: proj.x, y: proj.y });
@@ -1188,7 +1188,7 @@ export class GameEngine {
         attackerTeamIndex: proj.teamIndex,
         attackerWormName: attackerName,
         particleColor: '#48dbfb',
-        label: 'SPLASH!',
+        label: 'ПЛЮХ!',
       });
       this.particles.spawnSplash(proj.x, proj.y, false);
       this._emitFx({ kind: 'splash', x: proj.x, y: proj.y, isLava: false });
@@ -1367,7 +1367,7 @@ export class GameEngine {
           this._emitFx({ kind: 'angel', x: worm.x, y: worm.y });
           this.explode(worm.x, worm.y, 26, 16, 180, {
             attackerTeamIndex: -1,
-            label: 'R.I.P.',
+            label: 'ПОКОЙСЯ С МИРОМ',
           });
         },
       });
@@ -1547,7 +1547,7 @@ export class GameEngine {
         onExplode: (mine) => {
           this.explode(mine.x, mine.y, 42, 36, 300, {
             attackerTeamIndex: -1,
-            label: 'MINE!',
+            label: 'МИНА!',
           });
         },
       });
@@ -1636,7 +1636,7 @@ export class GameEngine {
       }
       if (this.turnTimer <= 0) {
         this.turnTimer = 0;
-        this.showBanner("Time's Up!", '#ff7f50', 1.4);
+        this.showBanner("Время вышло!", '#ff7f50', 1.4);
         this._enterResolving();
         return;
       }
@@ -1975,7 +1975,7 @@ export class GameEngine {
         this.suddenDeathActive = true;
         this.sound.playSiren();
         this._emitSound('siren');
-        this.showBanner('SUDDEN DEATH! WATER RISING!', '#ff4757', 2.8);
+        this.showBanner('ВНЕЗАПНАЯ СМЕРТЬ! ВОДА ПОДНИМАЕТСЯ!', '#ff4757', 2.8);
       }
       this.waterY = Math.max(260, this.waterY - 26);
     }
@@ -2301,7 +2301,7 @@ export class GameEngine {
         if (fx.label) {
           this.particles.addPopup(fx.cx, fx.cy - fx.radius * 0.6, fx.label, fx.particleColor || '#ffe875', 22, 1.2);
         } else if (fx.radius >= 45) {
-          this.particles.addPopup(fx.cx, fx.cy - fx.radius * 0.5, fx.radius >= 70 ? 'KA-BOOM!' : 'BOOM!', '#ffe875', 19, 0.9);
+          this.particles.addPopup(fx.cx, fx.cy - fx.radius * 0.5, fx.radius >= 70 ? 'БА-БАХ!' : 'БА-БАХ!', '#ffe875', 19, 0.9);
         }
         break;
       case 'splash':
@@ -2473,7 +2473,7 @@ export class GameEngine {
           if (typeof action.airstrikeDir === 'number') this.airstrikeDir = action.airstrikeDir;
           this.fireWeapon();
         } else if (this.selectedWeaponId === 'homing') {
-          this.showBanner('Target locked! Aim & hold Click/Space to launch', '#48dbfb', 1.8);
+          this.showBanner('Цель захвачена! Наведитесь и удерживайте ЛКМ или Пробел для запуска', '#48dbfb', 1.8);
         }
         break;
       default:

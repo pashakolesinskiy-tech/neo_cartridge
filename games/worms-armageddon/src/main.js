@@ -177,12 +177,12 @@ async function loadNetworkAddresses() {
   if (!loaded && proto === 'file:') {
     online.serverUrl = 'http://127.0.0.1:4174';
     setupState.networkAddresses = [
-      { name: 'Local Worms Server', ip: '127.0.0.1', url: 'http://127.0.0.1:4174', kind: 'local' },
+      { name: 'Локальный сервер Worms', ip: '127.0.0.1', url: 'http://127.0.0.1:4174', kind: 'local' },
     ];
   } else if (!loaded) {
     online.serverUrl = null;
     setupState.networkAddresses = [
-      { name: window.location.host || 'WebRTC P2P', ip: window.location.host || 'p2p', url: window.location.origin, kind: 'web' },
+      { name: window.location.host || 'Сетевое P2P-соединение', ip: window.location.host || 'p2p', url: window.location.origin, kind: 'web' },
     ];
   }
 
@@ -190,7 +190,7 @@ async function loadNetworkAddresses() {
   for (const item of setupState.networkAddresses) {
     const opt = document.createElement('option');
     opt.value = item.url;
-    const tag = item.kind === 'lan' ? 'Wi-Fi / LAN' : item.kind === 'vpn' ? 'VPN' : item.kind === 'web' ? 'WebRTC P2P' : 'Локальный';
+    const tag = item.kind === 'lan' ? 'Wi-Fi / локальная сеть' : item.kind === 'vpn' ? 'VPN' : item.kind === 'web' ? 'Сетевое P2P-соединение' : 'Локальный';
     opt.textContent = `[${tag}] ${item.name} (${item.ip || item.url})`;
     onlineAddrSelect.appendChild(opt);
   }
@@ -812,6 +812,12 @@ function sendOrRunAction(action, localFn) {
 }
 
 // --- Weapon Panel ---
+function setWeaponDescription(weapon) {
+  if (!weapon) return;
+  weaponDescTitle.textContent = weapon.name;
+  weaponDescText.textContent = weapon.description;
+}
+
 function renderWeaponGrid() {
   const activeTeam = game.teams[game.activeTeamIndex];
   const inv = activeTeam?.inventory || {};
@@ -833,23 +839,27 @@ function renderWeaponGrid() {
       <span class="weapon-slot-ammo">${ammoText}</span>
     `;
 
-    slot.addEventListener('mouseenter', () => {
-      weaponDescTitle.textContent = w.name;
-      weaponDescText.textContent = w.description;
-    });
+    slot.addEventListener('mouseenter', () => setWeaponDescription(w));
+    slot.addEventListener('focus', () => setWeaponDescription(w));
     slot.addEventListener('click', () => {
+      setWeaponDescription(w);
       game.sound.unlock();
       if (game.phase !== PHASES.PLAYER_TURN || !game.canLocalPlayerControl()) return;
       sendOrRunAction(
         { kind: 'select_weapon', weaponId: w.id },
         () => game.selectWeapon(w.id)
       );
-      weaponPanel.classList.add('hidden');
-      syncModalBodyClass();
+      // On touch screens keep the arsenal open so the selected weapon's
+      // Russian description remains readable without hover support.
+      if (!window.matchMedia('(pointer: coarse)').matches) {
+        weaponPanel.classList.add('hidden');
+        syncModalBodyClass();
+      }
       renderWeaponGrid();
     });
     weaponGrid.appendChild(slot);
   }
+  setWeaponDescription(WEAPON_MAP[game.selectedWeaponId] || WEAPONS[0]);
 }
 
 function toggleWeaponPanel(forceState = null) {
@@ -860,8 +870,7 @@ function toggleWeaponPanel(forceState = null) {
     closeMobileOverlays();
     renderWeaponGrid();
     const cur = WEAPON_MAP[game.selectedWeaponId] || WEAPONS[0];
-    weaponDescTitle.textContent = cur.name;
-    weaponDescText.textContent = cur.description;
+    setWeaponDescription(cur);
     weaponPanel.classList.remove('hidden');
   } else {
     weaponPanel.classList.add('hidden');
@@ -1076,7 +1085,7 @@ function updateHud(engine) {
     hudTeamDot.style.background = team.palette.color;
     hudTeamDot.style.color = team.palette.color;
     hudActiveTeam.textContent = team.isAI ? `${team.name} (ИИ)` : team.name;
-    hudActiveWorm.textContent = worm ? `${worm.name} • ${Math.ceil(worm.hp)} HP` : '—';
+    hudActiveWorm.textContent = worm ? `${worm.name} • ${Math.ceil(worm.hp)} ОЗ` : '—';
 
     const ammo = team.inventory[weapon.id] ?? 0;
     const readyFlag = (sprites.isReady() ? '1' : '0') + (sprites.sheets.plane?.naturalWidth > 0 ? '1' : '0');
@@ -1254,7 +1263,7 @@ function showGameOver(engine) {
     row.className = 'gameover-stat-row';
     row.innerHTML = `
       <span style="color:${t.palette.light}">${t.name}</span>
-      <span>Урон: ${Math.round(t.damageDealt)} • Фраги: ${t.kills} • Ост. HP: ${remHp}</span>
+      <span>Урон: ${Math.round(t.damageDealt)} • Фраги: ${t.kills} • Ост. ОЗ: ${remHp}</span>
     `;
     statsEl.appendChild(row);
   }
@@ -1566,7 +1575,7 @@ canvas.addEventListener('mousedown', (e) => {
       ) {
         game.fireWeapon();
       } else if (weapon.id === 'homing') {
-        game.showBanner('Target locked! Aim & hold Click/Space to launch', '#48dbfb', 1.8);
+        game.showBanner('Цель захвачена! Наведитесь и удерживайте ЛКМ или Пробел для запуска', '#48dbfb', 1.8);
       }
     }
     return;
@@ -1806,7 +1815,7 @@ canvas.addEventListener(
         ) {
           game.fireWeapon();
         } else if (weapon.id === 'homing') {
-          game.showBanner('Target locked! Hold FIRE to launch', '#48dbfb', 1.8);
+          game.showBanner('Цель захвачена! Удерживайте кнопку ОГОНЬ для запуска', '#48dbfb', 1.8);
         }
       }
       return;
@@ -1979,7 +1988,7 @@ if (autoHost) {
   online.preferLocalWs = Boolean(setupState.hasSameOriginApi);
   online.createRoom(hostName, getLobbyState(), autoHost).then(() => {
     game.setNetworkMode('host', 0);
-    setStatusBox(hostStatusEl, 'Waiting for Player 2 to join via code or QR...', 'info');
+    setStatusBox(hostStatusEl, 'Ожидание второго игрока по коду или QR-коду...', 'info');
     refreshInviteAndQR();
     updateSetupControlsState();
   }).catch((err) => {

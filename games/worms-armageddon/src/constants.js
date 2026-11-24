@@ -28,28 +28,28 @@ export const PHASES = Object.freeze({
 
 export const TEAM_PALETTES = [
   {
-    name: 'Red Brigade',
+    name: 'Красная бригада',
     color: '#ff4757',
     dark: '#b31d2b',
     light: '#ff7b87',
     badgeBg: 'rgba(179, 29, 43, 0.9)',
   },
   {
-    name: 'Blue Platoon',
+    name: 'Синий взвод',
     color: '#2e9cff',
     dark: '#145fa8',
     light: '#76c0ff',
     badgeBg: 'rgba(20, 95, 168, 0.9)',
   },
   {
-    name: 'Gold Squad',
+    name: 'Золотой отряд',
     color: '#ffd32a',
     dark: '#b58b00',
     light: '#ffe885',
     badgeBg: 'rgba(155, 118, 0, 0.92)',
   },
   {
-    name: 'Emerald Corps',
+    name: 'Изумрудный корпус',
     color: '#2ed573',
     dark: '#168744',
     light: '#7bed9f',
@@ -58,28 +58,28 @@ export const TEAM_PALETTES = [
 ];
 
 export const WORM_NAMES = [
-  'Boggy B',
-  'Spadge',
-  'Clagnut',
-  'Sgt. Squirm',
-  'Major Mud',
-  'Pvt. Pinky',
-  'Sir Wiggles',
-  'Cpl. Crawler',
-  'Lt. Lunge',
-  'Noodle',
-  'Bouncer',
-  'Rumble',
-  'Sarge',
-  'Toby',
-  'Fizz',
-  'Crater',
+  'Богги Б',
+  'Спэдж',
+  'Клэгнат',
+  'Сержант Сквирм',
+  'Майор Грязь',
+  'Рядовой Пинки',
+  'Сэр Вигглз',
+  'Капрал Краулер',
+  'Лейтенант Выпад',
+  'Лапша',
+  'Прыгун',
+  'Грохот',
+  'Серж',
+  'Тоби',
+  'Физз',
+  'Кратер',
 ];
 
 export const THEMES = {
   meadow: {
     id: 'meadow',
-    label: 'Green Hills',
+    label: 'Зелёные холмы',
     skyTop: '#163d6b',
     skyMid: '#377eb8',
     skyBottom: '#93d5f5',
@@ -100,7 +100,7 @@ export const THEMES = {
   },
   arctic: {
     id: 'arctic',
-    label: 'Arctic Frost',
+    label: 'Арктический мороз',
     skyTop: '#0b1530',
     skyMid: '#183766',
     skyBottom: '#5a8bbd',
@@ -121,7 +121,7 @@ export const THEMES = {
   },
   desert: {
     id: 'desert',
-    label: 'Sunset Mesa',
+    label: 'Закатное плато',
     skyTop: '#2e1647',
     skyMid: '#943c54',
     skyBottom: '#f29f58',
@@ -142,7 +142,7 @@ export const THEMES = {
   },
   volcano: {
     id: 'volcano',
-    label: 'Volcanic Keep',
+    label: 'Вулканическая крепость',
     skyTop: '#160910',
     skyMid: '#48131d',
     skyBottom: '#a63322',
