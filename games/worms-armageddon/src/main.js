@@ -177,12 +177,12 @@ async function loadNetworkAddresses() {
   if (!loaded && proto === 'file:') {
     online.serverUrl = 'http://127.0.0.1:4174';
     setupState.networkAddresses = [
-      { name: 'Local Worms Server', ip: '127.0.0.1', url: 'http://127.0.0.1:4174', kind: 'local' },
+      { name: 'Локальный сервер Worms', ip: '127.0.0.1', url: 'http://127.0.0.1:4174', kind: 'local' },
     ];
   } else if (!loaded) {
     online.serverUrl = null;
     setupState.networkAddresses = [
-      { name: window.location.host || 'WebRTC P2P', ip: window.location.host || 'p2p', url: window.location.origin, kind: 'web' },
+      { name: window.location.host || 'Сетевое P2P-соединение', ip: window.location.host || 'p2p', url: window.location.origin, kind: 'web' },
     ];
   }
 
@@ -190,7 +190,7 @@ async function loadNetworkAddresses() {
   for (const item of setupState.networkAddresses) {
     const opt = document.createElement('option');
     opt.value = item.url;
-    const tag = item.kind === 'lan' ? 'Wi-Fi / LAN' : item.kind === 'vpn' ? 'VPN' : item.kind === 'web' ? 'WebRTC P2P' : 'Локальный';
+    const tag = item.kind === 'lan' ? 'Wi-Fi / локальная сеть' : item.kind === 'vpn' ? 'VPN' : item.kind === 'web' ? 'Сетевое P2P-соединение' : 'Локальный';
     opt.textContent = `[${tag}] ${item.name} (${item.ip || item.url})`;
     onlineAddrSelect.appendChild(opt);
   }
@@ -1566,7 +1566,7 @@ canvas.addEventListener('mousedown', (e) => {
       ) {
         game.fireWeapon();
       } else if (weapon.id === 'homing') {
-        game.showBanner('Target locked! Aim & hold Click/Space to launch', '#48dbfb', 1.8);
+        game.showBanner('Цель захвачена! Наведитесь и удерживайте ЛКМ или Пробел для запуска', '#48dbfb', 1.8);
       }
     }
     return;
@@ -1806,7 +1806,7 @@ canvas.addEventListener(
         ) {
           game.fireWeapon();
         } else if (weapon.id === 'homing') {
-          game.showBanner('Target locked! Hold FIRE to launch', '#48dbfb', 1.8);
+          game.showBanner('Цель захвачена! Удерживайте кнопку ОГОНЬ для запуска', '#48dbfb', 1.8);
         }
       }
       return;
@@ -1979,7 +1979,7 @@ if (autoHost) {
   online.preferLocalWs = Boolean(setupState.hasSameOriginApi);
   online.createRoom(hostName, getLobbyState(), autoHost).then(() => {
     game.setNetworkMode('host', 0);
-    setStatusBox(hostStatusEl, 'Waiting for Player 2 to join via code or QR...', 'info');
+    setStatusBox(hostStatusEl, 'Ожидание второго игрока по коду или QR-коду...', 'info');
     refreshInviteAndQR();
     updateSetupControlsState();
   }).catch((err) => {
