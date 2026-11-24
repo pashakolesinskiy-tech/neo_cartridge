@@ -102,7 +102,7 @@ body {
 .aurora-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(95px);
+  filter: blur(56px);
   opacity: 0.45;
   transition: background 0.7s ease;
 }
