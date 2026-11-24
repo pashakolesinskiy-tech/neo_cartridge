@@ -148,6 +148,12 @@
   let selectedIdx = 0;
   let animFrame = 0;
   let sheetImg = null;
+  let stageSizeObserver = null;
+  let stageWidth = 0;
+  let stageHeight = 0;
+  let lastStageFrame = 0;
+  let stageDpr = Math.min(window.devicePixelRatio || 1, 2);
+  const STAGE_FRAME_INTERVAL = 1000 / 45;
   let sheetLoaded = false;
 
   function loadFonts() {
@@ -759,10 +765,32 @@
     });
   }
 
+  function measureStage(canvas) {
+    const rect = canvas.getBoundingClientRect();
+    stageWidth = Math.max(320, Math.round(rect.width));
+    stageHeight = Math.max(180, Math.round(rect.height));
+    stageDpr = Math.min(window.devicePixelRatio || 1, 2);
+    const pixelWidth = Math.round(stageWidth * stageDpr);
+    const pixelHeight = Math.round(stageHeight * stageDpr);
+    if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+      canvas.width = pixelWidth;
+      canvas.height = pixelHeight;
+    }
+  }
+
   function animateStage(canvas) {
     if (animFrame) {
       cancelAnimationFrame(animFrame);
       animFrame = 0;
+    }
+    if (stageSizeObserver) stageSizeObserver.disconnect();
+    measureStage(canvas);
+    if (typeof ResizeObserver === 'function') {
+      stageSizeObserver = new ResizeObserver(() => measureStage(canvas));
+      stageSizeObserver.observe(canvas);
+    } else {
+      const measureOnResize = () => measureStage(canvas);
+      window.addEventListener('resize', measureOnResize, { passive: true });
     }
     const ctx = canvas.getContext('2d');
     const step = (now) => {
@@ -771,13 +799,21 @@
         animFrame = 0;
         return;
       }
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const rect = canvas.getBoundingClientRect();
-      const w = Math.max(320, Math.round(rect.width));
-      const h = Math.max(180, Math.round(rect.height));
-      if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
-        canvas.width = Math.round(w * dpr);
-        canvas.height = Math.round(h * dpr);
+      if (document.hidden) {
+        animFrame = requestAnimationFrame(step);
+        return;
+      }
+      if (now - lastStageFrame < STAGE_FRAME_INTERVAL) {
+        animFrame = requestAnimationFrame(step);
+        return;
+      }
+      lastStageFrame = now;
+      const dpr = stageDpr;
+      const w = stageWidth;
+      const h = stageHeight;
+      if (!w || !h) {
+        animFrame = requestAnimationFrame(step);
+        return;
       }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const t = now / 1000;
@@ -919,6 +955,10 @@
     if (animFrame) {
       cancelAnimationFrame(animFrame);
       animFrame = 0;
+    }
+    if (stageSizeObserver) {
+      stageSizeObserver.disconnect();
+      stageSizeObserver = null;
     }
   }
 
