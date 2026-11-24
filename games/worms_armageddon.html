@@ -12778,6 +12778,10 @@ window.addEventListener('resize', () => {
 });
 
 window.addEventListener('blur', clearDirectionalInputs);
+window.addEventListener('pagehide', clearDirectionalInputs);
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) clearDirectionalInputs();
+});
 
 // Touch controls wiring (for QR phone players)
 document.querySelectorAll('#touch-controls [data-touch]').forEach((btn) => {
