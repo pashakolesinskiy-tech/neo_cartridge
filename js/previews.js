@@ -20,6 +20,7 @@ const Previews = {
   states: {},
   heroCanvas: null,
   heroCtx: null,
+  heroLastRenderAt: 0,
   sheets: {},
   _order: ['stick_fighting', 'pixel_drift', 'chrono_blade', 'mecha_siege', 'worms_armageddon', 'cosmo_junk'],
 
@@ -202,7 +203,8 @@ const Previews = {
       else if (gameId === 'cosmo_junk') this.renderCosmoJunk(ctx, w, h, frameDt);
     });
 
-    if (this.heroCtx && this.heroCanvas) {
+    if (this.heroCtx && this.heroCanvas && performance.now() - this.heroLastRenderAt >= 1000 / 30) {
+      this.heroLastRenderAt = performance.now();
       this.renderHeroBanner(this.heroCtx, this.heroCanvas.width, this.heroCanvas.height);
     }
   },
