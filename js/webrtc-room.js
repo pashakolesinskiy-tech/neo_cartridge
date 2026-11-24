@@ -88,8 +88,15 @@
       this._hostId = null;
 
       this._peerRetryCount = 0;
+      this._peerReconnectTimer = null;
+      this._ntfyReconnectTimer = null;
+      this._lifecycleBound = false;
       this._unloadBound = false;
       this._boundUnload = () => this._sendByeAll();
+      this._boundResume = () => this._resumeSignaling();
+      this._boundVisibility = () => {
+        if (!global.document || !global.document.hidden) this._resumeSignaling();
+      };
       this._bindUnloadListeners();
     }
 
@@ -98,6 +105,41 @@
       this._unloadBound = true;
       global.addEventListener('beforeunload', this._boundUnload);
       global.addEventListener('pagehide', this._boundUnload);
+    }
+
+    _bindLifecycleListeners() {
+      if (this._lifecycleBound || typeof global.addEventListener !== 'function') return;
+      this._lifecycleBound = true;
+      global.addEventListener('online', this._boundResume);
+      global.addEventListener('pageshow', this._boundResume);
+      global.addEventListener('focus', this._boundResume);
+      if (global.document) global.document.addEventListener('visibilitychange', this._boundVisibility);
+    }
+
+    _unbindLifecycleListeners() {
+      if (!this._lifecycleBound) return;
+      this._lifecycleBound = false;
+      global.removeEventListener('online', this._boundResume);
+      global.removeEventListener('pageshow', this._boundResume);
+      global.removeEventListener('focus', this._boundResume);
+      if (global.document) global.document.removeEventListener('visibilitychange', this._boundVisibility);
+    }
+
+    _resumeSignaling() {
+      if (this.closed || !this.code || !this.role) return;
+      this._bindLifecycleListeners();
+      const wsState = (ws) => ws ? ws.readyState : -1;
+      if (wsState(this._peerWs) !== WebSocket.OPEN && wsState(this._peerWs) !== WebSocket.CONNECTING) {
+        this._setupPeerJsSocket();
+      }
+      if (wsState(this._ntfyWs) !== WebSocket.OPEN && wsState(this._ntfyWs) !== WebSocket.CONNECTING) {
+        this._setupNtfySocket();
+      }
+      if (this.role === 'host') {
+        this._broadcastSignal({ sig: 'host_ready', from: this.myId, to: '*', meta: this.peerMeta });
+      } else if (this.role === 'guest' && this.getConnectedPeerIds().length === 0) {
+        this._broadcastSignal({ sig: 'join', from: this.myId, to: '*', meta: this.peerMeta });
+      }
     }
 
     static generateCode(length) {
@@ -152,6 +194,7 @@
       this.closed = false;
       this._peerRetryCount = 0;
       this._bindUnloadListeners();
+      this._bindLifecycleListeners();
       this._emitStatus('hosting', { code: clean });
       this._startSignaling();
       this._broadcastSignal({
@@ -179,6 +222,7 @@
       this.closed = false;
       this._peerRetryCount = 0;
       this._bindUnloadListeners();
+      this._bindLifecycleListeners();
       this._emitStatus('connecting', { code: clean });
       this._startSignaling();
 
@@ -284,6 +328,7 @@
         global.removeEventListener('pagehide', this._boundUnload);
         this._unloadBound = false;
       }
+      this._unbindLifecycleListeners();
       this._emitStatus('closed', { code: this.code });
     }
 
@@ -312,6 +357,14 @@
       if (this._reconnectTimer) {
         global.clearTimeout(this._reconnectTimer);
         this._reconnectTimer = null;
+      }
+      if (this._peerReconnectTimer) {
+        global.clearTimeout(this._peerReconnectTimer);
+        this._peerReconnectTimer = null;
+      }
+      if (this._ntfyReconnectTimer) {
+        global.clearTimeout(this._ntfyReconnectTimer);
+        this._ntfyReconnectTimer = null;
       }
       for (const tid of this._ntfyTimers) {
         global.clearTimeout(tid);
@@ -448,6 +501,7 @@
 
     _setupPeerJsSocket() {
       if (this.closed || !this.code) return;
+      if (this._peerWs && (this._peerWs.readyState === WebSocket.OPEN || this._peerWs.readyState === WebSocket.CONNECTING)) return;
       try {
         const selfId =
           this.role === 'host'
@@ -494,16 +548,18 @@
 
         ws.onerror = () => {};
         ws.onclose = () => {
+          if (this._peerWs === ws) this._peerWs = null;
           this._peerWsOpen = false;
           if (this._peerHeartbeat) {
             global.clearInterval(this._peerHeartbeat);
             this._peerHeartbeat = null;
           }
-          if (!this.closed && (this._peerRetryCount || 0) < 4) {
-            const delay = Math.min(8000, 2000 * Math.pow(2, this._peerRetryCount || 0));
+          if (!this.closed && !this._peerReconnectTimer) {
+            const delay = Math.min(30000, 1500 * Math.pow(2, Math.min(this._peerRetryCount || 0, 5)));
             this._peerRetryCount = (this._peerRetryCount || 0) + 1;
-            global.setTimeout(() => {
-              if (!this.closed && !this._peerWsOpen) this._setupPeerJsSocket();
+            this._peerReconnectTimer = global.setTimeout(() => {
+              this._peerReconnectTimer = null;
+              if (!this.closed) this._setupPeerJsSocket();
             }, delay);
           }
         };
@@ -512,6 +568,7 @@
 
     _setupNtfySocket() {
       if (this.closed || !this.code) return;
+      if (this._ntfyWs && (this._ntfyWs.readyState === WebSocket.OPEN || this._ntfyWs.readyState === WebSocket.CONNECTING)) return;
       try {
         this._ntfyTopic = 'np2p-' + this.namespace + '-' + this.code.toLowerCase();
         const wsUrl = 'wss://ntfy.sh/' + encodeURIComponent(this._ntfyTopic) + '/ws?since=15s';
@@ -534,11 +591,13 @@
 
         ws.onerror = () => {};
         ws.onclose = () => {
+          if (this._ntfyWs === ws) this._ntfyWs = null;
           const needMorePeers = this.role === 'host'
             ? this.getConnectedPeerIds().length < this.maxPeers
             : this.getConnectedPeerIds().length === 0;
-          if (!this.closed && needMorePeers) {
-            this._reconnectTimer = global.setTimeout(() => {
+          if (!this.closed && needMorePeers && !this._ntfyReconnectTimer) {
+            this._ntfyReconnectTimer = global.setTimeout(() => {
+              this._ntfyReconnectTimer = null;
               if (!this.closed) this._setupNtfySocket();
             }, 2500);
           }
